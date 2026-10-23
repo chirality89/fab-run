@@ -3,14 +3,14 @@
 ## Current: M0 — Move in
 
 ### Task: confirm the kit works and settle the M1 decisions
-- [ ] GitHub Pages on; placeholder loads on desktop and phone (David turns on Pages; local check passed, see notes)
+- [x] GitHub Pages on; placeholder loads on desktop and phone
 - [x] `npm test` passes
 - [x] Decide D7, O2, O4, O5, O6 with David; move them to Settled in `docs/decisions.md` (O8 settled too)
 
 **Progress notes:**
 - 23 Oct 2026: `npm test` 7/7 pass. Served locally (`python3 -m http.server 8000`) and loaded in headless Chromium at 1280×800 and 375×812: 9 room tiles, counts 10/5/4/4/9, no console errors or warnings, no horizontal scroll at 375 px.
 - 23 Oct 2026: David settled D7 = B (plain ES modules), O2 = A (time per room; cash for procurement only), O4 as proposed, O5 = A (inlaid Cu line), O6 = A (hand of 5), O8 = keep "Fab Run". CLAUDE.md §4 already matches D7, so no change there.
-- Still open: live Pages check at https://chirality89.github.io/fab-run/ once Pages is on.
+- 23 Oct 2026: David confirmed the live page at https://chirality89.github.io/fab-run/ looks right. M0 complete.
 
 **Acceptance criteria:**
 - The live page shows the title, the room key and the content counts, with no console errors

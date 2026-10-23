@@ -2,10 +2,10 @@
 
 Work top to bottom, one checkbox per session. Plan in `tasks/todo.md` first (see `PROJECT.md`). Tick the box here when done. Before starting a milestone, settle the `docs/decisions.md` items it depends on.
 
-Current milestone: **M0 — Move in**
+Current milestone: **M1 — Engine core, no screen**
 
 ## M0 — Move in
-- [ ] Turn on GitHub Pages (Settings → Pages → Deploy from a branch → `main` / root); confirm the placeholder page loads at `https://chirality89.github.io/fab-run/` on desktop and phone
+- [x] Turn on GitHub Pages (Settings → Pages → Deploy from a branch → `main` / root); confirm the placeholder page loads at `https://chirality89.github.io/fab-run/` on desktop and phone
 - [x] `npm test` passes (content cross-references)
 - [x] Settle D7 (tech stack) and O8 (name) from `docs/decisions.md`; update CLAUDE.md §4 if anything changes
 
