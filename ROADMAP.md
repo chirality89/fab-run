@@ -6,8 +6,8 @@ Current milestone: **M0 — Move in**
 
 ## M0 — Move in
 - [ ] Turn on GitHub Pages (Settings → Pages → Deploy from a branch → `main` / root); confirm the placeholder page loads at `https://chirality89.github.io/fab-run/` on desktop and phone
-- [ ] `npm test` passes (content cross-references)
-- [ ] Settle D7 (tech stack) and O8 (name) from `docs/decisions.md`; update CLAUDE.md §4 if anything changes
+- [x] `npm test` passes (content cross-references)
+- [x] Settle D7 (tech stack) and O8 (name) from `docs/decisions.md`; update CLAUDE.md §4 if anything changes
 
 ## M1 — Engine core, no screen (needs O2, O4, O6)
 - [ ] `src/engine/rng.js`: port mulberry32 from FabSim2; seed in state; tests that the same seed gives the same sequence
