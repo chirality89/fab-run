@@ -1,0 +1,95 @@
+/* tokens.css — Fab Run colors, type and room key (v0)
+   Every color in the UI comes from here. No hard-coded colors elsewhere.
+   Contrast checked: ink on every room fill is 6.7:1 or better; text colors
+   are 4.5:1 or better on both --bg and --surface. Room fills are BACKGROUNDS
+   behind --ink text, never text colors themselves. */
+
+:root {
+  color-scheme: light dark;
+
+  /* Ground: cleanroom white and cool blue */
+  --bg:       #F3F6F9;
+  --surface:  #FFFFFF;
+  --ink:      #14202B;
+  --muted:    #4F5D6B;
+  --line:     #D3DCE5;
+  --blue:     #1F5FBF;   /* primary actions; white text on it is 6.1:1 */
+  --on-blue:  #FFFFFF;
+
+  /* Signals (text-safe) */
+  --ok:   #1B7F4E;
+  --warn: #A15C00;
+  --bad:  #C8362D;
+
+  /* Room key: one bright fill per process area.
+     Rooms with similar lightness (clean, etch, metro) are also told apart by
+     icon and label, never by color alone. */
+  --room-clean:   #5FD3E0;  /* wet clean: cyan */
+  --room-litho:   #FFC933;  /* litho: the yellow room */
+  --room-etch:    #6FA8F5;  /* etch: plasma blue */
+  --room-dep:     #DDE4EC;  /* deposition: white-silver */
+  --room-diff:    #FF9A4D;  /* diffusion furnaces: orange */
+  --room-implant: #B79CF7;  /* implant: violet */
+  --room-plate:   #E09A63;  /* plating: copper */
+  --room-cmp:     #B7C2CC;  /* CMP: grey */
+  --room-metro:   #8ED6A8;  /* metrology: mint */
+
+  /* Materials, for cross-section and wafer views (from the Cross Section art direction) */
+  --mat-si:      #8E989D;
+  --mat-oxide:   #D6E0E4;
+  --mat-nitride: #9DB38A;
+  --mat-resist:  #F2B000;
+  --mat-barrier: #3E474C;
+  --mat-seed:    #E3A472;
+  --mat-cu:      #B8733A;
+  --mat-solder:  #CFCAB8;
+  --mat-polymer: #A68BC4;
+  --mat-nb:      #5F86B0;
+  --mat-void:    #EE6B60;   /* drawn as a dashed outline, never a fill */
+  --view-dark:   #161B1D;   /* the microscope window behind cross-sections */
+
+  /* Wafer map */
+  --die-pass: #CFE3D6;
+  --die-pass-edge: #1B7F4E;
+  --die-fail: #C8362D;
+  --die-fail-edge: #8E241D;
+
+  /* Type */
+  --sans: 'Barlow', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  --cond: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
+
+  /* Shape */
+  --radius: 10px;
+  --radius-small: 6px;
+  --touch: 44px;
+}
+
+/* Night shift: follows the system setting unless the page forces light */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0F1720; --surface: #17212C; --ink: #E6EDF3; --muted: #9AA8B6; --line: #2A3744;
+    --blue: #6FA8F5; --on-blue: #0F1720;
+    --ok: #5CC48F; --warn: #F0B44C; --bad: #F27466;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0F1720; --surface: #17212C; --ink: #E6EDF3; --muted: #9AA8B6; --line: #2A3744;
+  --blue: #6FA8F5; --on-blue: #0F1720;
+  --ok: #5CC48F; --warn: #F0B44C; --bad: #F27466;
+}
+
+/* Text on a room fill is always dark, in both themes */
+.on-room { color: #14202B; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 400 16px/1.45 var(--sans);
+  font-variant-numeric: tabular-nums;
+}
+h1, h2, h3 { font-family: var(--cond); font-weight: 600; margin: 0; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}

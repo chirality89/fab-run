@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fab Run</title>
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="src/theme/tokens.css">
+<style>
+  /* Placeholder page only. The real UI arrives in M2 under src/ui/. */
+  main { max-width: 880px; margin: 0 auto; padding: 32px 16px 48px; }
+  h1 { font-size: 48px; line-height: 1; letter-spacing: 0.02em; }
+  .tagline { color: var(--muted); margin: 8px 0 28px; font-size: 18px; }
+  h2 { font-size: 20px; letter-spacing: 0.06em; margin: 28px 0 10px; }
+  .rooms { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+  .room { border-radius: var(--radius-small); padding: 12px; font: 600 17px/1.2 var(--cond); letter-spacing: 0.03em; }
+  .counts { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+  .count { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-small); padding: 12px; }
+  .count b { display: block; font: 600 32px/1 var(--cond); }
+  .count span { color: var(--muted); font-size: 14px; }
+  .note { color: var(--muted); font-size: 14px; margin-top: 28px; }
+  .error { color: var(--bad); }
+</style>
+</head>
+<body>
+<main>
+  <h1>FAB RUN</h1>
+  <p class="tagline">One lot, one run. Wafer yield is your health bar.</p>
+
+  <h2>THE ROOMS</h2>
+  <div class="rooms" id="rooms"></div>
+
+  <h2>CONTENT SO FAR</h2>
+  <div class="counts" id="counts"></div>
+
+  <p class="note">Starter kit. The game is being built milestone by milestone. All process content is textbook-level and fictional.</p>
+</main>
+<script type="module">
+  // Proves the content module and the room colors load in the browser.
+  import { ROOMS, PRACTICES, EQUIPMENT, MATERIALS, CONSUMABLES, FAILURE_MODES } from './src/content/content.js';
+
+  const roomsBox = document.getElementById('rooms');
+  for (const [id, room] of Object.entries(ROOMS)) {
+    const tile = document.createElement('div');
+    tile.className = 'room on-room';
+    tile.style.background = `var(--room-${id})`;
+    tile.textContent = room.name;
+    roomsBox.append(tile);
+  }
+
+  const countsBox = document.getElementById('counts');
+  const counts = [
+    ['Practices', PRACTICES.length],
+    ['Equipment', EQUIPMENT.length],
+    ['Materials', MATERIALS.length],
+    ['Consumables', CONSUMABLES.length],
+    ['Failure modes', FAILURE_MODES.length],
+  ];
+  for (const [label, n] of counts) {
+    const box = document.createElement('div');
+    box.className = 'count';
+    const number = document.createElement('b');
+    number.textContent = n;
+    const text = document.createElement('span');
+    text.textContent = label;
+    box.append(number, text);
+    countsBox.append(box);
+  }
+</script>
+</body>
+</html>
