@@ -35,7 +35,21 @@ The first real screen. Opening the site starts a seeded run (`?seed=123456`, or 
 - I check desktop and 375 px phone views by eye with a throwaway screenshot from the pre-installed browser (not committed; Playwright proper is M2 item 3).
 - `code-explainer` reviews readability and CLAUDE.md §10 (tokens only, contrast, 44 px targets).
 
-### Questions for David
+### David's answers (24 Oct 2026)
+- **Wafer map: bands and a number.** Each tile shows its % in text.
+  - 90% or above: pass (pale green, dark green edge).
+  - 70% to under 90%: warning (amber, dotted).
+  - Below 70%: fail (red with a slash).
+  - Pattern and lightness differ too, so color never carries the meaning alone. The 70% matches CUSTOMER_SPEC; the 90% band edge goes in `balance.js` as `SITE_GOOD_LINE`.
+- **Screen run: starter deck, no tools.** The etch hand is timed over-etch only, and the etch slots show "empty".
+- **Telegraph: expected loss only.** One line: "This room will cost about 22.9 points of yield if nothing changes." `view.js` works it out by realizing this step's patterns on a copy of the lot with no scatter. Hand check at etch, idle:
+  - center e^(−0.09−0.16);
+  - inner e^(−0.09−0.21);
+  - outer e^(−0.09−0.338125);
+  - average 0.685321, against 0.913931 now, a cost of **22.9 points**. Confirmed against the engine (0.2286102).
+- Added test: the expected-loss line reads 22.9 at etch for seed 123456, idle, scatter off.
+
+### Questions for David (answered)
 1. Wafer map: our sites hold "fraction of the 25 wafers still good at this die position". How should one site look?
 2. Which deck and equipment should the screen run use?
 3. Should the room show what is about to bite (the pending risks)?
