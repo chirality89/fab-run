@@ -14,6 +14,7 @@
 
 import { PATTERNS } from '../content/content.js';
 import { gauss } from './rng.js';
+import { SHAPED_SCATTER_FRACTION } from '../content/balance.js';
 
 const GRID = 5;                    // 5 × 5 sites
 const SITE_COUNT = GRID * GRID;    // 25
@@ -117,8 +118,7 @@ export function realizeRisks(lot, patterns, scatter = null) {
 // Rolls the per-site nudges for each pattern: max(0, 1 + s × bell-curve).
 // Even patterns get the full strength s, so particles look like random dots;
 // shaped patterns get a quarter, so the ring or gradient stays recognizable.
-// The 0.25 is a placeholder until balance.js exists (M1 item 4).
-const SHAPED_SCATTER_FRACTION = 0.25;
+// The fraction (SHAPED_SCATTER_FRACTION) lives in balance.js.
 
 export function rollScatter(rngState, patterns, strength) {
   if (!Number.isFinite(strength) || strength < 0) {

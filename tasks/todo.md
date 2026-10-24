@@ -1,8 +1,12 @@
 # Fab Run — Task Tracker
 
-## Current: M1 item 4 — balance numbers (`src/content/balance.js`)
+## Current: M1 item 5 — `src/content/lotTypes.js`, the inlaid Cu line route (not planned yet)
 
-**Status: plan, waiting for David's OK. No code written yet.**
+---
+
+## Done: M1 item 4 — balance numbers (`src/content/balance.js`)
+
+**Status: done 24 Oct 2026.** `npm test` 55/55 (4 new balance tests). No behavior change: lot.js now reads the same 0.25 from balance.js.
 
 **David's answers (24 Oct 2026):** cash 1500; scrap line 40%, spec 70%; time budgets as in the table.
 
@@ -34,9 +38,9 @@ One file that holds every tuning number, so balancing never means hunting throug
 | Metrology | 20 | measure all 25 sites 20 | spend the whole visit measuring, or don't |
 
 ### Changes
-- [ ] `src/content/balance.js` with the numbers above, each with a one-line comment
-- [ ] `lot.js` reads `SHAPED_SCATTER_FRACTION` from balance.js instead of its own constant (a 2-line change; no behavior change, since the value stays 0.25)
-- [ ] `tests/balance.test.js`: every number is finite and in range; `SCRAP_LINE < CUSTOMER_SPEC < 1`; every room in `ROOMS` has a time budget; every practice's time cost fits inside its room's budget (so no card can never be played)
+- [x] `src/content/balance.js` with the numbers above, each with a one-line comment
+- [x] `lot.js` reads `SHAPED_SCATTER_FRACTION` from balance.js instead of its own constant (a 2-line change; no behavior change, since the value stays 0.25)
+- [x] `tests/balance.test.js`: every number is finite and in range; `SCRAP_LINE < CUSTOMER_SPEC < 1`; every room in `ROOMS` has a time budget; every practice's time cost fits inside its room's budget (so no card can never be played)
 
 ### Acceptance criteria
 - `npm test` passes; no other behavior changes.
