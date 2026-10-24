@@ -65,3 +65,15 @@ Input checks guard each argument, but overflow happens in the arithmetic after t
 ### Rule to Prevent
 ✅ Engine functions that store a number check the stored *result* with `Number.isFinite`, not just the inputs
 ✅ When writing an overflow test, confirm the input really overflows (1e300 + 1.7e308 is still finite; `Number.MAX_VALUE` twice is not)
+
+## Wrote expected values before the calculation returned
+
+### What Happened
+While planning lotTypes.js, the do-nothing yield was written into `tasks/todo.md` in the same step as the script that computed it. Two digits were guessed and came out wrong (0.518320 instead of 0.517954).
+
+### Root Cause
+The expected values were typed from mental arithmetic and not copied from the computed output.
+
+### Rule to Prevent
+✅ Compute expected values first, then copy them from the output in a separate step
+✅ Engine tests use these values, so a wrong one in the plan becomes a wrong test
