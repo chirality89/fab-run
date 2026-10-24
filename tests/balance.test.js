@@ -10,7 +10,7 @@ import assert from 'node:assert/strict';
 import { ROOMS, PRACTICES } from '../src/content/content.js';
 import {
   STARTING_CASH, HAND_SIZE, SCRAP_LINE, CUSTOMER_SPEC,
-  SCATTER_STRENGTH, SHAPED_SCATTER_FRACTION, TIME_BUDGETS,
+  SCATTER_STRENGTH, SHAPED_SCATTER_FRACTION, TIME_BUDGETS, SITE_GOOD_LINE,
 } from '../src/content/balance.js';
 
 test('every number is finite and in range', () => {
@@ -22,6 +22,10 @@ test('every number is finite and in range', () => {
 
 test('scrap line < customer spec < 1', () => {
   assert.ok(SCRAP_LINE > 0 && SCRAP_LINE < CUSTOMER_SPEC && CUSTOMER_SPEC < 1);
+});
+
+test('site good line sits between the customer spec and 1', () => {
+  assert.ok(CUSTOMER_SPEC < SITE_GOOD_LINE && SITE_GOOD_LINE < 1);
 });
 
 test('every room has a time budget, and only real rooms do', () => {

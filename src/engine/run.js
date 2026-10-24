@@ -170,8 +170,9 @@ export function enterStep(state) {
   return addLog(next, `Step ${state.stepIndex + 1} ${step.label}: ${budget} min, hand ${next.hand.join(', ') || '(none)'}`);
 }
 
-// Why a card can't be played right now, or null if it can.
-function whyIllegal(state, cardId) {
+// Why a card can't be played right now, or null if it can. Exported so the
+// screen can say why a card is greyed out (src/ui/view.js).
+export function whyIllegal(state, cardId) {
   if (!state.hand.includes(cardId)) return 'not in hand';
   const card = findCard(cardId);
   if (card.room !== state.room.id) return `belongs in ${card.room}, not ${state.room.id}`;

@@ -18,6 +18,12 @@ export const SCRAP_LINE = 0.40;
 // Below: rejected (decision O4).
 export const CUSTOMER_SPEC = 0.70;
 
+// Wafer map bands for one site (the fraction of the 25 wafers still good at
+// that die position). At or above this line the site shows as pass; below it
+// as a warning. The warning/fail edge reuses CUSTOMER_SPEC. Agreed with David,
+// 24 Oct 2026.
+export const SITE_GOOD_LINE = 0.90;
+
 // Site-to-site scatter for evenly spread patterns (see lot.js rollScatter).
 export const SCATTER_STRENGTH = 0.5;
 

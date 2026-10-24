@@ -1,0 +1,188 @@
+/* room.css — layout of the room screen. Colors come only from tokens.css.
+   One column on a phone; from 900 px wide the wafer map sits beside the hand. */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+#app {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 16px 16px 40px;
+}
+
+/* --- Top bar: the room name on its room color, dark text ------------------ */
+.room-band {
+  background: var(--room-color);
+  color: var(--on-fill);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  margin-bottom: 12px;
+}
+.room-clean   { --room-color: var(--room-clean); }
+.room-litho   { --room-color: var(--room-litho); }
+.room-etch    { --room-color: var(--room-etch); }
+.room-dep     { --room-color: var(--room-dep); }
+.room-diff    { --room-color: var(--room-diff); }
+.room-implant { --room-color: var(--room-implant); }
+.room-plate   { --room-color: var(--room-plate); }
+.room-cmp     { --room-color: var(--room-cmp); }
+.room-metro   { --room-color: var(--room-metro); }
+
+.room-name { font-size: 34px; line-height: 1.05; letter-spacing: 0.03em; text-transform: uppercase; }
+.room-step { margin: 2px 0 6px; font-weight: 500; }
+.room-facts { margin: 0; display: flex; flex-wrap: wrap; gap: 4px 20px; }
+.seed { font-family: var(--mono); font-size: 15px; }
+.cash { font-family: var(--cond); font-weight: 600; font-size: 18px; }
+
+/* --- Panels -------------------------------------------------------------- */
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  margin-bottom: 12px;
+  min-width: 0;            /* lets a grid column shrink instead of overflowing */
+}
+.panel-title {
+  font-size: 15px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+/* --- Yield bar: number always shown, marks at the scrap line and the spec - */
+.yield-number { margin: 0 0 6px; font: 600 40px/1 var(--cond); }
+.yield-bar {
+  position: relative;
+  height: 20px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-small);
+  margin-bottom: 30px;     /* room for the mark labels underneath */
+}
+.yield-fill { height: 100%; border-radius: var(--radius-small) 0 0 var(--radius-small); }
+.yield-ok   { background: var(--ok); }
+.yield-warn { background: var(--warn); }
+.yield-bad  { background: var(--bad); }
+.bar-mark {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  width: 2px;
+  margin-left: -1px;       /* centers the 2 px line on its percent */
+  background: var(--ink);
+}
+.bar-mark-label {
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 13px;
+  color: var(--muted);
+}
+.expected-loss { margin: 0; font-weight: 500; }
+
+/* --- Wafer map: 5 × 5 square tiles ---------------------------------------- */
+.wafer-map {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  max-width: 360px;
+  margin: 0 auto;
+}
+.site {
+  position: relative;
+  overflow: hidden;        /* keeps the fail slash inside the tile */
+  aspect-ratio: 1;
+  min-height: var(--touch);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-small);
+  color: var(--on-fill);
+  font: 600 18px/1 var(--cond);
+}
+.site-number { position: relative; z-index: 1; }   /* above the slash */
+
+/* Pass: pale green, solid dark green edge */
+.site-pass { background: var(--die-pass); border: 2px solid var(--die-pass-edge); }
+
+/* Warning: pale amber, dotted amber edge (pattern differs, not just color) */
+.site-warn { background: var(--die-warn); border: 3px dotted var(--die-warn-edge); }
+
+/* Fail: red with a diagonal slash, white text (5.2:1) */
+.site-fail { background: var(--die-fail); border: 2px solid var(--die-fail-edge); color: var(--on-die-fail); }
+.site-fail::before {
+  content: '';
+  position: absolute;
+  top: -25%;
+  left: calc(50% - 2px);
+  width: 4px;
+  height: 150%;
+  background: var(--die-fail-edge);
+  transform: rotate(45deg);
+}
+.map-key { margin: 10px 0 0; font-size: 14px; color: var(--muted); }
+
+/* --- Meters: time budget and tool health ---------------------------------- */
+.meter-text { margin: 0 0 6px; font: 600 20px/1.1 var(--cond); }
+.meter-bar {
+  height: 12px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-small);
+  overflow: hidden;
+}
+.meter-fill { height: 100%; background: var(--blue); }
+
+/* --- Slots ---------------------------------------------------------------- */
+.slot-empty { margin: 0; color: var(--muted); font-style: italic; }
+.slot-list { margin: 0; padding-left: 20px; }
+
+/* --- Hand: cards (drawn only; not clickable yet) -------------------------- */
+.hand { display: grid; gap: 10px; }
+.card {
+  min-height: var(--touch);
+  border: 2px solid var(--blue);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  background: var(--surface);
+}
+.card-unplayable { border: 2px dashed var(--line); background: var(--bg); }
+.card-top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 12px; }
+.card-name { font-size: 20px; line-height: 1.15; }
+.card-cost { font-family: var(--mono); font-size: 14px; color: var(--muted); }
+.card-summary { margin: 4px 0 0; font-size: 15px; color: var(--muted); }
+.card-reason { margin: 6px 0 0; font-size: 15px; font-weight: 600; color: var(--bad); }
+
+/* --- Error box ------------------------------------------------------------ */
+.error-box {
+  background: var(--surface);
+  border: 2px solid var(--bad);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+.error-title { color: var(--bad); margin-bottom: 8px; }
+.error-text { margin: 0; white-space: pre-wrap; word-break: break-word; font: 13px/1.4 var(--mono); }
+
+/* --- Wide screens: wafer map (and meters) on the left, hand on the right -- */
+@media (min-width: 900px) {
+  .room-body {
+    display: grid;
+    grid-template-columns: minmax(320px, 420px) 1fr;
+    grid-template-areas:
+      "map   hand"
+      "time  hand"
+      "slots hand"
+      "tool  hand";
+    grid-template-rows: auto auto auto 1fr;
+    column-gap: 12px;
+    align-items: start;
+  }
+  .map-panel   { grid-area: map; }
+  .time-panel  { grid-area: time; }
+  .slots-panel { grid-area: slots; }
+  .tool-panel  { grid-area: tool; }
+  .hand-panel  { grid-area: hand; }
+}
