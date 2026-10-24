@@ -1,6 +1,6 @@
 # CLAUDE.md — Fab Run
 
-Read this file, then `PROJECT.md` (workflow), `tasks/lessons.md` (rules from past bugs) and `ROADMAP.md` (what's next), at the start of every session. `DESIGN.md` is the game itself. If anything here conflicts with a request, stop and ask David.
+This file holds the rules. `PROJECT.md` is the session routine: follow it from step 1 every session. `DESIGN.md` is the game itself. If anything here conflicts with a request, stop and ask David.
 
 ## 0. Where the project is
 
@@ -27,10 +27,10 @@ David is a semiconductor fab and packaging engineer (deep domain expert) and a *
 - **Defer to David on process physics and fab realism.** Push back (politely, with reasons) on code quality, structure and bugs.
 - When unsure what David means, ask one clear question instead of guessing on a big change.
 
-## 3. How we work (extends `PROJECT.md`)
+## 3. How we work (steps in `PROJECT.md`)
 
-- **Plan first.** Enter plan mode, write the plan to `tasks/todo.md` with acceptance criteria, and wait for David's OK before editing code.
-- **One `ROADMAP.md` item per session.** Tick it when done.
+- **Plan first.** No code edits until David OKs a plan in `tasks/todo.md`.
+- **One `ROADMAP.md` item per session.**
 - After any bug or correction, add a rule to `tasks/lessons.md` (what happened → root cause → rule).
 - Commit after each working step with a plain-English message. Never commit with failing tests unless David says so.
 - Ask before refactoring more than ~100 lines or touching more than one folder of `src/` at once.
