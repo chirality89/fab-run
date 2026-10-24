@@ -77,3 +77,8 @@ The expected values were typed from mental arithmetic and not copied from the co
 ### Rule to Prevent
 ✅ Compute expected values first, then copy them from the output in a separate step
 ✅ Engine tests use these values, so a wrong one in the plan becomes a wrong test
+
+## Read the sign convention from the code, not from memory (M1 bot, 24 Oct 2026)
+- What happened: the bot plan said the i-line resist's `timeCost: -5` made litho 25 minutes. The engine (and the balance table) treat a negative cost as minutes given back, so litho is 35 and idle cycle time is 133, not 123. The test caught it.
+- Root cause: I hand-computed from what "−5" looked like instead of reading `resolve.js` timeCost.
+- Rule: before writing an expected value that goes through an effect op, read that op's code and its comment for the sign.

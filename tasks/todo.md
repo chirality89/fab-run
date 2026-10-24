@@ -22,7 +22,7 @@ A program that plays the Cu line from start to finish with no screen, using a fi
 - `npm run bot -- --seed 123456 --policy random` prints seed, status, final yield, cash, minutes played, cycle time and the cards played.
 
 ### Tests (`tests/run.test.js`, `tests/bot.test.js`)
-- Idle bot with scatter off: yield **0.517954** (same hand value as lotTypes; cuLine is not `tightCD`, so the resist leaves cd_error alone), status `rejected`, cash 1500 (resist loaded free), minutes played 0, cycle time 10+15+25+8+10+15+10+10+20 = **123** (litho 30 − 5 for the i-line resist).
+- Idle bot with scatter off: yield **0.517954** (same hand value as lotTypes; cuLine is not `tightCD`, so the resist leaves cd_error alone), status `rejected`, cash 1500 (resist loaded free), minutes played 0, cycle time 10+15+35+8+10+15+10+10+20 = **133** (litho 30 + 5: timeCost −5 gives minutes back; first written as 123 by mistake, corrected with David's OK).
 - An illegal card (wrong room, too expensive, `when` not met, e.g. `endpointEtch` without the detector) is refused.
 - Playing `timedOveretch` in etch costs 4 minutes and scales residue as resolve.js does.
 - Scrap: a run that drops below 0.40 mid-route stops there with status `scrapped`.
@@ -345,3 +345,4 @@ Content in `src/content/content.js` that needs engine behavior beyond the eight 
 - `limit: { perLayer: 1 }`: strip and re-expose once per layer
 - `shelfLife`: counts rooms visited; at 0 the material stops helping
 - Dead cards: a practice whose target pattern was already realized earlier on the route (e.g. `etchStopLayer` at the second dep visit) should be greyed out or hidden
+- Tool wear: tool health stays at 100 in run.js; no rule yet for how much a room wears its tool
