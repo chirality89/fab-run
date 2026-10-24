@@ -41,3 +41,15 @@ The Playwright device preset name didn't exist in that version. The lookup retur
 ### Rule to Prevent
 ✅ Give phone screenshots an explicit size: `viewport: {width: 375, height: 812}, isMobile: true, hasTouch: true`
 ✅ Check every screenshot's pixel size before judging it
+
+## Repo check tripped on its own warning comment
+
+### What Happened
+The new "no `Math.random` in `src/`" test failed on the first run. The only match was the comment in `rng.js` that says never to use it.
+
+### Root Cause
+The check searched the whole file text, comments included, so a warning about the rule looked like breaking it.
+
+### Rule to Prevent
+✅ Text-search checks over source code skip comment lines (`codeOnly()` in `tests/rng.test.js`)
+✅ After loosening a check, prove it still fails on a real violation before trusting it
