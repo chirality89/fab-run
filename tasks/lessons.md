@@ -53,3 +53,15 @@ The check searched the whole file text, comments included, so a warning about th
 ### Rule to Prevent
 ✅ Text-search checks over source code skip comment lines (`codeOnly()` in `tests/rng.test.js`)
 ✅ After loosening a check, prove it still fails on a real violation before trusting it
+
+## Finite inputs can still make an infinite risk (lot.js review)
+
+### What Happened
+`physics-reviewer` found that `scaleRisk` checked its multiplier but not the result. A huge finite multiplier could push a risk to Infinity, and Infinity × a site weight of 0 (edge ring, center site) gives NaN on the wafer map.
+
+### Root Cause
+Input checks guard each argument, but overflow happens in the arithmetic after the checks.
+
+### Rule to Prevent
+✅ Engine functions that store a number check the stored *result* with `Number.isFinite`, not just the inputs
+✅ When writing an overflow test, confirm the input really overflows (1e300 + 1.7e308 is still finite; `Number.MAX_VALUE` twice is not)

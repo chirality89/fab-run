@@ -1,8 +1,12 @@
 # Fab Run — Task Tracker
 
-## Current: M1 item 2 — lot state and yield math (`src/engine/lot.js`)
+## Current: M1 item 3 — `src/engine/resolve.js` (not planned yet)
 
-**Status: built, awaiting physics review.**
+---
+
+## Done: M1 item 2 — lot state and yield math (`src/engine/lot.js`)
+
+**Status: done 24 Oct 2026.** `npm test` 35/35. physics-reviewer: no blocking issues; its overflow finding (risk → Infinity → NaN) fixed with a check on the stored result, plus tests. Its two map-shape suggestions are below for David.
 
 **David's answers (24 Oct 2026):** risk is carried by the lot and realized in a named room; Poisson loss e^(−r × weight); 5×5 map and shape table as proposed; seeded scatter from the start.
 
@@ -54,6 +58,10 @@ Note: with a shaped pattern, the lot loses a bit *less* than e^(−r) (0.858 vs 
 - `npm test` passes, with a new `tests/lot.test.js` containing the values above once David confirms them.
 - `lot.js` is pure (no DOM, no `Math.random`), under ~150 lines, and readable.
 - A `physics-reviewer` pass on the yield model before calling it done.
+
+### For David (from physics-reviewer, not blocking)
+- Ten of twelve patterns are "even". Dishing is really a pattern-density effect, and CMP non-uniformity is often center-to-edge. Those failures will be diagnosed from SPC, metrology and the cross-section rather than the map. Fine for now.
+- On a 5×5 map with high scatter, center-to-edge (0 / 0.625 / 1.25) can look like a mild edge ring. A small nonzero center weight would make them easier to tell apart.
 
 ---
 

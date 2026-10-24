@@ -66,7 +66,7 @@ export function addRisk(lot, pattern, amount) {
     throw new Error(`addRisk: amount must be 0 or more, got ${amount} for ${pattern}`);
   }
   const current = lot.risks[pattern] ?? 0;
-  return { ...lot, risks: { ...lot.risks, [pattern]: current + amount } };
+  return withRisk(lot, pattern, current + amount, 'addRisk');
 }
 
 // Multiplies a pattern's risk (what the defectMult effect will call).
@@ -77,7 +77,16 @@ export function scaleRisk(lot, pattern, mult) {
     throw new Error(`scaleRisk: mult must be 0 or more, got ${mult} for ${pattern}`);
   }
   const current = lot.risks[pattern] ?? 0;
-  return { ...lot, risks: { ...lot.risks, [pattern]: current * mult } };
+  return withRisk(lot, pattern, current * mult, 'scaleRisk');
+}
+
+// Stores a new risk value. A huge input can still overflow to Infinity, and
+// Infinity × a weight of 0 gives NaN on the map, so that is refused here.
+function withRisk(lot, pattern, risk, caller) {
+  if (!Number.isFinite(risk)) {
+    throw new Error(`${caller}: risk for ${pattern} became ${risk}`);
+  }
+  return { ...lot, risks: { ...lot.risks, [pattern]: risk } };
 }
 
 // The 25 site weights for a pattern, from the shape table.
@@ -112,6 +121,9 @@ export function realizeRisks(lot, patterns, scatter = null) {
 const SHAPED_SCATTER_FRACTION = 0.25;
 
 export function rollScatter(rngState, patterns, strength) {
+  if (!Number.isFinite(strength) || strength < 0) {
+    throw new Error(`rollScatter: strength must be 0 or more, got ${strength}`);
+  }
   let state = rngState;
   const value = {};
   for (const pattern of patterns) {

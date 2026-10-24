@@ -69,6 +69,18 @@ test('no healing: negative risk or negative multiplier is refused', () => {
   assert.throws(() => scaleRisk(createLot(), 'particles', NaN));
 });
 
+test('risk that overflows to Infinity is refused (it would make NaN on the map)', () => {
+  const lot = addRisk(createLot(), 'edge_ring', 1e300);
+  assert.throws(() => scaleRisk(lot, 'edge_ring', 1e300));
+  const maxed = addRisk(createLot(), 'edge_ring', Number.MAX_VALUE);
+  assert.throws(() => addRisk(maxed, 'edge_ring', Number.MAX_VALUE));
+});
+
+test('scatter strength must be a number 0 or more', () => {
+  assert.throws(() => rollScatter(1, ['particles'], NaN));
+  assert.throws(() => rollScatter(1, ['particles'], -0.5));
+});
+
 test('unknown pattern names throw an error naming the pattern', () => {
   assert.throws(() => addRisk(createLot(), 'gremlins', 0.1), /gremlins/);
   assert.throws(() => siteWeights('gremlins'), /gremlins/);

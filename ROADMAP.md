@@ -11,7 +11,7 @@ Current milestone: **M1 — Engine core, no screen**
 
 ## M1 — Engine core, no screen (needs O2, O4, O6)
 - [x] `src/engine/rng.js`: port mulberry32 from FabSim2; seed in state; tests that the same seed gives the same sequence
-- [ ] `src/engine/lot.js`: lot state, defect patterns, yield math (losses multiply, no healing); tests with hand-computed values from David
+- [x] `src/engine/lot.js`: lot state, defect patterns, yield math (losses multiply, no healing); tests with hand-computed values from David
 - [ ] `src/engine/resolve.js`: the eight effect operations from `content.js`, including `when` conditions; one test per operation
 - [ ] `src/content/balance.js`: starting cash, time budgets, scrap line, spec, hand size
 - [ ] `src/content/lotTypes.js`: the inlaid Cu line route from DESIGN.md §11
