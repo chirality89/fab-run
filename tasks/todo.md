@@ -1,6 +1,51 @@
 # Fab Run — Task Tracker
 
-## Current: M1 item 5 — `src/content/lotTypes.js`, the inlaid Cu line route (not planned yet)
+## Current: M1 item 5 — the inlaid Cu line route (`src/content/lotTypes.js`)
+
+**Status: plan, waiting for David's answers and OK. No code written yet.**
+
+### What it is, in plain words
+A lot type is data: the route (rooms in order), what risk each step adds, and which step makes each risk bite. It is the missing link between `lot.js` (risk → yield) and the cards (which scale risk). Data only, `draft: true`, with a `physicsNote`.
+
+### Proposed shape
+```js
+export const LOT_TYPES = {
+  cuLine: {
+    id: 'cuLine', draft: true, name: 'Inlaid Cu line',
+    traits: ['narrowFeatures'],                  // for when: { lot }
+    startRisks: { depth_variation: 0.08, dishing: 0.08 },   // latent from the start
+    route: [
+      { room: 'clean', label: 'Clean', adds: { particles: 0.01 }, realizes: ['particles'] },
+      ...
+    ],
+    physicsNote: '...',
+  },
+};
+```
+On entering a step: add its risks, then equipment and material effects, then cards. On resolving: realize its patterns.
+
+### Proposed route (DESIGN.md §11): where each risk enters and where it bites
+| # | Room | Adds on entry | Realizes (bites) | Why it bites here |
+|---|---|---|---|---|
+| start | | depth_variation 0.08, dishing 0.08 | | Latent: set by the stack and layout before any step. Etch stop (dep) and dummy fill (litho) scale them early |
+| 1 | Wet clean | particles 0.01 | particles | |
+| 2 | Deposition (SiN + oxide) | particles 0.01 | particles | Pre-clean scales the particles about to be buried |
+| 3 | Litho (trench) | particles 0.01, cd_error 0.06 | particles, cd_error | Rework is the only fix, and only here |
+| 4 | Etch (trench) | particles 0.01, residue 0.10, underlayer_attack 0.05, edge_ring 0.05 | particles, residue, underlayer_attack, edge_ring, depth_variation | The etch room's card choices |
+| 5 | Wet clean (post-etch) | particles 0.01, qtime_oxide 0.04 | particles | N2 storage scales the oxide that grows while the lot waits |
+| 6 | Deposition (barrier + seed) | particles 0.01 | particles, qtime_oxide | The oxide is trapped under the barrier |
+| 7 | Plating | particles 0.01, void 0.08 | particles, void | |
+| 8 | CMP | particles 0.01, rr_drift 0.04 | particles, dishing, rr_drift | |
+| 9 | Metrology | none | none | Measure, then ship against the spec |
+
+Total risk if you play nothing: 0.66, so yield is about e^(−0.66) ≈ **52%**. That's rejected (below the 70% spec) but not scrapped (above 40%). Good play should reach about 75–80%. These are placeholders for the M7 bot pass.
+
+### Changes
+- [ ] `src/content/lotTypes.js` with `cuLine` as above
+- [ ] `tests/lotTypes.test.js`: every room is in `ROOMS`; every pattern is in `PATTERNS`; every risk that enters is realized at the same or a later step (nothing dangles), and nothing is realized before it enters; traits are among the static `when: { lot }` traits used in content; and a hand-computed do-nothing yield, run through `lot.js` with scatter off
+
+### Acceptance criteria
+- `npm test` passes; `physics-reviewer` checks the route and the risk placement.
 
 ---
 
