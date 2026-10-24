@@ -17,12 +17,10 @@ Settled decisions first, then open ones. Each open decision has a proposed answe
 | S9 | Look | Highly stylized and bright, cleanroom palette: white, blue, yellow litho, a color per room |
 | S10 | Card art (Oct 24, 2026) | Split by card kind: microscope cross-section on practices, bay window on equipment, materials and consumables, tool schematic for the inspect view and notebook, toy diorama for map rooms. Details: `docs/card-art-plan.md` |
 | S11 | Tool color in art (Oct 24, 2026) | Tools are drawn in their room's color, litho tools included (yellow), as in the toy diorama style |
+| S12 | Tech stack, was D7 (Oct 24, 2026) | Plain JavaScript ES modules, no bundler, no framework, no build step, no runtime dependencies. Engine runs in Node for tests and bot runs. Layout in `CLAUDE.md` §4 |
+| S13 | Name, was O8 (Oct 24, 2026) | "Fab Run" |
 
 ## Open
-
-**D7 — Tech stack** (blocks M1)
-- A: One `index.html` like FabSim2. B: A few plain ES-module files, no bundler. C: React and Vite like FabForge.
-- **Proposed: B.** The engine runs in Node with no browser, so tests and a bot can replay runs. GitHub Pages hosting is unchanged. No dependencies.
 
 **O1 — What earns an unlock** (blocks M4)
 - A: Finishing a run with a lot type. B: Diagnosing a failure mode.
@@ -46,6 +44,3 @@ Settled decisions first, then open ones. Each open decision has a proposed answe
 **O6 — How cards reach your hand** (blocks M1)
 - A: Draw a hand of 5 from the room-legal cards in your deck. B: All room-legal cards visible, like a menu.
 - **Proposed: A.** A limited hand is where the chaos and the build identity come from.
-
-**O8 — Name** (M0)
-- "Fab Run" is a working title.

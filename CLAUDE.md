@@ -36,7 +36,7 @@ David is a semiconductor fab and packaging engineer (deep domain expert) and a *
 - Ask before refactoring more than ~100 lines or touching more than one folder of `src/` at once.
 - Use the agents in `.claude/agents/` (§12) only when their job is needed. No agents for small edits.
 
-## 4. Architecture (proposed; David confirms in M0 planning, see `docs/decisions.md` D7)
+## 4. Architecture (settled Oct 24, 2026, see `docs/decisions.md` S12)
 
 Plain JavaScript ES modules. **No bundler, no framework, no build step.** GitHub Pages serves the repo as it is.
 
