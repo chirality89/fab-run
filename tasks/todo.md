@@ -1,6 +1,57 @@
 # Fab Run — Task Tracker
 
-## Current: M1 item 2 — `src/engine/lot.js` (not planned yet)
+## Current: M1 item 2 — lot state and yield math (`src/engine/lot.js`)
+
+**Status: plan, waiting for David's answers and OK. No code written yet.**
+
+### What it is, in plain words
+The lot is the health bar. This file holds what the lot looks like (25 sites, the risks it carries) and the one rule that turns risk into lost yield. It doesn't play cards (that's `resolve.js`, item 3) or know the route (that's `lotTypes.js`, item 5); it gives them the tools.
+
+### Proposed model (each point is a question for David below)
+1. **Risk is carried by the lot and bites in a named room.** The lot has a risk number per defect pattern. Cards scale it (via `resolve.js`) in any room; the room where that pattern shows up *realizes* it: turns it into yield loss, then sets it back to 0. Example: dummy fill in litho scales `dishing`; CMP realizes `dishing`. Which room realizes which pattern, and the starting risks, come from `lotTypes.js` (item 5).
+2. **Risk = expected killer defects per die (Poisson, Y = e^(−D·A)).** Realizing risk *r* at a site multiplies that site's survival by e^(−r × weight). This is the textbook defect-limited yield model. It can never go below 0 and losses multiply by construction: e^(−a)·e^(−b) = e^(−(a+b)).
+3. **The wafer map is a 5×5 grid in three rings:** center (1 site), inner ring (8), outer ring (16). Each site's value is the fraction of the lot's 25 wafers whose die at that position is still good. **Lot yield = the average of the 25 sites.**
+4. **Each pattern has a shape**: a weight per site that averages 1, so a risk of 0.1 means the same amount of trouble whatever the shape, and only *where* it lands differs.
+
+   | Shape | Weights (center / inner / outer) | Patterns |
+   |---|---|---|
+   | Even | 1 / 1 / 1 | particles, residue, cd_error, dishing, rr_drift, void, qtime_oxide, implant_damage, junction_spread, underlayer_attack |
+   | Edge ring | 0 / 0 / 1.5625 | edge_ring |
+   | Center-to-edge | 0 / 0.625 / 1.25 (grows with distance from center) | depth_variation |
+
+5. **Scatter** (rule 4: randomness sets scatter, never the law). Optional: each site's weight is nudged by a seeded bell-curve number, never below 0. Even patterns get the most scatter, so particles look like random dots rather than flat shading. Spatial shapes get a little. Strength is passed in as a number (it moves to `balance.js` in item 4). Tests with hand-computed values use scatter 0.
+6. **No healing.** Adding a negative risk or scaling by a negative number is refused with an error. Site survival can only go down. Rework (strip and re-expose) works by scaling a risk *before* it is realized, so it fits without breaking this.
+
+### Functions (all return a new lot; nothing is changed in place)
+- [ ] `createLot()` → `{ sites: [25 × 1.0], risks: {}, flags: [] }`
+- [ ] `addRisk(lot, pattern, amount)`: amount ≥ 0
+- [ ] `scaleRisk(lot, pattern, mult)`: mult ≥ 0 (what `defectMult` will call)
+- [ ] `siteWeights(pattern)` → 25 weights from the shape table
+- [ ] `realizeRisks(lot, patterns, scatter)` → applies the losses and clears those risks
+- [ ] `rollScatter(rngState, patterns, strength)` → `{ value, rngState }`, the per-site nudges
+- [ ] `lotYield(lot)` → 0..1
+- [ ] Add `gauss()` to `rng.js` (ported from FabSim2, returning `{ value, rngState }` like the rest)
+- Unknown pattern names throw an error that names the pattern.
+
+### Hand-computed test values (David: please check these)
+| Case | Expected |
+|---|---|
+| New lot | yield 1.000000 |
+| Realize particles 0.1 (even) | every site e^(−0.1) = 0.904837; yield 0.904837 |
+| …then edge_ring 0.16 | outer sites ×e^(−0.25) = 0.778801; yield 0.904837 × (9 + 16 × 0.778801)/25 = **0.776742** |
+| particles 0.1 in two rooms | 0.818731, same as 0.2 in one room (losses multiply) |
+| depth_variation 0.08 | center 1, inner 0.951229, outer 0.904837; yield 0.923489 |
+| Scale by 0.4 then realize 0.1 | same as realizing 0.04 |
+| Realize twice in a row | second time changes nothing (risk was cleared) |
+| addRisk −0.1, scaleRisk −1 | error |
+| Seeded scatter | same seed → same map; sites differ from each other; no NaN; all sites 0..1 |
+
+Note: with a shaped pattern, the lot loses a bit *less* than e^(−r) (0.858 vs 0.852 for edge ring 0.16), because the already-dead edge sites can't die twice. That's the real behavior of clustered defects, not a bug.
+
+### Acceptance criteria
+- `npm test` passes, with a new `tests/lot.test.js` containing the values above once David confirms them.
+- `lot.js` is pure (no DOM, no `Math.random`), under ~150 lines, and readable.
+- A `physics-reviewer` pass on the yield model before calling it done.
 
 ---
 
