@@ -2,7 +2,7 @@
 
 ## Current: M1 item 3 — card effects (`src/engine/resolve.js`)
 
-**Status: plan, waiting for David's OK. No code written yet.**
+**Status: built, awaiting review.**
 
 **David's answers (24 Oct 2026):** (1) `decayPerUse`: the slot keeps a decay factor starting at 1; each use multiplies the target pattern's risk by the factor, then the factor ×= mult (the bath gets worse each use). (2) Equipment and material effects apply once per visit to their room, on entering, before any cards (run.js will call `applyEffects`).
 
@@ -42,16 +42,16 @@ Every card, tool, material and consumable is a list of effects (`content.js`). T
 - An unknown op or condition key → an error naming it, so a typo in content fails loudly.
 
 ### Functions (each returns a new state; nothing is changed in place)
-- [ ] `conditionMet(state, when)`
-- [ ] `applyEffect(state, effect, source)`: one effect. `source` is the item, needed by `decayPerUse`.
-- [ ] `applyEffects(state, item)`: all of an item's effects in order, skipping those whose `when` is false
-- [ ] One small private function per operation
+- [x] `conditionMet(state, when)`
+- [x] `applyEffect(state, effect, source)`: one effect. `source` is the item, needed by `decayPerUse`.
+- [x] `applyEffects(state, item)`: all of an item's effects in order, skipping those whose `when` is false
+- [x] One small private function per operation
 
 ### Tests (`tests/resolve.test.js`, hand-computed)
-- [ ] One test per operation, eight in all, including its edge rule.
-- [ ] `when`: each of the four kinds, true and false. Timed over-etch with and without `etch_stop`: underlayer_attack ×1.5 vs ×1.5×0.5 = ×0.75.
-- [ ] Unknown op and unknown condition key throw.
-- [ ] Nothing is changed in place. No NaN in the state after applying every item in `content.js`.
+- [x] One test per operation, eight in all, including its edge rule.
+- [x] `when`: each of the four kinds, true and false. Timed over-etch with and without `etch_stop`: underlayer_attack ×1.5 vs ×1.5×0.5 = ×0.75.
+- [x] Unknown op and unknown condition key throw.
+- [x] Nothing is changed in place. No NaN in the state after applying every item in `content.js`.
 
 ### Acceptance criteria
 - `npm test` passes. `resolve.js` is pure and under ~150 lines.
