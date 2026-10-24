@@ -1,5 +1,47 @@
 # Fab Run — Task Tracker
 
+## Current: M2 item 1 — the etch room on screen (`src/ui/`)
+
+**Status: plan, waiting for David's OK. No code written yet.**
+
+### What it is, in plain words
+The first real screen. Opening the site starts a seeded run (`?seed=123456`, or a random seed shown on screen), walks the lot through the three steps before etch with nothing played, and shows the **etch room**: the hand, the time budget, the slots, tool health, the yield bar and the wafer map. This item only **draws** the room. Tapping a card to play it is the next roadmap item, and the Playwright screenshots are the one after that.
+
+### Files
+- `src/ui/view.js` turns the run state into plain display data: yield %, the 25 sites, the cards (name, minutes, cash, short text, playable or the reason it isn't), slots, tool health, time left, seed. It has no DOM, so Node can test it.
+- `src/ui/render.js` turns that display data into page elements. It doesn't hold any game logic.
+- `src/ui/main.js` reads `?seed=`, builds the run with `run.js`, walks it to etch, and calls render.
+- `src/ui/room.css` holds the layout, using only the tokens in `tokens.css`.
+- `index.html` replaces the placeholder page and loads `main.js` and the CSS.
+- Engine change (one line in `src/engine/`): export `whyIllegal` from `run.js` so the screen can say why a card is greyed out. That means touching two `src/` folders at once.
+
+### Layout (one column at 375 px; at 1280 px the wafer map sits beside the hand)
+1. Top bar: room name on its room-color band (etch, plasma blue) with an icon-free text label, step 4 of 9, seed in mono, cash.
+2. Yield bar with its number, and marks at the scrap line (40%) and the spec (70%).
+3. Wafer map: 5×5 sites.
+4. Time budget: minutes left / minutes in this room.
+5. Slots: the etch room's equipment, or "empty".
+6. Tool health bar.
+7. Hand: cards at least 44 px tall, showing name, minutes, cash, a one-line effect, and a reason when they can't be played.
+
+### Tests (`tests/view.test.js`, Node, no browser)
+- Seed 123456, idle to etch, scatter off: yield shown as **91.4%**: particles 0.01 in each of three steps, plus cd_error 0.06 at litho, gives e^(−0.09) = 0.913931. That was computed by hand and confirmed against the engine (0.9139311852712279).
+- The hand has the etch cards from the deck; endpoint etch without the detector shows its reason.
+- 25 sites, all within 0..1; the seed shown equals the run's seed.
+- `?seed=` parsing: a number is used as is, anything else falls back to a fresh seed (the fresh seed comes from the date and time, the only place outside rng.js where a seed is born; noted in the code).
+
+### Acceptance criteria
+- `npm test` passes; the page loads with `python3 -m http.server 8000` and shows the etch room for a seed.
+- I check desktop and 375 px phone views by eye with a throwaway screenshot from the pre-installed browser (not committed; Playwright proper is M2 item 3).
+- `code-explainer` reviews readability and CLAUDE.md §10 (tokens only, contrast, 44 px targets).
+
+### Questions for David
+1. Wafer map: our sites hold "fraction of the 25 wafers still good at this die position". How should one site look?
+2. Which deck and equipment should the screen run use?
+3. Should the room show what is about to bite (the pending risks)?
+
+---
+
 ## Done: M1 item 6 — the bot (`src/engine/run.js` + `tools/bot.js`)
 
 **Status: done 24 Oct 2026. 84/84 tests pass; 500 random-bot seeds with no exception and no NaN/Infinity.** David's answers (24 Oct 2026): i-line resist loaded free; bot plays both the starter deck and the full pool; report both minutes played and cycle time.**
