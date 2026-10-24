@@ -170,12 +170,28 @@ function hasBadNumber(value) {
 test('applying every item in content.js leaves no NaN or Infinity', () => {
   const tools = Object.fromEntries(Object.keys(ROOMS).map(id => [id, { health: 50 }]));
   const slots = Object.fromEntries(MATERIALS.map(m => [m.id, { id: m.id, shelfLife: m.shelfLife ?? 1, decay: 1 }]));
-  let state = makeState({ tools, slots, lotTraits: ['tightCD', 'deepEtch', 'narrowFeatures'] });
-  const lot = state.lot;
-  state = { ...state, lot: { ...lot, risks: { underlayer_attack: 0.1, residue: 0.1, void: 0.4, cd_error: 0.2 } } };
+  const lotTraits = ['tightCD', 'deepEtch', 'narrowFeatures'];
+  const fresh = makeState({ tools, slots, lotTraits });
+  const risks = { underlayer_attack: 0.1, residue: 0.1, void: 0.4, cd_error: 0.2 };
+  let state = { ...fresh, lot: { ...fresh.lot, risks } };
   for (const item of [...PRACTICES, ...EQUIPMENT, ...MATERIALS, ...CONSUMABLES]) {
     const roomId = item.room ?? 'etch';   // consumables have no room; use etch
     state = applyEffects({ ...state, room: { ...state.room, id: roomId } }, item);
   }
   assert.equal(hasBadNumber(state), false, JSON.stringify(state));
+});
+
+test('a typo in content (missing or NaN number) is refused, not stored as NaN', () => {
+  const state = makeState({ tools: { etch: { health: 50 } } });
+  assert.throws(() => applyEffect(state, { op: 'timeCost' }));
+  assert.throws(() => applyEffect(state, { op: 'cashCost', delta: NaN }));
+  assert.throws(() => applyEffect(state, { op: 'toolHealth', delta: undefined }));
+});
+
+test('decayPerUse refuses a mult below 1 and a missing source', () => {
+  const slots = { bath: { id: 'additiveBath', decay: 1 } };
+  const state = makeState({ slots });
+  const bath = { id: 'additiveBath' };
+  assert.throws(() => applyEffect(state, { op: 'decayPerUse', target: 'void', mult: 0.9 }, bath));
+  assert.throws(() => applyEffect(state, { op: 'decayPerUse', target: 'void', mult: 1.15 }));
 });

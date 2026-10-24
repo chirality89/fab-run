@@ -1,8 +1,12 @@
 # Fab Run — Task Tracker
 
-## Current: M1 item 3 — card effects (`src/engine/resolve.js`)
+## Current: M1 item 4 — `src/content/balance.js` (not planned yet)
 
-**Status: built, awaiting review.**
+---
+
+## Done: M1 item 3 — card effects (`src/engine/resolve.js`)
+
+**Status: done 24 Oct 2026.** `npm test` 51/51. physics-reviewer and code-explainer: no blocking issues. Fixed from their findings: number checks on every stored value (timeCost, cashCost, toolHealth, decay factor), decayPerUse refuses mult < 1 and a missing source, two dense lines split. Two new tests.
 
 **David's answers (24 Oct 2026):** (1) `decayPerUse`: the slot keeps a decay factor starting at 1; each use multiplies the target pattern's risk by the factor, then the factor ×= mult (the bath gets worse each use). (2) Equipment and material effects apply once per visit to their room, on entering, before any cards (run.js will call `applyEffects`).
 
@@ -56,6 +60,10 @@ Every card, tool, material and consumable is a list of effects (`content.js`). T
 ### Acceptance criteria
 - `npm test` passes. `resolve.js` is pure and under ~150 lines.
 - `physics-reviewer` checks the decayPerUse semantics; `code-explainer` checks readability.
+
+### Carried to run.js (from physics-reviewer)
+- `applyEffects` does not check an item's own top-level `when`. Before a card is played, run.js must check `conditionMet(state, card.when)`, plus `enabled` for cards that need equipment. Today that is `reworkLitho` (lastStepWasLitho), `endpointEtch` (oesEndpoint) and `spikeAnneal` (rta). Add a test for it there.
+- The dynamic traits (`delayBeforeBake`, `lastStepWasLitho`, `rightPartChosen`) are always false until something sets them, so the CAR resist's delay penalty and the spare part's repair never fire yet. Matters for balance and playtests (already in NEEDS NEW LOGIC).
 
 ---
 

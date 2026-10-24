@@ -43,6 +43,13 @@ export function conditionMet(state, when) {
   });
 }
 
+// Refuses a number that is missing, NaN or infinite, so a typo in content.js
+// fails loudly instead of quietly writing NaN into the state (lessons.md).
+function checkFinite(value, label) {
+  if (!Number.isFinite(value)) throw new Error(`${label} must be a number, got ${value}`);
+  return value;
+}
+
 // ---------------------------------------------------------------------------
 // One small function per operation. Each takes (state, effect, source).
 // ---------------------------------------------------------------------------
@@ -54,13 +61,15 @@ function defectMult(state, effect) {
 
 // Uses up (or, with a negative delta, gives back) room minutes. Never below 0.
 function timeCost(state, effect) {
-  const timeLeft = Math.max(0, state.room.timeLeft - effect.delta);
+  const delta = checkFinite(effect.delta, 'timeCost delta');
+  const timeLeft = Math.max(0, state.room.timeLeft - delta);
   return { ...state, room: { ...state.room, timeLeft } };
 }
 
 // Spends cash. Cash may go below 0 (that only blocks buying; decision O4).
 function cashCost(state, effect) {
-  return { ...state, cash: state.cash - effect.delta };
+  const delta = checkFinite(effect.delta, 'cashCost delta');
+  return { ...state, cash: state.cash - delta };
 }
 
 // Marks the lot, e.g. it now has an etch stop. A flag is only added once.
@@ -82,7 +91,8 @@ function toolHealth(state, effect) {
   const roomId = state.room.id;
   const tool = state.tools[roomId];
   if (!tool) throw new Error(`toolHealth: no tool for room ${roomId}`);
-  const health = Math.min(MAX_HEALTH, Math.max(MIN_HEALTH, tool.health + effect.delta));
+  const delta = checkFinite(effect.delta, 'toolHealth delta');
+  const health = Math.min(MAX_HEALTH, Math.max(MIN_HEALTH, tool.health + delta));
   return { ...state, tools: { ...state.tools, [roomId]: { ...tool, health } } };
 }
 
@@ -93,12 +103,19 @@ function enables(state, effect) {
 
 // The item gets worse each use: the slot's decay factor (starts at 1) scales
 // the target risk, then the factor itself is multiplied by `mult`.
+// mult below 1 would make the item improve with use, so it is refused.
 function decayPerUse(state, effect, source) {
-  const slotName = Object.keys(state.slots).find(name => state.slots[name].id === source?.id);
-  if (!slotName) throw new Error(`decayPerUse: ${source?.id} is not in any slot`);
+  const itemId = source?.id;
+  if (!itemId) throw new Error('decayPerUse: no source item given');
+  const mult = checkFinite(effect.mult, 'decayPerUse mult');
+  if (mult < 1) throw new Error(`decayPerUse: mult must be 1 or more, got ${mult} for ${itemId}`);
+
+  // Find the slot that holds this item.
+  const slotName = Object.keys(state.slots).find(name => state.slots[name].id === itemId);
+  if (!slotName) throw new Error(`decayPerUse: ${itemId} is not in any slot`);
   const slot = state.slots[slotName];
   const lot = scaleRisk(state.lot, effect.target, slot.decay);
-  const newSlot = { ...slot, decay: slot.decay * effect.mult };
+  const newSlot = { ...slot, decay: checkFinite(slot.decay * mult, 'decay factor') };
   return { ...state, lot, slots: { ...state.slots, [slotName]: newSlot } };
 }
 
@@ -116,6 +133,8 @@ export function applyEffect(state, effect, source) {
 
 // Applies all of an item's effects in order. Each effect sees the state the
 // previous one left, so a `when: { flag }` can react to an earlier setFlag.
+// It does NOT check the item's own top-level `when` (e.g. endpoint etch needs
+// the endpoint detector): whether a card may be played is run.js's job.
 export function applyEffects(state, item) {
   return item.effects.reduce((current, effect) => applyEffect(current, effect, item), state);
 }
