@@ -57,3 +57,16 @@ export function shuffle(rngState, list) {
   }
   return { value: copy, rngState: state };
 }
+
+// A bell-curve number (mean 0, spread 1), for scatter. Box–Muller, ported
+// from FabSim2's gauss(): draw u, then v, redrawing either if it is exactly 0
+// (log(0) would be minus infinity). Same order of draws as FabSim2.
+export function gauss(rngState) {
+  let state = rngState;
+  let u = 0;
+  let v = 0;
+  while (!u) ({ value: u, rngState: state } = nextRandom(state));
+  while (!v) ({ value: v, rngState: state } = nextRandom(state));
+  const value = Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+  return { value, rngState: state };
+}

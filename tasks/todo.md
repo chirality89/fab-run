@@ -2,7 +2,7 @@
 
 ## Current: M1 item 2 — lot state and yield math (`src/engine/lot.js`)
 
-**Status: plan, waiting for David's OK. No code written yet.**
+**Status: built, awaiting physics review.**
 
 **David's answers (24 Oct 2026):** risk is carried by the lot and realized in a named room; Poisson loss e^(−r × weight); 5×5 map and shape table as proposed; seeded scatter from the start.
 
@@ -25,14 +25,14 @@ The lot is the health bar. This file holds what the lot looks like (25 sites, th
 6. **No healing.** Adding a negative risk or scaling by a negative number is refused with an error. Site survival can only go down. Rework (strip and re-expose) works by scaling a risk *before* it is realized, so it fits without breaking this.
 
 ### Functions (all return a new lot; nothing is changed in place)
-- [ ] `createLot()` → `{ sites: [25 × 1.0], risks: {}, flags: [] }`
-- [ ] `addRisk(lot, pattern, amount)`: amount ≥ 0
-- [ ] `scaleRisk(lot, pattern, mult)`: mult ≥ 0 (what `defectMult` will call)
-- [ ] `siteWeights(pattern)` → 25 weights from the shape table
-- [ ] `realizeRisks(lot, patterns, scatter)` → applies the losses and clears those risks
-- [ ] `rollScatter(rngState, patterns, strength)` → `{ value, rngState }`, the per-site nudges
-- [ ] `lotYield(lot)` → 0..1
-- [ ] Add `gauss()` to `rng.js` (ported from FabSim2, returning `{ value, rngState }` like the rest)
+- [x] `createLot()` → `{ sites: [25 × 1.0], risks: {}, flags: [] }`
+- [x] `addRisk(lot, pattern, amount)`: amount ≥ 0
+- [x] `scaleRisk(lot, pattern, mult)`: mult ≥ 0 (what `defectMult` will call)
+- [x] `siteWeights(pattern)` → 25 weights from the shape table
+- [x] `realizeRisks(lot, patterns, scatter)` → applies the losses and clears those risks
+- [x] `rollScatter(rngState, patterns, strength)` → `{ value, rngState }`, the per-site nudges
+- [x] `lotYield(lot)` → 0..1
+- [x] Add `gauss()` to `rng.js` (ported from FabSim2, returning `{ value, rngState }` like the rest)
 - Unknown pattern names throw an error that names the pattern.
 
 ### Hand-computed test values (David: please check these)

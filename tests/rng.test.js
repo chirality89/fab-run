@@ -5,7 +5,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
-import { normalizeSeed, nextRandom, randomInt, pick, shuffle } from '../src/engine/rng.js';
+import { normalizeSeed, nextRandom, randomInt, pick, shuffle, gauss } from '../src/engine/rng.js';
 
 // Draws `count` numbers in a row from one seed.
 function sequence(seed, count) {
@@ -81,6 +81,37 @@ test('normalizeSeed accepts 0..4294967295 and rejects anything else', () => {
   for (const bad of [-1, 1.5, 2 ** 32, 'abc', NaN]) {
     assert.equal(normalizeSeed(bad), null, `accepted ${bad}`);
   }
+});
+
+// Draws `count` bell-curve numbers in a row from one seed.
+function gaussSequence(seed, count) {
+  const values = [];
+  let state = seed;
+  for (let i = 0; i < count; i++) {
+    const step = gauss(state);
+    values.push(step.value);
+    state = step.rngState;
+  }
+  return values;
+}
+
+test('gauss: same seed gives the same numbers', () => {
+  assert.deepEqual(gaussSequence(123456, 100), gaussSequence(123456, 100));
+  assert.notDeepEqual(gaussSequence(123456, 100), gaussSequence(123457, 100));
+});
+
+test('gauss: 10,000 draws, none NaN or infinite', () => {
+  for (const v of gaussSequence(7, 10000)) {
+    assert.ok(Number.isFinite(v), `seed 7: gauss gave ${v}`);
+  }
+});
+
+test('gauss: mean near 0 and spread near 1', () => {
+  const values = gaussSequence(2024, 10000);
+  const mean = values.reduce((a, b) => a + b, 0) / values.length;
+  const sd = Math.sqrt(values.reduce((a, b) => a + (b - mean) ** 2, 0) / values.length);
+  assert.ok(Math.abs(mean) < 0.05, `seed 2024: mean ${mean}`);
+  assert.ok(Math.abs(sd - 1) < 0.05, `seed 2024: sd ${sd}`);
 });
 
 // Comment lines are skipped, so a warning like "never use Math.random()" is allowed.
