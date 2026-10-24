@@ -25,6 +25,9 @@ export const SCATTER_STRENGTH = 0.5;
 // scatter, so the ring or gradient stays recognizable on the map.
 export const SHAPED_SCATTER_FRACTION = 0.25;
 
+// Tool health (0..100) every room's tool starts a run with.
+export const STARTING_TOOL_HEALTH = 100;
+
 // Minutes each room gives you to play practices. Set against the card costs
 // so a room forces a choice (deposition: pre-clean 10 OR etch stop 12).
 export const TIME_BUDGETS = {

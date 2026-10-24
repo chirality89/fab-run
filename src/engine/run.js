@@ -20,6 +20,7 @@ import { PRACTICES, EQUIPMENT, MATERIALS, ROOMS, STARTER_IDS } from '../content/
 import { LOT_TYPES } from '../content/lotTypes.js';
 import {
   STARTING_CASH, HAND_SIZE, SCRAP_LINE, CUSTOMER_SPEC, SCATTER_STRENGTH, TIME_BUDGETS,
+  STARTING_TOOL_HEALTH,
 } from '../content/balance.js';
 import { normalizeSeed, shuffle } from './rng.js';
 import { createLot, addRisk, realizeRisks, rollScatter, lotYield } from './lot.js';
@@ -32,6 +33,15 @@ function findItem(list, id, kind) {
   return item;
 }
 const findCard = id => findItem(PRACTICES, id, 'practice');
+
+// Cards that some item unlocks with an `enables` effect (e.g. the endpoint
+// detector unlocks endpointEtch). These are playable only once enabled.
+const GATED_CARDS = new Set(
+  [...EQUIPMENT, ...MATERIALS, ...PRACTICES]
+    .flatMap(item => item.effects ?? [])
+    .filter(effect => effect.op === 'enables')
+    .map(effect => effect.id),
+);
 
 // The starter deck: the starter items (unlockedBy: null) that are practices.
 export function starterDeck() {
@@ -75,7 +85,7 @@ export function createRun({
     lot = addRisk(lot, pattern, amount);
   }
   const tools = {};
-  for (const roomId of Object.keys(ROOMS)) tools[roomId] = { health: 100 };
+  for (const roomId of Object.keys(ROOMS)) tools[roomId] = { health: STARTING_TOOL_HEALTH };
 
   return {
     seed,
@@ -166,6 +176,7 @@ function whyIllegal(state, cardId) {
   const card = findCard(cardId);
   if (card.room !== state.room.id) return `belongs in ${card.room}, not ${state.room.id}`;
   if (!conditionMet(state, card.when)) return 'its condition is not met';
+  if (GATED_CARDS.has(cardId) && !state.enabled.includes(cardId)) return 'not enabled yet';
   if ((card.cost.time ?? 0) > state.room.timeLeft) return 'not enough time left';
   if ((card.cost.cash ?? 0) > state.cash) return 'not enough cash';
   return null;

@@ -1,8 +1,8 @@
 # Fab Run — Task Tracker
 
-## Current: M1 item 6 — the bot (`src/engine/run.js` + `tools/bot.js`)
+## Done: M1 item 6 — the bot (`src/engine/run.js` + `tools/bot.js`)
 
-**Status: plan, waiting for David's OK. David's answers (24 Oct 2026): i-line resist loaded free; bot plays both the starter deck and the full pool; report both minutes played and cycle time.**
+**Status: done 24 Oct 2026. 84/84 tests pass; 500 random-bot seeds with no exception and no NaN/Infinity.** David's answers (24 Oct 2026): i-line resist loaded free; bot plays both the starter deck and the full pool; report both minutes played and cycle time.**
 
 ### What it is, in plain words
 A program that plays the Cu line from start to finish with no screen, using a fixed seed, and prints the final yield, cash and time. To have something to play, it needs the first, minimal version of `run.js`: the rules for walking the route, drawing a hand, playing a card and shipping. No map, side stops, procurement or saves yet (those are M3).
@@ -32,7 +32,11 @@ A program that plays the Cu line from start to finish with no screen, using a fi
 ### Acceptance criteria
 - `npm test` passes; `npm run bot` prints a result; `code-explainer` reviews the diff for readability; `playtester` runs the bot.
 
-### Questions for David
+### Review results
+- code-explainer: fixed `enables` being written but never read (a card some item enables is now refused until enabled, with a test); starting tool health moved to `balance.js` (`STARTING_TOOL_HEALTH`). Its "bath decays on every entry, not every use" is how we agreed it: one plating visit = one use of the bath. Left as is: a lot below the scrap line at the last step counts as scrapped (scrap wins); a card's own timeCost/cashCost effects are not part of the legality check (no card has them yet); splitting enterStep (it reads fine in its four numbered parts).
+- playtester, 500 seeds random/full deck: yield 59.4–68.1% (median 65.4%), every run rejected, none shipped or scrapped. Never played: `endpointEtch` (needs the detector, no procurement yet), `spikeAnneal` (diffusion isn't on this route), `reworkLitho` (`lastStepWasLitho` never set). `measureAll` is played every run. **For David/M7:** the 70% spec is out of reach with today's cards, and the spread between seeds is narrow.
+
+### Questions for David (answered)
 1. Starting loadout: should the lot start with the starter i-line resist already in the litho slot?
 2. The starter deck has only 3 practices (over-etch, measure all, re-expose). Should the bot also run with the full pool so every card gets exercised?
 3. "Time" in the report: minutes of practices played, or the sum of the room budgets (the time the lot spends in each room whatever you play)?

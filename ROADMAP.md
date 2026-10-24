@@ -2,7 +2,7 @@
 
 Work top to bottom, one checkbox per session. Plan in `tasks/todo.md` first (see `PROJECT.md`). Tick the box here when done. Before starting a milestone, settle the `docs/decisions.md` items it depends on.
 
-Current milestone: **M1 — Engine core, no screen**
+Current milestone: **M2 — One room you can play**
 
 ## M0 — Move in
 - [x] Turn on GitHub Pages (Settings → Pages → Deploy from a branch → `main` / root); confirm the placeholder page loads at `https://chirality89.github.io/fab-run/` on desktop and phone
@@ -15,7 +15,7 @@ Current milestone: **M1 — Engine core, no screen**
 - [x] `src/engine/resolve.js`: the eight effect operations from `content.js`, including `when` conditions; one test per operation
 - [x] `src/content/balance.js`: starting cash, time budgets, scrap line, spec, hand size
 - [x] `src/content/lotTypes.js`: the inlaid Cu line route from DESIGN.md §11
-- [ ] Bot: plays the Cu line route headless with a fixed seed; reports final yield, cash, time; no `NaN`/`Infinity`
+- [x] Bot: plays the Cu line route headless with a fixed seed; reports final yield, cash, time; no `NaN`/`Infinity`
 
 ## M2 — One room you can play
 - [ ] `src/ui/`: a single process room (etch) on screen: hand, time budget, slots, tool health, yield bar, wafer map

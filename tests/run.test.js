@@ -136,6 +136,12 @@ test('with the detector installed, endpoint etch becomes legal', () => {
   assert.deepEqual([...legalCards(inEtch)].sort(), ['endpointEtch', 'timedOveretch']);
 });
 
+test('a card that an item enables is refused until it is enabled', () => {
+  const loadout = { ...defaultLoadout(), equipment: ['oesEndpoint'] };
+  const inEtch = enterStepNumber(scatterOff({ deck: fullPool(), loadout }), ETCH);
+  assert.throws(() => playCard({ ...inEtch, enabled: [] }, 'endpointEtch'), /endpointEtch.*not enabled/);
+});
+
 test('strip and re-expose is never legal yet (lastStepWasLitho is not set by anything)', () => {
   const inLitho = enterStepNumber(scatterOff(), LITHO);
   assert.deepEqual(inLitho.hand, ['reworkLitho']);
