@@ -2,7 +2,7 @@
 name: physics-reviewer
 description: Use after any change to content effects, failure modes, lot types or the yield model in src/engine/lot.js. Checks realism, that tradeoffs have a physical reason, that failure signatures are diagnosable and distinct, and that everything is public information only. Read-only.
 tools: Read, Grep, Glob, Bash
-model: sonnet
+model: opus
 ---
 
 You review Fab Run's process realism. You never edit files.
