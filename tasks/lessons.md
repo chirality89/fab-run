@@ -41,3 +41,44 @@ The Playwright device preset name didn't exist in that version. The lookup retur
 ### Rule to Prevent
 ✅ Give phone screenshots an explicit size: `viewport: {width: 375, height: 812}, isMobile: true, hasTouch: true`
 ✅ Check every screenshot's pixel size before judging it
+
+## Repo check tripped on its own warning comment
+
+### What Happened
+The new "no `Math.random` in `src/`" test failed on the first run. The only match was the comment in `rng.js` that says never to use it.
+
+### Root Cause
+The check searched the whole file text, comments included, so a warning about the rule looked like breaking it.
+
+### Rule to Prevent
+✅ Text-search checks over source code skip comment lines (`codeOnly()` in `tests/rng.test.js`)
+✅ After loosening a check, prove it still fails on a real violation before trusting it
+
+## Finite inputs can still make an infinite risk (lot.js review)
+
+### What Happened
+`physics-reviewer` found that `scaleRisk` checked its multiplier but not the result. A huge finite multiplier could push a risk to Infinity, and Infinity × a site weight of 0 (edge ring, center site) gives NaN on the wafer map.
+
+### Root Cause
+Input checks guard each argument, but overflow happens in the arithmetic after the checks.
+
+### Rule to Prevent
+✅ Engine functions that store a number check the stored *result* with `Number.isFinite`, not just the inputs
+✅ When writing an overflow test, confirm the input really overflows (1e300 + 1.7e308 is still finite; `Number.MAX_VALUE` twice is not)
+
+## Wrote expected values before the calculation returned
+
+### What Happened
+While planning lotTypes.js, the do-nothing yield was written into `tasks/todo.md` in the same step as the script that computed it. Two digits were guessed and came out wrong (0.518320 instead of 0.517954).
+
+### Root Cause
+The expected values were typed from mental arithmetic and not copied from the computed output.
+
+### Rule to Prevent
+✅ Compute expected values first, then copy them from the output in a separate step
+✅ Engine tests use these values, so a wrong one in the plan becomes a wrong test
+
+## Read the sign convention from the code, not from memory (M1 bot, 24 Oct 2026)
+- What happened: the bot plan said the i-line resist's `timeCost: -5` made litho 25 minutes. The engine (and the balance table) treat a negative cost as minutes given back, so litho is 35 and idle cycle time is 133, not 123. The test caught it.
+- Root cause: I hand-computed from what "−5" looked like instead of reading `resolve.js` timeCost.
+- Rule: before writing an expected value that goes through an effect op, read that op's code and its comment for the sign.
