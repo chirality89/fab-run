@@ -15,6 +15,8 @@ Settled decisions first, then open ones. Each open decision has a proposed answe
 | S7 | Balance principle | Laws fixed, situations random |
 | S8 | Repo | `chirality89/fab-run`, public, GitHub Pages |
 | S9 | Look | Highly stylized and bright, cleanroom palette: white, blue, yellow litho, a color per room |
+| S10 | Card art (Oct 24, 2026) | Split by card kind: microscope cross-section on practices, bay window on equipment, materials and consumables, tool schematic for the inspect view and notebook, toy diorama for map rooms. Details: `docs/card-art-plan.md` |
+| S11 | Tool color in art (Oct 24, 2026) | Tools are drawn in their room's color, litho tools included (yellow), as in the toy diorama style |
 
 ## Open
 

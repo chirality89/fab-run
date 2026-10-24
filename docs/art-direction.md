@@ -47,6 +47,10 @@ The wafer map uses 25 sites. Pass: pale green with a dark green edge. Fail: red 
 
 Barlow Condensed 600 for titles, numbers and card names. Barlow for body text. IBM Plex Mono for step parameters and the seed. All from Google Fonts; the game must work with the fallback fonts.
 
+## Card art
+
+Proposal: `docs/card-art-plan.md` (four styles, recommended split, card anatomy, motion rules).
+
 ## Reference boards (David's private Claude artifacts)
 
 - Cross Section art style: palette, type, cross-section rendering rules, components
