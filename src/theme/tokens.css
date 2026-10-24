@@ -85,9 +85,6 @@
   --ok: #5CC48F; --warn: #F0B44C; --bad: #F27466;
 }
 
-/* Text on a room fill is always dark, in both themes */
-.on-room { color: #14202B; }
-
 body {
   margin: 0;
   background: var(--bg);

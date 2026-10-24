@@ -82,3 +82,8 @@ The expected values were typed from mental arithmetic and not copied from the co
 - What happened: the bot plan said the i-line resist's `timeCost: -5` made litho 25 minutes. The engine (and the balance table) treat a negative cost as minutes given back, so litho is 35 and idle cycle time is 133, not 123. The test caught it.
 - Root cause: I hand-computed from what "−5" looked like instead of reading `resolve.js` timeCost.
 - Rule: before writing an expected value that goes through an effect op, read that op's code and its comment for the sign.
+
+## Colour from the raw number, not the rounded one (M2 room, 24 Oct 2026)
+- What happened: the yield bar picked its colour from the value rounded to 0.1%, so a raw 69.96% showed "70.0%" in the pass colour while the engine rejects it. Found by code-explainer.
+- Root cause: the screen made its own pass/fail call from a display string instead of the same number the engine judges.
+- Rule: any verdict shown on screen (pass, warn, fail, scrap) is computed from the raw engine value, in view.js, with a test at the edge (e.g. 0.6996). Rounding is for printing only.

@@ -43,13 +43,12 @@ function barMark(percent, label, className) {
 // Yield bar: always shows its number, with marks at the scrap line and spec.
 function drawYield(view) {
   const box = panel('Line yield', 'yield-panel');
-  const status = view.yieldPercent >= view.spec ? 'ok' : view.yieldPercent >= view.scrapLine ? 'warn' : 'bad';
   box.append(el('p', 'yield-number', `${view.yieldPercent.toFixed(1)}%`));
 
   const bar = el('div', 'yield-bar');
   bar.setAttribute('role', 'img');
   bar.setAttribute('aria-label', `Yield ${view.yieldPercent}%, scrap line ${view.scrapLine}%, spec ${view.spec}%`);
-  const fill = el('div', `yield-fill yield-${status}`);
+  const fill = el('div', `yield-fill yield-${view.yieldBand}`);
   fill.style.width = `${view.yieldPercent}%`;
   bar.append(fill, barMark(view.scrapLine, `Scrap ${view.scrapLine}%`, 'mark-scrap'),
     barMark(view.spec, `Spec ${view.spec}%`, 'mark-spec'));
@@ -71,7 +70,7 @@ function drawWaferMap(view) {
     grid.append(tile);
   });
   box.append(grid);
-  box.append(el('p', 'map-key', 'Each site: % of the 25 wafers still good there. Pass 90%+, warning 70–89%, fail under 70%.'));
+  box.append(el('p', 'map-key', view.mapKeyText));
   return box;
 }
 
@@ -142,6 +141,15 @@ export function renderRoom(container, view) {
     drawHand(view),
   );
   container.replaceChildren(drawHeader(view), drawYield(view), body);
+}
+
+// A plain message instead of a room, e.g. when the lot was scrapped before
+// reaching the room this screen shows.
+export function renderMessage(container, text) {
+  const box = el('div', 'panel message-box');
+  box.setAttribute('role', 'status');
+  box.append(el('p', 'message-text', text));
+  container.replaceChildren(box);
 }
 
 // Shows an error in a visible box, so a broken page never just looks blank.

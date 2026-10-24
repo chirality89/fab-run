@@ -17,21 +17,49 @@ function toPercent(fraction) {
   return Math.round(fraction * 1000) / 10;
 }
 
-// Which band a site falls in, from its fraction of good wafers (0..1):
-//   pass  at or above SITE_GOOD_LINE (90%)
-//   warn  at or above CUSTOMER_SPEC (70%)
-//   fail  below that
+// The band lines as whole percents (90 and 70). Math.round because
+// 0.9 × 100 is 90.00000000000001 in computer arithmetic.
+const SITE_GOOD_PERCENT = Math.round(SITE_GOOD_LINE * 100);
+const SPEC_PERCENT = Math.round(CUSTOMER_SPEC * 100);
+
+// The whole percent printed on a site tile, rounded DOWN (89.7% reads 89).
+// The tiny 1e-9 stops 0.29 × 100 = 28.999… from reading as 28.
+function sitePercent(value) {
+  return Math.floor(value * 100 + 1e-9);
+}
+
+// Which band a site falls in. It is worked out from the PRINTED whole
+// percent, so the number on a tile and its band always agree:
+//   pass  90 or more (SITE_GOOD_LINE)
+//   warn  70 to 89   (CUSTOMER_SPEC)
+//   fail  below 70
 export function siteBand(value) {
-  if (value >= SITE_GOOD_LINE) return 'pass';
-  if (value >= CUSTOMER_SPEC) return 'warn';
+  const percent = sitePercent(value);
+  if (percent >= SITE_GOOD_PERCENT) return 'pass';
+  if (percent >= SPEC_PERCENT) return 'warn';
   return 'fail';
 }
 
-// One wafer map tile. The percent is a whole number rounded DOWN, so a site
-// at 89.7% reads 89, never 90: the number always agrees with its band.
-// (The tiny 1e-9 stops 0.29 × 100 = 28.999… from reading as 28.)
+// One wafer map tile.
 function siteView(value) {
-  return { value, percent: Math.floor(value * 100 + 1e-9), band: siteBand(value) };
+  return { value, percent: sitePercent(value), band: siteBand(value) };
+}
+
+// The colour band of the yield bar, from the RAW yield fraction (0..1), not
+// the rounded number: 0.6996 shows as 70.0% but is still below the spec.
+//   ok    at or above CUSTOMER_SPEC (would ship)
+//   warn  at or above SCRAP_LINE (still running, would be rejected)
+//   bad   below SCRAP_LINE (scrapped)
+export function yieldBand(fraction) {
+  if (fraction >= CUSTOMER_SPEC) return 'ok';
+  if (fraction >= SCRAP_LINE) return 'warn';
+  return 'bad';
+}
+
+// The legend under the wafer map, built from the balance numbers.
+function mapKeyText() {
+  return `Each site: % of the 25 wafers still good there. Pass ${SITE_GOOD_PERCENT}%+, `
+    + `warning ${SPEC_PERCENT}–${SITE_GOOD_PERCENT - 1}%, fail under ${SPEC_PERCENT}%.`;
 }
 
 // The equipment and materials sitting in this room. An empty list means
@@ -87,6 +115,7 @@ export function roomView(state) {
   const step = route[state.stepIndex];
   const roomId = state.room.id;
   const lossPoints = expectedLossPoints(state.lot, step);
+  const yieldFraction = lotYield(state.lot);
   return {
     seed: state.seed,
     roomId,
@@ -95,10 +124,13 @@ export function roomView(state) {
     stepCount: route.length,
     stepLabel: step.label,
     cash: state.cash,
-    yieldPercent: toPercent(lotYield(state.lot)),
+    yieldFraction,
+    yieldPercent: toPercent(yieldFraction),
+    yieldBand: yieldBand(yieldFraction),
     scrapLine: toPercent(SCRAP_LINE),
     spec: toPercent(CUSTOMER_SPEC),
     sites: state.lot.sites.map(siteView),
+    mapKeyText: mapKeyText(),
     timeLeft: state.room.timeLeft,
     budget: state.room.budget,
     slots: slotsView(state, roomId),

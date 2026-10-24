@@ -156,6 +156,9 @@
 .card-summary { margin: 4px 0 0; font-size: 15px; color: var(--muted); }
 .card-reason { margin: 6px 0 0; font-size: 15px; font-weight: 600; color: var(--bad); }
 
+/* --- Plain message (e.g. lot scrapped before this room) ------------------ */
+.message-text { margin: 0; font-weight: 500; }
+
 /* --- Error box ------------------------------------------------------------ */
 .error-box {
   background: var(--surface);

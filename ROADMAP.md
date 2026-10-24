@@ -18,7 +18,7 @@ Current milestone: **M2 — One room you can play**
 - [x] Bot: plays the Cu line route headless with a fixed seed; reports final yield, cash, time; no `NaN`/`Infinity`
 
 ## M2 — One room you can play
-- [ ] `src/ui/`: a single process room (etch) on screen: hand, time budget, slots, tool health, yield bar, wafer map
+- [x] `src/ui/`: a single process room (etch) on screen: hand, time budget, slots, tool health, yield bar, wafer map
 - [ ] Playing a card calls the engine and redraws; seed shown on screen
 - [ ] Playwright set up; screenshots at 1280×800 and 375×812; checked by eye
 

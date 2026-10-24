@@ -5,9 +5,9 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createRun, enterStep, resolveStep, fullPool } from '../src/engine/run.js';
+import { createRun, enterStep, resolveStep, fullPool, whyIllegal } from '../src/engine/run.js';
 import { lotYield } from '../src/engine/lot.js';
-import { roomView, siteBand, parseSeed } from '../src/ui/view.js';
+import { roomView, siteBand, yieldBand, parseSeed } from '../src/ui/view.js';
 
 const SEED = 123456;
 const TOLERANCE = 1e-6;
@@ -92,4 +92,30 @@ test('parseSeed: digits give that seed, anything else the fallback', () => {
   assert.equal(parseSeed('', 7), 7);
   assert.equal(parseSeed('?seed=-5', 7), 7);
   assert.equal(parseSeed('?seed=99999999999', 7), 7, 'too big for a 32-bit seed');
+});
+
+test('whyIllegal says "its condition is not met" for endpoint etch without the detector', () => {
+  // view.js turns exactly this text into "Needs the Optical endpoint detector".
+  const inEtch = idleToEtch({ deck: fullPool() });
+  assert.equal(whyIllegal(inEtch, 'endpointEtch'), 'its condition is not met', `seed ${SEED}`);
+});
+
+test('yield band uses the raw fraction, not the rounded percent', () => {
+  assert.equal(yieldBand(0.70), 'ok');
+  assert.equal(yieldBand(0.6996), 'warn', 'shows as 70.0% but is below the spec');
+  assert.equal(yieldBand(0.40), 'warn');
+  assert.equal(yieldBand(0.3996), 'bad', 'shows as 40.0% but is below the scrap line');
+  const view = roomView(idleToEtch());
+  close(view.yieldFraction, 0.913931, 'yieldFraction');
+  assert.equal(view.yieldBand, 'ok');
+});
+
+test('site band agrees with the printed percent', () => {
+  assert.equal(siteBand(0.8999), 'warn', 'prints 89');
+  assert.equal(siteBand(0.6999), 'fail', 'prints 69');
+});
+
+test('wafer map legend is built from the balance numbers', () => {
+  assert.equal(roomView(idleToEtch()).mapKeyText,
+    'Each site: % of the 25 wafers still good there. Pass 90%+, warning 70–89%, fail under 70%.');
 });

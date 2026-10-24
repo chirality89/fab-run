@@ -1,8 +1,8 @@
 # Fab Run — Task Tracker
 
-## Current: M2 item 1 — the etch room on screen (`src/ui/`)
+## Done: M2 item 1 — the etch room on screen (`src/ui/`)
 
-**Status: plan, waiting for David's OK. No code written yet.**
+**Status: done 24 Oct 2026. 97/97 tests pass. Desktop and 375 px screenshots checked by eye (light and dark). code-explainer fixes applied: yield colour from the raw fraction, map legend built from balance.js, a clock seed is written into the URL so reload keeps the run, site band from the printed percent, etch step found by room, a scrapped-before-etch message.**
 
 ### What it is, in plain words
 The first real screen. Opening the site starts a seeded run (`?seed=123456`, or a random seed shown on screen), walks the lot through the three steps before etch with nothing played, and shows the **etch room**: the hand, the time budget, the slots, tool health, the yield bar and the wafer map. This item only **draws** the room. Tapping a card to play it is the next roadmap item, and the Playwright screenshots are the one after that.
