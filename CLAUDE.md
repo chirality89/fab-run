@@ -130,6 +130,8 @@ A change is **done** when tests pass, screenshots are checked (if UI changed), `
 
 Parallel agents only for independent content. Never two agents editing the same file.
 
+**Models.** The session default is `opusplan` (`.claude/settings.json`): Opus while planning, Sonnet while building. Each agent sets its own `model:` in its file (`physics-reviewer` on Opus, `code-explainer` on Haiku, the rest on Sonnet). Every new agent must set one; without it, an agent inherits the session model.
+
 ## 13. Hosting
 
 Static site on **GitHub Pages** from the repo root. Every push to `main` updates the live site. No backend: saves and the notebook use localStorage; the daily seed comes from the date. Don't add a server, database or leaderboard without asking.
