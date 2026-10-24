@@ -14,7 +14,7 @@ Current milestone: **M1 — Engine core, no screen**
 - [x] `src/engine/lot.js`: lot state, defect patterns, yield math (losses multiply, no healing); tests with hand-computed values from David
 - [x] `src/engine/resolve.js`: the eight effect operations from `content.js`, including `when` conditions; one test per operation
 - [x] `src/content/balance.js`: starting cash, time budgets, scrap line, spec, hand size
-- [ ] `src/content/lotTypes.js`: the inlaid Cu line route from DESIGN.md §11
+- [x] `src/content/lotTypes.js`: the inlaid Cu line route from DESIGN.md §11
 - [ ] Bot: plays the Cu line route headless with a fixed seed; reports final yield, cash, time; no `NaN`/`Infinity`
 
 ## M2 — One room you can play

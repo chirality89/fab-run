@@ -1,8 +1,8 @@
 # Fab Run — Task Tracker
 
-## Current: M1 item 5 — the inlaid Cu line route (`src/content/lotTypes.js`)
+## Done: M1 item 5 — the inlaid Cu line route (`src/content/lotTypes.js`)
 
-**Status: plan, waiting for David's OK. No code written yet.**
+**Status: done 24 Oct 2026. 62/62 tests pass; do-nothing yield 0.517954 matched the hand value first time.**
 
 **David's answers (24 Oct 2026):** route and bite rooms as in the table; risk sizes OK as placeholders; traits: `narrowFeatures` only.
 
@@ -45,11 +45,23 @@ On entering a step: add its risks, then equipment and material effects, then car
 Total risk if you play nothing: 0.66, so yield is about e^(−0.66) ≈ **52%**. That's rejected (below the 70% spec) but not scrapped (above 40%). Good play should reach about 75–80%. These are placeholders for the M7 bot pass.
 
 ### Changes
-- [ ] `src/content/lotTypes.js` with `cuLine` as above
-- [ ] `tests/lotTypes.test.js`: every room is in `ROOMS`; every pattern is in `PATTERNS`; every risk that enters is realized at the same or a later step (nothing dangles), and nothing is realized before it enters; traits are among the static `when: { lot }` traits used in content; and a hand-computed do-nothing yield, run through `lot.js` with scatter off
+- [x] `src/content/lotTypes.js` with `cuLine` as above
+- [x] `tests/lotTypes.test.js`: every room is in `ROOMS`; every pattern is in `PATTERNS`; every risk that enters is realized at the same or a later step (nothing dangles), and nothing is realized before it enters; traits are among the static `when: { lot }` traits used in content; and a hand-computed do-nothing yield, run through `lot.js` with scatter off
 
 ### Acceptance criteria
 - `npm test` passes; `physics-reviewer` checks the route and the risk placement.
+
+### From physics-reviewer (route order and enter/bite placement: PASS)
+Fixed now: comment says metrology adds no particles; post-etch step labelled "Resist strip + wet clean"; tradeoff says "dishing and erosion" (pad drift isn't Cu-specific); physicsNote names what is simplified away (anneal, cap, post-CMP clean).
+
+For David:
+1. **Q-time oxide under the barrier.** In a single-damascene line the barrier lands on dielectric, so there's nothing to grow native oxide on; the real Q-time risk is a via landing on Cu or a contact on Si. `physicsNote` and `fm_qtime` ("high contact resistance") may teach something false. Options: reword to residue/moisture/oxidized landing surface → via resistance, or say the trench lands on a lower Cu line.
+2. **`resistThick` underlayer effect never fires on cuLine.** It scales `underlayer_attack` in litho, but that risk only enters at etch (and `deepEtch` isn't a cuLine trait). Fix later: give deep-etch lot types an `underlayer_attack` start risk, or move the effect to an etch item.
+3. **`fm_keyhole` says "narrow vias"**; cuLine's void is a trench seam → "narrow lines/vias"? **`fm_rr_drift` "walks lot to lot"** needs SPC history from earlier lots on the CMP chart.
+
+Carried to run.js / content tests:
+- A test that every unconditional `defectMult` on pattern P in room R has a route step in R between P entering and P biting (would have caught #2).
+- Cards whose target pattern is already realized (e.g. `etchStopLayer` at the second dep visit) are dead: grey them out (NEEDS NEW LOGIC).
 
 ---
 
@@ -293,3 +305,4 @@ Content in `src/content/content.js` that needs engine behavior beyond the eight 
 - `resets: { slot, field, fraction }`: fresh resist and bath analysis reset a material's shelf life or decay
 - `limit: { perLayer: 1 }`: strip and re-expose once per layer
 - `shelfLife`: counts rooms visited; at 0 the material stops helping
+- Dead cards: a practice whose target pattern was already realized earlier on the route (e.g. `etchStopLayer` at the second dep visit) should be greyed out or hidden
