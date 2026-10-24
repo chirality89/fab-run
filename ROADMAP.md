@@ -40,6 +40,12 @@ Current milestone: **M0 — Move in**
 
 ## M6 — Look and feel
 - [ ] Room styling from `docs/art-direction.md`; film-growth and wafer-map hit animations; reduced-motion respected
+- [ ] Card art setup (`docs/card-art-plan.md`): per-room tint and shade tokens in `tokens.css` (contrast checked); settle the `art` field in content entries
+- [ ] Shared card frame: room band, cost chip, art window, kind and rarity, name, effect, tradeoff; kind shown by window style, rarity by 1–3 diamonds
+- [ ] Practice art: microscope cross-sections drawn from the `--mat-*` tokens for every practice; `physics-reviewer` pass
+- [ ] Item art: bay-window kit (room backdrops, tool bodies in room color, bottles and baths) for equipment, materials and consumables; lamp tower turns amber when the room's tool drifts
+- [ ] Inspect view in the tool-schematic style; map rooms in the toy-diorama style
+- [ ] Card motion: one loop of 6 s or less, plays on lift, hover or focus only; reduced motion shows a chosen key frame
 - [ ] Phone layout pass
 
 ## M7 — Balance and share

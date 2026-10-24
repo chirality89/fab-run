@@ -1,6 +1,6 @@
-# Card art plan (proposal, v0)
+# Card art plan (v1, approved)
 
-**Status: proposal for David to review.** Nothing here is built yet. It extends `docs/art-direction.md` and uses only the colors and fonts already in `src/theme/tokens.css`, plus a few art-only shades listed below.
+**Status: approved by David on Oct 24, 2026 (decisions S10, S11). Built in M6.** Nothing here is built yet. It extends `docs/art-direction.md` and uses only the colors and fonts already in `src/theme/tokens.css`, plus a few art-only shades listed below.
 
 Mockups of all four styles, animated, are on David's private design canvas "Fab Run Card Styles".
 
@@ -22,7 +22,7 @@ So the art teaches the same physics the card's effect describes.
 | C | **Microscope window** | Dark SEM-style cross-section in the material colors; the trench etches down, damage heals, a T-top forms | Teaches the card's own physics; matches the diagnose screen | Every practice needs its own cross-section |
 | D | **Toy diorama** | Chunky isometric tool block on a floor tile, three flat shades, a small tech in a cleanroom suit | Friendly, board-game feel; great for a map | Tools look alike as blocks; least informative on a card |
 
-## Recommendation: use each where it teaches best
+## Decision: use each where it teaches best (approved)
 
 - **C, microscope window**, on every **practice** card.
 - **A, bay window**, on **equipment, material and consumable** cards.
@@ -66,12 +66,19 @@ Ground, room key and material colors come from `tokens.css`. The art also needs,
 - Practice cross-sections are drawn from the material tokens (`--mat-*`), so new practice content could get art from data instead of hand drawing.
 - Cards scale to 0.75× in a 375 px phone hand.
 
-## Open questions for David
+## David's answers (Oct 24, 2026)
 
-1. Is the recommended split (C for practices, A for items, B for inspect, D for the map) right, or should cards use one style throughout?
-2. Realism check on the cross-sections: over-etch into the SiN underlayer, implant damage healing with a small junction shift, and the T-top from a delay before bake.
-3. In the litho bay, tools are drawn white under yellow light in style A, but in the room color in style D. Which reads better to a fab engineer?
-4. Where does this land on the roadmap: M6 (look and feel) or earlier, with the M2 room screen?
+1. **Split by card kind**, as recommended above (S10).
+2. **Cross-sections look right for now:** over-etch into the SiN underlayer, implant damage healing with a small junction shift, T-top after a delay before bake. Each new cross-section still goes through `physics-reviewer` when it is built.
+3. **Tools are drawn in their room's color**, litho tools in yellow, as in style D (S11). The bay-window art follows this too: no white tools under yellow light.
+4. **Built in M6** (look and feel). See `ROADMAP.md`.
+
+## To settle in M6 planning
+
+- **Where art lives in the data.** Practices need to say which cross-section they show (for example `art: { section: 'trenchOveretch' }`), items which tool body or bottle. That adds a field to content entries: plan it and ask before changing the content shape.
+- **New art tokens:** per-room `-tint`, `-shade1`, `-shade2` in `tokens.css`, contrast-checked like the rest.
+- **File layout:** probably `src/ui/art/` (one file per art style), split at about 400 lines.
+- **Night shift:** the microscope window is already dark; the bay window and diorama backdrops need dark-mode versions of the tints.
 
 ## Research notes
 
