@@ -1,6 +1,45 @@
 # Fab Run — Task Tracker
 
-## Current: M1 item 4 — `src/content/balance.js` (not planned yet)
+## Current: M1 item 4 — balance numbers (`src/content/balance.js`)
+
+**Status: plan, waiting for David's OK. No code written yet.**
+
+**David's answers (24 Oct 2026):** cash 1500; scrap line 40%, spec 70%; time budgets as in the table.
+
+### What it is, in plain words
+One file that holds every tuning number, so balancing never means hunting through code (CLAUDE.md §7). Data only; no logic. All numbers are placeholders until the M7 bot balance pass.
+
+### Numbers (confirmed by David)
+| Name | Proposed | Why |
+|---|---|---|
+| `STARTING_CASH` | 1500 | One big tool (450–700) plus a material and a consumable or two; not everything |
+| `HAND_SIZE` | 5 | O6 |
+| `SCRAP_LINE` | 0.40 | Below 40% line yield the lot is scrapped mid-run |
+| `CUSTOMER_SPEC` | 0.70 | Ship at or above 70% = shipped; below = rejected (O4) |
+| `SCATTER_STRENGTH` | 0.5 | Site-to-site scatter for even patterns (lot.js) |
+| `SHAPED_SCATTER_FRACTION` | 0.25 | Moved here from lot.js, where it was marked as a placeholder |
+
+**Time budgets per room (minutes).** Set against the card costs so each room forces a choice:
+
+| Room | Budget | Cards today (time) | The choice it forces |
+|---|---|---|---|
+| Wet clean | 10 | N2 storage (cash only) | (time matters once Q-time lands) |
+| Deposition | 15 | pre-clean 10, SiN etch stop 12 | **one or the other, not both** |
+| Litho | 30 | rework 30, dummy fill 0; i-line resist −5, thick resist +10 | rework fits only with a fast resist or nothing else |
+| Etch | 8 | timed over-etch 4, endpoint etch 5 | two plays at most |
+| Plating | 10 | low-current start 8 | |
+| Diffusion | 20 | spike anneal 15 | (NMOS, later) |
+| Implant | 15 | none yet | (NMOS, later) |
+| CMP | 10 | none yet | |
+| Metrology | 20 | measure all 25 sites 20 | spend the whole visit measuring, or don't |
+
+### Changes
+- [ ] `src/content/balance.js` with the numbers above, each with a one-line comment
+- [ ] `lot.js` reads `SHAPED_SCATTER_FRACTION` from balance.js instead of its own constant (a 2-line change; no behavior change, since the value stays 0.25)
+- [ ] `tests/balance.test.js`: every number is finite and in range; `SCRAP_LINE < CUSTOMER_SPEC < 1`; every room in `ROOMS` has a time budget; every practice's time cost fits inside its room's budget (so no card can never be played)
+
+### Acceptance criteria
+- `npm test` passes; no other behavior changes.
 
 ---
 
