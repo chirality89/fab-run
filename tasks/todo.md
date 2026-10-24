@@ -1,6 +1,61 @@
 # Fab Run — Task Tracker
 
-## Current: M1 item 3 — `src/engine/resolve.js` (not planned yet)
+## Current: M1 item 3 — card effects (`src/engine/resolve.js`)
+
+**Status: plan, waiting for David's OK. No code written yet.**
+
+**David's answers (24 Oct 2026):** (1) `decayPerUse`: the slot keeps a decay factor starting at 1; each use multiplies the target pattern's risk by the factor, then the factor ×= mult (the bath gets worse each use). (2) Equipment and material effects apply once per visit to their room, on entering, before any cards (run.js will call `applyEffects`).
+
+### What it is, in plain words
+Every card, tool, material and consumable is a list of effects (`content.js`). This file is the one place that knows what each of the eight effect operations *does* to the game state, and when a `when` condition is true. It doesn't decide *when* a card is played or pay its base cost; that is the run's job (`run.js`, later). Keeping it that narrow means each operation has one small function and one test.
+
+### The slice of state it touches
+`run.js` doesn't exist yet, so this item fixes only the parts effects need. `run.js` will build the full state around them later.
+```js
+{
+  lot,                        // from lot.js: sites, risks, flags
+  cash,                       // may go below 0 (O4: that blocks buying, nothing else)
+  room: { id, timeLeft, revealed: [] },
+  tools: { etch: { health: 100 }, ... },   // 0..100
+  equipment: ['oesEndpoint', ...],
+  slots: { resist: { id, shelfLife, decay: 1 }, bath: { ... } },
+  enabled: ['endpointEtch', ...],          // cards made playable by equipment
+  lotTraits: ['narrowFeatures', ...],      // facts about this lot, for when: { lot }
+}
+```
+
+### The eight operations
+| Op | What it does | Edge rules |
+|---|---|---|
+| `defectMult` | `scaleRisk(lot, pattern, mult)` from lot.js | unknown pattern → error |
+| `timeCost` | `room.timeLeft -= delta` (a negative delta gives time back, e.g. i-line resist −5) | may not go below 0; the run checks affordability before a card is played |
+| `cashCost` | `cash -= delta` | may go below 0 (O4) |
+| `setFlag` | adds the flag to `lot.flags` (once) | |
+| `reveal` | adds `what` to `room.revealed`; the UI reads it in M2 | `'none'` does nothing |
+| `toolHealth` | the room's tool health `+= delta` | kept within 0..100 |
+| `enables` | adds the id to `enabled` (once) | |
+| `decayPerUse` | `scaleRisk(target, slot.decay)`, then `slot.decay ×= mult`, on the slot holding `source` | source not in a slot → error |
+
+**`when` conditions**, checked by one exported function `conditionMet(state, when)`:
+- `{ flag }`: the lot has that flag. `{ equipment }`: it's installed. `{ material }`: some slot holds it.
+- `{ lot }`: the trait is in `state.lotTraits`. Static traits (`tightCD`, `deepEtch`, `narrowFeatures`) will come from `lotTypes.js`. Dynamic ones (`delayBeforeBake`, `lastStepWasLitho`, `rightPartChosen`) stay in NEEDS NEW LOGIC: something has to set them later. Until then they are simply false.
+- An unknown op or condition key → an error naming it, so a typo in content fails loudly.
+
+### Functions (each returns a new state; nothing is changed in place)
+- [ ] `conditionMet(state, when)`
+- [ ] `applyEffect(state, effect, source)`: one effect. `source` is the item, needed by `decayPerUse`.
+- [ ] `applyEffects(state, item)`: all of an item's effects in order, skipping those whose `when` is false
+- [ ] One small private function per operation
+
+### Tests (`tests/resolve.test.js`, hand-computed)
+- [ ] One test per operation, eight in all, including its edge rule.
+- [ ] `when`: each of the four kinds, true and false. Timed over-etch with and without `etch_stop`: underlayer_attack ×1.5 vs ×1.5×0.5 = ×0.75.
+- [ ] Unknown op and unknown condition key throw.
+- [ ] Nothing is changed in place. No NaN in the state after applying every item in `content.js`.
+
+### Acceptance criteria
+- `npm test` passes. `resolve.js` is pure and under ~150 lines.
+- `physics-reviewer` checks the decayPerUse semantics; `code-explainer` checks readability.
 
 ---
 
