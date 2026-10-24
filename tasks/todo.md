@@ -1,5 +1,44 @@
 # Fab Run — Task Tracker
 
+## Current: M1 item 6 — the bot (`src/engine/run.js` + `tools/bot.js`)
+
+**Status: plan, waiting for David's OK. No code written yet.**
+
+### What it is, in plain words
+A program that plays the Cu line from start to finish with no screen, using a fixed seed, and prints the final yield, cash and time. To have something to play, it needs the first, minimal version of `run.js`: the rules for walking the route, drawing a hand, playing a card and shipping. No map, side stops, procurement or saves yet (those are M3).
+
+### `src/engine/run.js` (about 200 lines; pure functions, each returns a new state)
+- `createRun({ seed, lotTypeId, deck, loadout, scatterStrength })` → the one state object: `seed`, `rngState`, `lotTypeId`, `stepIndex`, `lot` (start risks added), `cash`, `room`, `tools` (every room at health 100), `equipment`, `slots`, `enabled`, `lotTraits` (from the lot type), `deck`, `hand`, `minutesUsed`, `status` ('running' | 'scrapped' | 'shipped' | 'rejected'), `log`.
+- `enterStep(state)`: add the step's risks → apply each equipment and material in this room once (`applyEffects`) → set `timeLeft` from `TIME_BUDGETS` → draw a hand of `HAND_SIZE` from the room-legal cards in the deck (seeded shuffle).
+- `legalCards(state)`: cards in hand whose own `when` holds, whose time fits `timeLeft` and whose cash fits `cash` (the check carried from resolve.js).
+- `playCard(state, cardId)`: refuses an illegal card (error naming it); pays the base time and cash, applies the effects, removes it from the hand.
+- `resolveStep(state)`: roll scatter for the step's patterns (seeded), realize them, add the minutes used, scrap the lot if yield < `SCRAP_LINE`, else move to the next step. After the last step: shipped if yield ≥ `CUSTOMER_SPEC`, else rejected.
+- Unspent time is lost. Tool health stays at 100: nothing wears it yet (there is no rule for how much, so it goes in NEEDS NEW LOGIC rather than being invented).
+
+### `tools/bot.js` (outside `src/`, about 80 lines)
+- `playRun(seed, policy, options)` drives run.js to the end. Two policies:
+  - **idle**: plays nothing (the hand-checkable baseline);
+  - **random**: plays random legal cards until none fits. Its choices use a separate seeded stream, so the bot never changes the lot's own random numbers.
+- `npm run bot -- --seed 123456 --policy random` prints seed, status, final yield, cash, minutes used and the cards played.
+
+### Tests (`tests/run.test.js`, `tests/bot.test.js`)
+- Idle bot with scatter off: yield **0.517954** (same hand value as lotTypes), status `rejected`, cash = start − loadout, minutes 0.
+- An illegal card (wrong room, too expensive, `when` not met, e.g. `endpointEtch` without the detector) is refused.
+- Playing `timedOveretch` in etch costs 4 minutes and scales residue as resolve.js does.
+- Scrap: a run that drops below 0.40 mid-route stops there with status `scrapped`.
+- Seeds 1–50 × {idle, random} × {starter deck, full pool}: no exception, no `NaN`/`Infinity` anywhere in the final state (a scan of every number), yield in 0..1, cash never below 0.
+- Same seed + same policy → identical final state; a different seed → a different wafer map.
+
+### Acceptance criteria
+- `npm test` passes; `npm run bot` prints a result; `code-explainer` reviews the diff for readability; `playtester` runs the bot.
+
+### Questions for David
+1. Starting loadout: should the lot start with the starter i-line resist already in the litho slot?
+2. The starter deck has only 3 practices (over-etch, measure all, re-expose). Should the bot also run with the full pool so every card gets exercised?
+3. "Time" in the report: minutes of practices played, or the sum of the room budgets (the time the lot spends in each room whatever you play)?
+
+---
+
 ## Done: M1 item 5 — the inlaid Cu line route (`src/content/lotTypes.js`)
 
 **Status: done 24 Oct 2026. 62/62 tests pass; do-nothing yield 0.517954 matched the hand value first time.**
