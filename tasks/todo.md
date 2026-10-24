@@ -11,7 +11,7 @@
 - The live page shows the title, the room key and the content counts, with no console errors
 - `docs/decisions.md` has no open decision that blocks M1
 
-### Plan: roadmap item 1, GitHub Pages (waiting for David's OK)
+### Plan: roadmap item 1, GitHub Pages (approved Oct 24; Pages switched on by David)
 
 Claude can't switch Pages on (it's a repo setting) and this cloud session can't open `github.io`, so the work is split.
 
@@ -22,9 +22,9 @@ Claude can't switch Pages on (it's a repo setting) and this cloud session can't 
 5. Tick the roadmap box once David confirms step 2. Commit, PR.
 
 **Acceptance criteria:**
-- Local screenshots (desktop and phone) show the title, the room key and the counts, with no console errors
-- David confirms the live URL on desktop and phone
-- `.nojekyll` is on `main`
+- [x] Local screenshots (desktop and phone) show the title, the room key and the counts, with no console errors (Oct 24: 9 tiles, counts 10/5/4/4/9, no errors, no sideways scroll at 375 px)
+- [ ] David confirms the live URL on desktop and phone
+- [ ] `.nojekyll` is on `main` (added on the branch; lands with the PR)
 
 ## NEEDS NEW LOGIC
 
