@@ -21,7 +21,8 @@ The game screens do not change in this lane. The new card frame lives only on `a
 - **tint**: pale backdrop wall behind art and behind `--ink` text. Must give `--ink` 4.5:1 or better (they all give 13:1 or better).
 - **shade1**: first darker face (diorama side face, tool body). Allowed behind `--ink` text, so it must give 4.5:1 or better (lowest is etch, 5.0:1).
 - **shade2**: second darker face. **Art only, never behind text** (some fall to 3.5:1 with ink and under 4.5:1 with white, so no text color is safe on all of them). Said in the token comment.
-- Each step is at least 1.35:1 lighter or darker than the one next to it, so flat faces read as different without any gradient.
+- shade1 is at least 1.35:1 darker than the base, shade2 at least 1.35:1 darker than shade1, so flat faces read as different without any gradient.
+- Tint to base is only 1.15:1 or more: dep's base is so pale that even white is 1.27:1 above it (dep tint 1.19:1). So a tool drawn on its tint always gets an ink outline. (Found by the new test, 25 Oct.)
 
 ### Proposed values (computed by mixing the room color with white or `--ink`; numbers copied from the script output)
 
@@ -29,7 +30,7 @@ The game screens do not change in this lane. The new card frame lives only on `a
 |---|---|---|---|---|---|
 | clean | #5FD3E0 | #D2F3F6 (14.1) | #52B3BF (6.7, 1.39) | #438F9B (1.51) | #274854 (8.3) |
 | litho | #FFC933 | #FFF0C6 (14.6) | #D5AB32 (7.6, 1.41) | #A68930 (1.55) | #4A462E (8.1) |
-| etch | #6FA8F5 | #D7E7FC (13.1) | #5F90D1 (5.0, 1.35) | #4C74A8 (1.45) | #2A3F58 (9.1) |
+| etch | #6FA8F5 | #D7E7FC (13.1) | #5E8ECF (4.9, 1.38) | #4C74A8 (1.43) | #2A3F58 (9.1) |
 | dep | #DDE4EC | #F5F7FA (15.4) | #B9C1C9 (9.1, 1.42) | #919AA3 (1.57) | #434C56 (7.4) |
 | diff | #FF9A4D | #FFE3CD (13.4) | #D58447 (5.7, 1.38) | #A66C40 (1.50) | #4A3C33 (9.0) |
 | implant | #B79CF7 | #EBE3FD (13.3) | #9A86D2 (5.3, 1.36) | #796DA9 (1.46) | #3A3C59 (9.0) |
@@ -118,6 +119,20 @@ All checked against `--view-dark` so they read on the microscope window (3:1 or 
 - **Q2, tests outside my folders.** Two new test files would help and touch no other lane's files: `tests/tokens.test.js` (reads `tokens.css`, checks every text pairing in the table is 4.5:1 or better and that `src/art/` and `cards.css` have no hex colors) and `tests/screens/art-preview.spec.js` (screenshots the preview page at both sizes, checks no horizontal scroll and no console errors). OK to add them? If not, I check contrast with a throwaway script and take screenshots with a script in my scratch folder.
 - **Q3, three new material tokens** (`--mat-doped`, `--mat-particle`, `--mat-junction`) for the cross-sections. OK, or should I draw those with the existing colors only?
 - **Q4, PRs.** One PR per item (three PRs, each rebased on `main`), or one PR when all three are done? I'd suggest one per item so the tokens can land early for the other lanes.
+
+## David's answers (25 Oct 2026)
+- Q1 branch: not changed, so `claude/lane-d-look-feel-64k6zr`.
+- Q2: yes, add `tests/tokens.test.js` and `tests/screens/art-preview.spec.js`.
+- Q3: yes, add the new colors.
+- Q4: one PR at the end.
+- Style reference: David's "Fab Run Card Styles" sheet, style C (microscope window). What that changes in this plan:
+  - Room band: icon + room name in uppercase condensed, letter-spaced; cost in an ink pill with light mono text on the right.
+  - Card: white, 2 px ink edge, rounded corners.
+  - **Labels inside the art after all** (resist, oxide, SiN, Si) in small mono, plus a "200 nm" style scale bar. Labels use `--on-fill` on light films and a new `--view-ink` on the dark window; never on Cu or barrier (too dark for either).
+  - Implant damage as small × marks; junction as a dashed dark line with a label; particles as small pale dots; plasma ions as short light-blue dashes above an etch.
+  - Material cards show shelf-life ticks next to the rarity diamonds.
+  - Under the art: mono kind label left, diamonds right; name; effect; hairline; **Tradeoff** in bold then the text.
+- New colors (contrast from the scratch script): `--mat-doped` #B4BCC0 (8.6:1 with ink, 1.5:1 vs Si), `--mat-particle` #E8E3C0 (13.4:1 on the window, 2.3:1 vs Si), `--mat-junction` #14202B (5.6:1 on Si), `--mat-plasma` #9CC4FA (9.7:1 on the window), `--view-ink` #E6EDF3 (14.7:1 on the window). `--mat-plasma` and `--view-ink` are two more than asked; both come straight from the style sheet.
 
 **Progress notes:**
 - 25 Oct 2026: read CLAUDE.md, PROJECT.md, lessons, art-direction, card-art-plan, content.js. Checked remote branches: `lane-b` (saves plan) and `ccr-c4267d03` (Pages) don't touch Lane D files. Contrast numbers computed with a scratch script.
