@@ -1,13 +1,13 @@
 // view.test.js — checks the display data in src/ui/view.js (no browser).
-// Expected values are hand-computed (tasks/todo.md, M2 item 1). Never edit
+// Expected values are hand-computed (tasks/todo.md, M2 items 1 and 2). Never edit
 // one to make a test pass; ask David.
 // Run with: npm test
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createRun, enterStep, resolveStep, fullPool, whyIllegal } from '../src/engine/run.js';
+import { createRun, enterStep, resolveStep, playCard, fullPool, whyIllegal } from '../src/engine/run.js';
 import { lotYield } from '../src/engine/lot.js';
-import { roomView, siteBand, yieldBand, parseSeed } from '../src/ui/view.js';
+import { roomView, resultView, siteBand, yieldBand, parseSeed } from '../src/ui/view.js';
 
 const SEED = 123456;
 const TOLERANCE = 1e-6;
@@ -118,4 +118,50 @@ test('site band agrees with the printed percent', () => {
 test('wafer map legend is built from the balance numbers', () => {
   assert.equal(roomView(idleToEtch()).mapKeyText,
     'Each site: % of the 25 wafers still good there. Pass 90%+, warning 70–89%, fail under 70%.');
+});
+
+// --- M2 item 2: playing a card and running the room ---------------------
+// Hand check in tasks/todo.md (M2 item 2). Over-etch: residue x 0.3,
+// underlayer attack x 1.5, so the even part of the etch exponent is 0.115.
+
+test('playing timed over-etch: 4 of 8 min left, card leaves the hand', () => {
+  const view = roomView(playCard(idleToEtch(), 'timedOveretch'));
+  assert.equal(view.timeLeft, 4, `seed ${SEED}`);
+  assert.equal(view.budget, 8);
+  assert.deepEqual(view.hand, []);
+});
+
+test('playing timed over-etch: expected loss drops from 22.9 to 19.7 points', () => {
+  const view = roomView(playCard(idleToEtch(), 'timedOveretch'));
+  assert.ok(Math.abs(view.expectedLossPoints - 19.7066) < 1e-4,
+    `expected loss: got ${view.expectedLossPoints}, expected 19.7066 (seed ${SEED})`);
+  assert.equal(view.expectedLossText, 'This room will cost about 19.7 points of yield if nothing changes.');
+});
+
+test('run etch with nothing played: 91.4% -> 68.5%, 22.9 points lost', () => {
+  const before = idleToEtch();
+  const view = resultView(before, resolveStep(before));
+  assert.equal(view.yieldBeforePercent, 91.4, `seed ${SEED}`);
+  assert.equal(view.yieldAfterPercent, 68.5);
+  close(view.yieldAfterFraction, 0.685321, 'yield after etch, idle');
+  assert.equal(view.lossText, 'This room cost 22.9 points of yield.');
+  assert.equal(view.yieldBand, 'warn', 'below the 70% spec, above the scrap line');
+  assert.equal(view.status, 'running');
+  assert.equal(view.outcomeText, 'The lot moves on to step 5: Resist strip + wet clean.');
+  assert.equal(view.sites.length, 25);
+});
+
+test('run etch after timed over-etch: 91.4% -> 71.7%, 19.7 points lost', () => {
+  const before = playCard(idleToEtch(), 'timedOveretch');
+  const view = resultView(before, resolveStep(before));
+  assert.equal(view.yieldAfterPercent, 71.7, `seed ${SEED}`);
+  close(view.yieldAfterFraction, 0.716865, 'yield after etch, over-etch');
+  assert.equal(view.lossText, 'This room cost 19.7 points of yield.');
+});
+
+test('resultView names the scrap when the lot dies', () => {
+  const before = idleToEtch();
+  const scrapped = { ...resolveStep(before), status: 'scrapped' };
+  assert.equal(resultView(before, scrapped).outcomeText,
+    'Lot scrapped: yield fell below the scrap line (40%).');
 });
