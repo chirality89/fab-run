@@ -53,17 +53,21 @@ export function driftShift(health) {
 }
 
 // The fraction of a lot outside the spec limits when the mean has moved
-// `shift` sigma: the tail past the near limit plus the tail past the far one.
-export function outOfSpecFraction(shift) {
-  return normalBelow(-SPEC_LIMIT_SIGMA - shift) + normalBelow(shift - SPEC_LIMIT_SIGMA);
+// `shift` sigma towards its drift side. Two-sided spec (a rate, a CD): the
+// tail past the near limit plus the tail past the far one. One-sided spec
+// (particles, seams: fewer is never out of spec): the near tail only.
+export function outOfSpecFraction(shift, oneSided = false) {
+  const nearTail = normalBelow(shift - SPEC_LIMIT_SIGMA);
+  if (oneSided) return nearTail;
+  return nearTail + normalBelow(-SPEC_LIMIT_SIGMA - shift);
 }
 
 // The extra risk a drifted tool adds to its pattern. Chosen so the yield
 // factor e^(−risk) is exactly (in-spec fraction now) / (in-spec fraction on
-// target): a healthy tool adds nothing.
-export function driftRisk(health) {
-  const inSpecNow = 1 - outOfSpecFraction(driftShift(health));
-  const inSpecOnTarget = 1 - outOfSpecFraction(0);
+// target): a healthy tool adds nothing. `oneSided` as in outOfSpecFraction.
+export function driftRisk(health, oneSided = false) {
+  const inSpecNow = 1 - outOfSpecFraction(driftShift(health), oneSided);
+  const inSpecOnTarget = 1 - outOfSpecFraction(0, oneSided);
   return -Math.log(inSpecNow / inSpecOnTarget);
 }
 
@@ -134,6 +138,12 @@ export function useTool(state, roomId) {
 
 // --- SPC rules -------------------------------------------------------------
 
+// The rules' numbers: 2 of 3 beyond 2σ, and a run of 8.
+const RULE2_COUNT = 2;
+const RULE2_WINDOW = 3;
+const RULE2_SIGMA = 2;
+const RULE3_RUN = 8;
+
 // Which side of the centre line a point is on: 'above', 'below' or null.
 function sideOf(z) {
   if (z > 0) return 'above';
@@ -146,23 +156,26 @@ function sideOf(z) {
 //   { rule: 1, side }  one point beyond the 3σ control limit
 //   { rule: 2, side }  2 of 3 in a row beyond 2σ on the same side
 //   { rule: 3, side }  8 in a row on the same side of the centre
+// (Numbered 1–3 here for the three we use; in the full Western Electric
+// list the 8-in-a-row rule is rule 4.)
 export function spcRules(points) {
   const tripped = [];
+  // Each rule is reported once per side, however often it trips.
   const add = (rule, side) => {
-    if (!tripped.some(entry => entry.rule === rule)) tripped.push({ rule, side });
+    if (!tripped.some(entry => entry.rule === rule && entry.side === side)) tripped.push({ rule, side });
   };
 
   for (const z of points) {
     if (Math.abs(z) > CONTROL_LIMIT_SIGMA) add(1, sideOf(z));
   }
-  for (let i = 0; i + 3 <= points.length; i++) {
-    const three = points.slice(i, i + 3);
-    if (three.filter(z => z > 2).length >= 2) add(2, 'above');
-    if (three.filter(z => z < -2).length >= 2) add(2, 'below');
+  for (let i = 0; i + RULE2_WINDOW <= points.length; i++) {
+    const group = points.slice(i, i + RULE2_WINDOW);
+    if (group.filter(z => z > RULE2_SIGMA).length >= RULE2_COUNT) add(2, 'above');
+    if (group.filter(z => z < -RULE2_SIGMA).length >= RULE2_COUNT) add(2, 'below');
   }
-  for (let i = 0; i + 8 <= points.length; i++) {
-    const sides = points.slice(i, i + 8).map(sideOf);
+  for (let i = 0; i + RULE3_RUN <= points.length; i++) {
+    const sides = points.slice(i, i + RULE3_RUN).map(sideOf);
     if (sides[0] !== null && sides.every(side => side === sides[0])) add(3, sides[0]);
   }
-  return tripped.sort((a, b) => a.rule - b.rule);
+  return tripped.sort((a, b) => a.rule - b.rule);   // rule 1 first
 }

@@ -306,3 +306,11 @@ test('the metrology room has no SPC chart', () => {
   while (state.stepIndex < 8) state = idleRoom(state);
   assert.equal(roomView(enterStep(state)).spc, null);
 });
+
+test('spcView: a one-sided spec (particle adders) shows only an upper spec limit', () => {
+  const spc = roomView(enterStep(createRun({ seed: SEED, scatterStrength: 0, toolDrift: false }))).spc;
+  assert.equal(spc.parameter, 'Particle adders');
+  assert.deepEqual(spc.specSides, [1]);
+  // target 20, sigma 4: control 8–32, spec up to 36.
+  assert.equal(spc.limitsText, 'Centre 20.0 · control 8.0–32.0 · spec up to 36.0 per wafer');
+});

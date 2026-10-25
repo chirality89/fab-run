@@ -6,15 +6,12 @@
 // always set with textContent (never innerHTML), so nothing in the data can
 // turn into page code.
 
+import { el, panel } from './dom.js';
 import { drawSpc } from './spcChart.js';
 
-// Makes an element with a class and, optionally, some text.
-export function el(tag, className, text) {
-  const node = document.createElement(tag);
-  if (className) node.className = className;
-  if (text !== undefined) node.textContent = text;
-  return node;
-}
+// el and panel live in dom.js; they are passed on from here so the other
+// screen files can keep importing them from render.js.
+export { el, panel };
 
 // Calls `handler` when the button is clicked, tapped or pressed with Enter
 // or Space, but ignores the second click of a double click. Playing a card
@@ -28,13 +25,6 @@ export function onSingleClick(button, handler) {
     if (event.detail > 1) return;
     handler();
   });
-}
-
-// A small heading for each panel.
-export function panel(title, className) {
-  const box = el('section', `panel ${className}`);
-  box.append(el('h2', 'panel-title', title));
-  return box;
 }
 
 // Top bar: the room name on its room color, the step, the seed and cash.

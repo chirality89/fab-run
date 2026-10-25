@@ -63,7 +63,7 @@ export const PATTERNS = {
 // ---------------------------------------------------------------------------
 export const FAILURE_MODES = [
   { id: 'fm_particles',      draft: true, pattern: 'particles',
-    sig: 'Random killed dies that move from lot to lot; particle counts rise after deposition.',
+    sig: 'Random killed dies that move from lot to lot; particle adders climb on the clean or deposition SPC chart.',
     unlocks: ['preclean'] },
   { id: 'fm_underlayer',     draft: true, pattern: 'underlayer_attack',
     sig: 'Leakage on the dies with the most over-etch; the cross-section shows a notch in the film below.',
@@ -75,7 +75,7 @@ export const FAILURE_MODES = [
     sig: 'Wide lines are thin and high-resistance; narrow lines are fine.',
     unlocks: ['dummyFill'] },
   { id: 'fm_rr_drift',       draft: true, pattern: 'rr_drift',
-    sig: 'Post-CMP thickness walks steadily lot to lot on the SPC chart.',
+    sig: 'The CMP removal rate walks steadily lot to lot on the SPC chart.',
     unlocks: ['padConditioner'] },
   { id: 'fm_keyhole',        draft: true, pattern: 'void',
     sig: 'Opens on narrow vias only; a seam or void sits in the middle of the fill.',

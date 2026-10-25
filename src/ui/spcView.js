@@ -14,6 +14,12 @@ function decimalsFor(monitor) {
   return monitor.sigma < 1 ? 2 : 1;
 }
 
+// The spec limits in words: a range, or "up to" for a one-sided spec.
+function specText(monitor, toUnits, format) {
+  if (monitor.oneSided) return `up to ${format(toUnits(SPEC_LIMIT_SIGMA))}`;
+  return `${format(toUnits(-SPEC_LIMIT_SIGMA))}–${format(toUnits(SPEC_LIMIT_SIGMA))}`;
+}
+
 // One tripped rule, in words.
 function ruleText(tripped) {
   const side = tripped.side;
@@ -40,11 +46,13 @@ export function spcView(state, roomId) {
     zs,
     controlSigma: CONTROL_LIMIT_SIGMA,
     specSigma: SPEC_LIMIT_SIGMA,
+    // One-sided spec (particles, seams): only the upper spec line is drawn.
+    specSides: monitor.oneSided ? [1] : [1, -1],
     // Points beyond the control limits are drawn differently (shape, not only color).
     outOfControl: zs.map(z => Math.abs(z) > CONTROL_LIMIT_SIGMA),
-    latestText: zs.length > 0 ? `Latest lot: ${format(toUnits(zs[zs.length - 1]))} ${monitor.unit}` : '',
+    latestText: zs.length > 0 ? `Last lot measured: ${format(toUnits(zs[zs.length - 1]))} ${monitor.unit}` : '',
     limitsText: `Centre ${format(monitor.target)} · control ${format(toUnits(-CONTROL_LIMIT_SIGMA))}–${format(toUnits(CONTROL_LIMIT_SIGMA))}`
-      + ` · spec ${format(toUnits(-SPEC_LIMIT_SIGMA))}–${format(toUnits(SPEC_LIMIT_SIGMA))} ${monitor.unit}`,
+      + ` · spec ${specText(monitor, toUnits, format)} ${monitor.unit}`,
     rules: tripped.map(ruleText),
     inControl: tripped.length === 0,
     verdictText: tripped.length === 0

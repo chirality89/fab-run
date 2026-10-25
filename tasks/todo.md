@@ -47,24 +47,24 @@
   A small shift trips rule 3 first, then rule 2, then rule 1: an early warning that gets louder.
 
 **Engine (`src/engine/`)**
-- [ ] New `src/engine/tools.js` (pure): `startingTools(seed)`, `driftShift(health)`, `outOfSpecFraction(shift)`, `driftRisk(health)`, `spcPoints(state, roomId)`, `spcRules(points)`; Φ by a standard textbook approximation (Abramowitz–Stegun 7.1.26, error under 1e-7).
-- [ ] `run.js`: `createRun` sets tools from the seed. `enterStep` adds the drift risk to the room's pattern. `resolveStep` wears the tool and records this lot's SPC point.
-- [ ] `createRun` option `toolDrift` (default on). Off, every tool stays at 100 and never wears, so drift adds nothing: the "hand-check mode", like `scatterStrength: 0`. The test helpers that turn scatter off also turn drift off. **No expected value changes**, but about 6 test setups change, and the assertion "tools start at 100" becomes "with drift off, tools start at 100". Option `startingHealth: { cmp: 60 }` lets a test fix one tool.
+- [x] New `src/engine/tools.js` (pure): `startingTools(seed)`, `driftShift(health)`, `outOfSpecFraction(shift)`, `driftRisk(health)`, `spcPoints(state, roomId)`, `spcRules(points)`; Φ by a standard textbook approximation (Abramowitz–Stegun 7.1.26, error under 1e-7).
+- [x] `run.js`: `createRun` sets tools from the seed. `enterStep` adds the drift risk to the room's pattern. `resolveStep` wears the tool and records this lot's SPC point.
+- [x] `createRun` option `toolDrift` (default on). Off, every tool stays at 100 and never wears, so drift adds nothing: the "hand-check mode", like `scatterStrength: 0`. The test helpers that turn scatter off also turn drift off. **No expected value changes**, but about 6 test setups change, and the assertion "tools start at 100" becomes "with drift off, tools start at 100". Option `startingHealth: { cmp: 60 }` lets a test fix one tool.
 
 **Content (`src/content/`)**
-- [ ] `src/content/tools.js`: the table above as data (room, parameter name, unit, target, sigma, direction, pattern, tradeoff/physics note).
-- [ ] `balance.js`: `HEALTH_PER_SIGMA`, `SPEC_LIMIT_SIGMA`, `CONTROL_LIMIT_SIGMA = 3`, `WEAR_PER_RUN`, `STARTING_HEALTH_MIN = 50`, `SPC_HISTORY = 12`.
+- [x] `src/content/tools.js`: the table above as data (room, parameter name, unit, target, sigma, direction, pattern, tradeoff/physics note).
+- [x] `balance.js`: `HEALTH_PER_SIGMA`, `SPEC_LIMIT_SIGMA`, `CONTROL_LIMIT_SIGMA = 3`, `WEAR_PER_RUN`, `STARTING_HEALTH_MIN = 50`, `SPC_HISTORY = 12`.
 
 **Screen (`src/ui/`)**
-- [ ] In each room, an **SPC chart** (inline SVG drawn with tokens) takes the place of the "Tool health" meter. It shows the points, centre, control and spec lines, and the rules tripped in words ("8 in a row below centre: the removal rate is shifting").
-- [ ] Question for David: show the tool health number too, or only SPC? (Proposed: SPC only. Health becomes a hidden value the metrology stop can reveal later, as engineers read SPC, not a health bar.)
-- [ ] Screen tests at both sizes; screenshots checked.
+- [x] In each room, an **SPC chart** (inline SVG drawn with tokens) takes the place of the "Tool health" meter. It shows the points, centre, control and spec lines, and the rules tripped in words ("8 in a row below centre: the removal rate is shifting").
+- [x] Question for David: show the tool health number too, or only SPC? (Proposed: SPC only. Health becomes a hidden value the metrology stop can reveal later, as engineers read SPC, not a health bar.)
+- [x] Screen tests at both sizes; screenshots checked.
 
 **Tests**
-- [ ] `tests/tools.test.js`: Φ against table values; the yield-factor table above; rules on hand-made point lists (each rule trips, and does not trip just short); same seed → same starting health and points; the lot's `rngState` untouched.
-- [ ] **Hand check:** scatter off, nothing played, every tool at 100 except CMP at 60. The final yield is the all-at-100 run × **0.977312**, CMP's 2σ factor. rr_drift is an even pattern realized only at CMP, and the other tools wear identically in both runs.
-- [ ] Bot: no NaN; idle and random over seeds 1–50 still finish.
-- [ ] `physics-reviewer` on the model and the table, `code-explainer` on the diff, `playtester` before done.
+- [x] `tests/tools.test.js`: Φ against table values; the yield-factor table above; rules on hand-made point lists (each rule trips, and does not trip just short); same seed → same starting health and points; the lot's `rngState` untouched.
+- [x] **Hand check:** scatter off, nothing played, every tool at 100 except CMP at 60. The final yield is the all-at-100 run × **0.977312**, CMP's 2σ factor. rr_drift is an even pattern realized only at CMP, and the other tools wear identically in both runs.
+- [x] Bot: no NaN; idle and random over seeds 1–50 still finish.
+- [x] `physics-reviewer` on the model and the table, `code-explainer` on the diff, `playtester` before done.
 
 **Size:** content, engine and screen folders, about 500 lines with tests: the biggest item yet. This plan is the ask. Three commits: engine and tests, the SPC screen, then docs.
 
@@ -77,8 +77,22 @@
 - The hand check runs with drift off and CMP fixed at 60, so no tool wears and the ratio is exactly CMP's 2σ factor.
 - Screen built: spcView.js and spcChart.js are new files, so view.js stays under 400 lines. The SPC panel replaces the tool health meter. Seed 123456's etch tool starts at 73 and shows "8 in a row below the centre line" from the first visit.
 - The verdict says the parameter "may be shifting": a healthy tool can trip a rule by chance (a false alarm), so the screen does not claim drift as a fact.
+- physics-reviewer: the Cpk math, erf and the rules are correct; the physics notes are sound; all public. Fixed:
+  - one-sided spec for particles and seams (no lower spec line, one tail in the yield math; one-sided factors 0.998682 / 0.977281 / 0.841371 at 1/2/3σ, tested);
+  - fm_particles sig now points at the clean or deposition SPC chart;
+  - fm_rr_drift sig now says removal rate, to match the chart;
+  - litho note: focus and dose calibration drift;
+  - sigma described as the parameter's spread;
+  - the rule-numbering comment.
+- Questions for David from it: etch rate drift feeds depth_variation (centre-to-edge), but a lower rate under a timed etch is more like residue across the whole wafer; "via resistance" may not fit a single-damascene trench that stops on SiN ("line resistance"?); should clean and deposition particles become two separate failure modes?
+- code-explainer fixed:
+  - `draft: true` on the monitors;
+  - `el`/`panel` moved to `src/ui/dom.js`, ending the render.js ↔ spcChart.js import circle;
+  - rules reported once per side, with named thresholds;
+  - "Last lot measured" instead of "Latest lot".
+- playtester: pass. 146/146 tests; 40 idle and random bot runs plus 4 full-deck runs with no errors; 22/22 screens; the chart is readable at both sizes. Balance note for M7: no bot run ships now (idle median about 47%), and the bots don't read SPC.
 
-**Result:**
+**Result:** every room's tool drifts and wears, starts each run at a seeded health, and costs yield by process capability. Each room shows an SPC chart with three Western Electric rules in words. `npm test` 149/149, `npm run screens` 22/22.
 
 ## Done: M3 item 2a — procurement stop: buy equipment and materials with cash
 

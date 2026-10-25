@@ -67,6 +67,15 @@ test('yield factor in the room: 1, 0.998713, 0.977312, 0.933252, 0.841398', () =
   close(factor(40), 0.841398, '3σ');
 });
 
+test('one-sided spec (particles, seams): only the upper tail counts', () => {
+  const factor = health => Math.exp(-driftRisk(health, true));
+  close(outOfSpecFraction(0, true), 0.000032, 'Φ(−4)');
+  close(driftRisk(100, true), 0, 'a healthy tool adds nothing');
+  close(factor(80), 0.998682, '1σ');
+  close(factor(60), 0.977281, '2σ');
+  close(factor(40), 0.841371, '3σ');
+});
+
 test('rule 1: one point beyond 3σ, and not at 2.9σ', () => {
   assert.deepEqual(spcRules([0.5, -0.5, 3.2]), [{ rule: 1, side: 'above' }]);
   assert.deepEqual(spcRules([0.5, -3.1, 0.2]), [{ rule: 1, side: 'below' }]);
@@ -132,4 +141,8 @@ test('hand check: a CMP tool at health 60 costs the lot × 0.977312', () => {
   const worn = playIdle(createRun({ seed: SEED, scatterStrength: 0, toolDrift: false, startingHealth: { cmp: 60 } }));
   close(lotYield(healthy.lot), 0.517954, `the healthy run is today's idle run (seed ${SEED})`);
   close(lotYield(worn.lot) / lotYield(healthy.lot), 0.977312, `yield ratio (seed ${SEED})`);
+});
+
+test('a rule tripped on both sides is reported for each side', () => {
+  assert.deepEqual(spcRules([3.5, 0, -3.2]), [{ rule: 1, side: 'above' }, { rule: 1, side: 'below' }]);
 });

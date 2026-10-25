@@ -170,7 +170,7 @@ export function enterStep(state) {
   for (const [pattern, amount] of Object.entries(step.adds)) lot = addRisk(lot, pattern, amount);
   // A drifted tool adds risk to the pattern it feeds (0 for a healthy tool).
   const monitor = TOOL_MONITORS[step.room];
-  const drift = monitor ? driftRisk(state.tools[step.room].health) : 0;
+  const drift = monitor ? driftRisk(state.tools[step.room].health, monitor.oneSided) : 0;
   if (drift > 0) lot = addRisk(lot, monitor.pattern, drift);
   // Entering a room also closes any shop the lot was standing in.
   let next = { ...state, lot, shop: null, room: { id: step.room, timeLeft: TIME_BUDGETS[step.room], revealed: [] } };

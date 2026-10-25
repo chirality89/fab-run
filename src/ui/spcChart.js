@@ -6,7 +6,7 @@
 // Colors come from CSS classes (room.css), which use the tokens only.
 // The words under the chart say the same as the picture, for everyone.
 
-import { el, panel } from './render.js';
+import { el, panel } from './dom.js';
 
 const SVG = 'http://www.w3.org/2000/svg';
 const WIDTH = 320;
@@ -41,8 +41,8 @@ function drawPicture(view) {
   const svg = svgEl('svg', { viewBox: `0 0 ${WIDTH} ${HEIGHT}`, class: 'spc-chart' });
   svg.setAttribute('role', 'img');
   svg.setAttribute('aria-label', `SPC chart of ${view.parameter}, last ${view.zs.length} lots. ${view.verdictText}`);
+  for (const side of view.specSides) svg.append(horizontalLine(side * view.specSigma, 'spc-spec'));
   svg.append(
-    horizontalLine(view.specSigma, 'spc-spec'), horizontalLine(-view.specSigma, 'spc-spec'),
     horizontalLine(view.controlSigma, 'spc-control'), horizontalLine(-view.controlSigma, 'spc-control'),
     horizontalLine(0, 'spc-centre'),
   );
