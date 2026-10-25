@@ -314,17 +314,19 @@ export const PRACTICES = [
     cost: { time: 9, cash: 90 },
     effects: [
       { op: 'defectMult', pattern: 'void', mult: 0.6 },
-      { op: 'defectMult', pattern: 'particles', mult: 1.2 },
+      { op: 'defectMult', pattern: 'flakes', mult: 1.2 },
+      { op: 'toolHealth', delta: -5 },   // coil and shield deposits build up faster
     ],
     upgrade: {
       name: 'Ionized PVD seed, DOE-biased', cost: { time: 9, cash: 90 },
       effects: [
         { op: 'defectMult', pattern: 'void', mult: 0.5 },
-        { op: 'defectMult', pattern: 'particles', mult: 1.3 },
+        { op: 'defectMult', pattern: 'flakes', mult: 1.3 },
+        { op: 'toolHealth', delta: -5 },
       ],
       tradeoff: 'Better sidewall seed and fewer voids, but the higher coil power builds deposits on the coil and shields faster, and they crack and flake onto the wafers.',
       physicsNote: 'Higher wafer bias re-sputters the overhang onto the sidewalls; higher coil power ionizes more metal but builds and heats deposits on the coil and shields faster, and those deposits crack and flake onto the wafers.' },
-    tradeoff: 'Better sidewall coverage in narrow trenches, but slower and dearer, and the extra coil and shields in the plasma collect metal that can flake off as particles.',
+    tradeoff: 'Better sidewall coverage in narrow trenches, but slower and dearer; the extra coil and shields in the plasma collect metal that flakes off, more so as the chamber drifts, and the deposits wear the chamber toward its next clean.',
     physicsNote: 'Ionizing the sputtered metal lets a substrate bias steer it down into the feature, so the sidewall gets more seed and the opening overhangs less. Less overhang means the plated copper is less likely to pinch off the mouth and trap a void.' },
 
   { id: 'lowPressurePolish', draft: true, kind: 'practice', room: 'cmp', rarity: 'standard',
