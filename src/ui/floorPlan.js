@@ -149,10 +149,27 @@ function drawChoices(view, actions) {
     box.append(el('h3', 'choice-heading', 'Or go straight on'));
   }
   box.append(actionButton(view.goText, 'go-button', actions.onGoStraight));
+  if (view.position !== 'start') box.append(drawScrap(actions));
   return box;
 }
 
-// Draws the map screen. `actions` holds onTakeStop(kind) and onGoStraight().
+// Scrap the lot (decision O4). The first tap only asks; "Keep the lot" takes
+// the asking button's place, so a double tap can never scrap by accident.
+function drawScrap(actions) {
+  const box = el('div', 'scrap-box');
+  const ask = actionButton('Scrap the lot', 'scrap-button secondary-button', () => {
+    const keep = actionButton('Keep the lot', 'keep-button secondary-button', () => box.replaceChildren(ask));
+    const buttons = el('div', 'result-buttons');
+    buttons.append(keep, actionButton('Yes, scrap it', 'scrap-confirm-button', actions.onScrap));
+    box.replaceChildren(el('p', 'scrap-question', 'Scrap this lot? The run ends, and everything spent on it is lost.'), buttons);
+    keep.focus();
+  });
+  box.append(ask);
+  return box;
+}
+
+// Draws the map screen. `actions` holds onTakeStop(kind), onGoStraight()
+// and onScrap().
 export function renderMap(container, view, actions) {
   const body = el('div', 'map-body');
   body.append(drawChoices(view, actions), drawPlan(view));

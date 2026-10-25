@@ -209,22 +209,80 @@ export function actionButton(text, className, onClick) {
 // The screen after a room is run: what it cost, the new wafer map, what
 // happens next, and two ways to play again.
 // `actions` holds onContinue() (shown only while the run goes on),
-// onReplay() and onNewSeed().
+// onShip() (shown once it is over), onReplay() and onNewSeed().
 export function renderResult(container, view, actions) {
   const outcome = panel('Result', 'result-panel');
   outcome.setAttribute('role', 'status');
   outcome.append(el('p', 'outcome-text', view.outcomeText));
   const buttons = el('div', 'result-buttons');
+  // While the run goes on, Continue is the main button; once it is over,
+  // the ship report is. Replay and New seed are always the plain ones.
   if (view.status === 'running') {
     buttons.append(actionButton('Continue to the corridor', 'continue-button', actions.onContinue));
+  } else {
+    buttons.append(actionButton('See the ship report', 'ship-button', actions.onShip));
   }
   buttons.append(
-    // While the run goes on, Continue is the main button and Replay is plain.
-    actionButton('Replay this seed', view.status === 'running' ? 'replay-button secondary-button' : 'replay-button', actions.onReplay),
+    actionButton('Replay this seed', 'replay-button secondary-button', actions.onReplay),
     actionButton('New seed', 'new-seed-button secondary-button', actions.onNewSeed),
   );
   outcome.append(buttons);
   container.replaceChildren(drawHeader(view), drawResultYield(view), outcome, drawWaferMap(view));
+  showFromTop(container);
+}
+
+// --- the ship report (M3 item 3) -------------------------------------------
+
+// One of the three numbers: label, big value, and what it is made of.
+function drawTile(tile) {
+  const box = el('div', 'ship-tile');
+  box.append(el('p', 'ship-tile-label', tile.label), el('p', 'ship-tile-value', tile.value),
+    el('p', 'ship-tile-detail', tile.detail));
+  return box;
+}
+
+// Yield by step: where the lot was lost, one row per room it ran through.
+function drawStepTable(view) {
+  const box = panel('Yield by step', 'steps-panel');
+  const table = el('table', 'step-table');
+  const head = el('tr');
+  for (const title of ['Step', 'Room', 'Yield after', 'Points lost']) head.append(el('th', null, title));
+  table.append(head);
+  for (const step of view.steps) {
+    const row = el('tr');
+    row.append(el('td', null, `${step.stepNumber}`));
+    const room = el('td', null);
+    room.append(el('span', `room-chip room-${step.roomId}`, step.roomName), ` ${step.stepLabel}`);
+    row.append(room, el('td', null, `${step.yieldPercent}%`), el('td', null, step.lossPoints));
+    table.append(row);
+  }
+  box.append(table);
+  if (view.stepsNotRun > 0) box.append(el('p', 'map-key', `${view.stepsNotRun} later steps were not run.`));
+  return box;
+}
+
+// The screen after a run ends: the verdict, the three numbers, yield by step
+// and the final wafer map. `actions` holds onReplay() and onNewSeed().
+export function renderShip(container, view, actions) {
+  const header = el('header', 'room-band map-band');
+  header.append(el('h1', 'room-name', 'Ship report'), el('p', 'room-step', view.lotName));
+  const facts = el('p', 'room-facts');
+  facts.append(el('span', 'seed', `Seed ${view.seed}`), el('span', 'cash', `Cash ${view.cash}`));
+  header.append(facts);
+
+  const verdict = panel('Verdict', `result-panel verdict-${view.status}`);
+  verdict.setAttribute('role', 'status');
+  verdict.append(el('p', 'outcome-text', view.verdictText));
+  const tiles = el('div', 'ship-tiles');
+  view.tiles.forEach(tile => tiles.append(drawTile(tile)));
+  verdict.append(tiles);
+  const buttons = el('div', 'result-buttons');
+  buttons.append(
+    actionButton('Replay this seed', 'replay-button', actions.onReplay),
+    actionButton('New seed', 'new-seed-button secondary-button', actions.onNewSeed),
+  );
+  verdict.append(buttons);
+  container.replaceChildren(header, verdict, drawStepTable(view), drawWaferMap(view));
   showFromTop(container);
 }
 

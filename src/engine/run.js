@@ -11,6 +11,7 @@
 //   walkCorridor → between two rooms: take one side stop, or go straight on
 //   then, at a side stop: buyItem, pmTool or doeCard, chooseEventOption
 //   (sideStops.js)
+//   scrapLot     → at any point between rooms, the player may scrap the lot
 //
 // Order inside enterStep (lotTypes.js): add the step's risks and the room
 // tool's drift risk (tools.js), set the room's time budget, apply the
@@ -122,7 +123,9 @@ export function createRun({
     hand: [],
     minutesUsed: 0,
     cycleTime: 0,
+    stepYields: [],         // after each room: { stepIndex, roomId, yieldAfter } (the ship report)
     status: 'running',      // 'running' | 'scrapped' | 'shipped' | 'rejected'
+    scrappedBy: null,       // 'scrapLine' | 'player' once scrapped
     log: [],
   };
 }
@@ -237,11 +240,14 @@ export function resolveStep(state) {
   next = useTool(next, step.room);   // this lot's SPC point, then wear
 
   const yieldNow = lotYield(lot);
+  const stepYield = { stepIndex: state.stepIndex, roomId: step.room, yieldAfter: yieldNow };
+  next = { ...next, stepYields: [...state.stepYields, stepYield] };
   const percent = `${(yieldNow * 100).toFixed(1)}%`;
   const isLastStep = next.stepIndex >= LOT_TYPES[state.lotTypeId].route.length;
   if (yieldNow < SCRAP_LINE) {
     // A scrapped lot stays at the step where it died.
-    return addLog({ ...next, stepIndex: state.stepIndex, status: 'scrapped' }, `  yield ${percent}: scrapped`);
+    next = { ...next, stepIndex: state.stepIndex, status: 'scrapped', scrappedBy: 'scrapLine' };
+    return addLog(next, `  yield ${percent}: scrapped`);
   }
   if (isLastStep) {
     const status = yieldNow >= CUSTOMER_SPEC ? 'shipped' : 'rejected';
@@ -299,4 +305,15 @@ export function walkCorridor(state, stopKind) {
   if (stopKind === null) return addLog(next, '  corridor: straight on');
   const stockText = shop ? `, stock ${shop.stock.join(', ')}` : '';
   return addLog(next, `  corridor: ${stopKind} (${minutes} min${stockText})`);
+}
+
+// The player scraps the lot (decision O4). Allowed only between rooms, while
+// the run goes on: at the door, in a corridor or at a side stop. The lot
+// stays at the step it was going to enter next. Late scrap is expensive:
+// everything already spent on the lot is lost (the ship report shows it).
+export function scrapLot(state) {
+  checkRunning(state, 'scrapLot');
+  checkInRoom(state, 'scrapLot', false);
+  const next = { ...state, shop: null, pm: null, event: null, status: 'scrapped', scrappedBy: 'player' };
+  return addLog(next, `  scrapped by the player before step ${state.stepIndex + 1}`);
 }
