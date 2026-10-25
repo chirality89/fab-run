@@ -301,3 +301,47 @@ export function renderPm(container, view, actions, justChose = false) {
   if (justChose) go.focus({ preventScroll: true });
   else showFromTop(container);
 }
+
+// One option of an event: what it does, its tradeoff, and a button to
+// choose it (until one is chosen).
+function drawEventOption(option, chosen, actions) {
+  const box = el('li', option.chosen ? 'card shop-item shop-item-bought' : 'card shop-item');
+  box.append(el('span', 'card-name', option.label));
+  box.append(el('span', 'shop-next doe-after', option.consequences));
+  box.append(el('span', 'card-summary', option.tradeoff));
+  if (option.chosen) {
+    box.append(el('span', 'shop-bought', 'Chosen'));
+  } else if (!chosen) {
+    const button = actionButton('Choose this', 'event-button', () => actions.onChoose(option.index));
+    button.setAttribute('aria-label', `Choose: ${option.label}`);
+    box.append(button);
+  }
+  return box;
+}
+
+// The event screen. `actions` holds onChoose(optionIndex) and onContinue().
+// After a choice the result shows, and focus moves to Continue.
+export function renderEvent(container, view, actions) {
+  const header = el('header', 'room-band map-band');
+  header.append(el('h1', 'room-name', view.name), el('p', 'room-step', 'Event'));
+  const facts = el('p', 'room-facts');
+  facts.append(el('span', 'seed', `Seed ${view.seed}`), el('span', 'cash event-cash', `Cash ${view.cash}`));
+  header.append(facts);
+
+  const box = panel('What happens', 'event-panel');
+  box.append(el('p', 'outcome-text', view.text), el('p', 'map-key', view.costText));
+  const list = el('ul', 'shop-list');
+  list.setAttribute('role', 'list');
+  for (const option of view.options) list.append(drawEventOption(option, view.chosen, actions));
+  box.append(list);
+  if (view.resultText) {
+    const result = el('p', 'outcome-text event-result', view.resultText);
+    result.setAttribute('role', 'status');
+    box.append(result);
+  }
+  const go = actionButton(view.goText, 'go-button', actions.onContinue);
+  box.append(go);
+  container.replaceChildren(header, box);
+  if (view.chosen) go.focus({ preventScroll: true });
+  else showFromTop(container);
+}

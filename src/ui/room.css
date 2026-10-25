@@ -352,3 +352,7 @@
 .doe-after { font-weight: 600; }
 .doe-button { margin-top: 10px; }
 .pm-panel + .go-button { margin-bottom: 12px; }
+
+/* --- Events (M3 item 2e) ---------------------------------------------------- */
+.event-button { margin-top: 10px; }
+.event-result { margin-top: 4px; padding: 8px 10px; border-left: 4px solid var(--blue); background: var(--bg); }

@@ -343,3 +343,19 @@ test('spcView: after a PM the rules look only at lots measured since it', () => 
   assert.equal(roomView({ ...state, tools: { ...state.tools, etch: oneLater } }).spc.verdictText,
     'In control: no rule tripped in the last 1 lot since the PM.');
 });
+
+// --- the event screen (M3 item 2e) -----------------------------------------
+
+test('eventView: consequences in words, tool health said as a service, Q-time wait shown', async () => {
+  const { eventView } = await import('../src/ui/eventView.js');
+  let state = createRun({ seed: SEED, scatterStrength: 0, toolDrift: false });
+  state = resolveStep(enterStep(state));
+  while (state.corridor < 4) state = resolveStep(enterStep(walkCorridor(state, null)));
+  const atAudit = { ...state, corridor: null, event: { corridor: 4, eventId: 'audit', chosen: null } };
+  const view = eventView(atAudit);
+  assert.equal(view.name, 'Quality audit');
+  assert.equal(view.options[0].consequences, '+30 min cycle time · +0.030 risk: native oxide grew while the lot waited (Q-time wait) · Wet clean tool serviced');
+  assert.equal(view.options[1].consequences, '−100 cash');
+  assert.equal(view.resultText, null);
+  assert.equal(view.goText, 'Continue to step 6: Deposition (barrier + seed)');
+});

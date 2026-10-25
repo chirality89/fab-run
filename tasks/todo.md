@@ -65,6 +65,7 @@ Each option has a `tradeoff` and a `physicsNote`, as every content entry does.
   - He also answered the DOE questions: the starter DOE versions are approved as strictly better; measure-all measures all 25 sites, and 3 of 25 wafers is the sampling (note fixed); dummy fill stays on dishing; a thinner etch stop weakening underlayer protection is noted for later (NEEDS NEW LOGIC).
 - Engine and content built: `addRisk` in resolve.js, `toolHealth` with `room`, src/content/events.js, src/engine/events.js (`drawEvent`), and `chooseEventOption` in run.js. The random bot picks an option at random.
   - Hand check, seed 123456 (supplier change drawn in the corridor after step 2): Switch now gives × 0.970446 and +150 cash. Passes as computed.
+- Screen built: eventView.js and renderEvent (floorPlan.js, now 347 lines; split it before it passes 400). Consequences are in plain words using each pattern's own description, and tool health is said as "tool serviced" (SPC only). The new screen spec waits out the double-click window at every screen change and passes 5 of 5 on the phone.
 
 **Result:**
 
