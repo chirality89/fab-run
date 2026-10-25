@@ -7,16 +7,18 @@
 //
 // The whole run lives in one variable, `state`. The screen never changes it
 // directly: every button calls an engine function (enterStep, playCard,
-// resolveStep, walkCorridor, buyItem, pmTool, doeCard), stores the new state that comes back, and
-// redraws.
+// resolveStep, walkCorridor, buyItem, pmTool, doeCard, chooseEventOption),
+// stores the new state that comes back, and redraws.
 
 import { normalizeSeed } from '../engine/rng.js';
 import {
-  createRun, enterStep, resolveStep, playCard, walkCorridor, buyItem, pmTool, doeCard, starterDeck, defaultLoadout,
+  createRun, enterStep, resolveStep, playCard, walkCorridor, buyItem, pmTool, doeCard, chooseEventOption,
+  starterDeck, defaultLoadout,
 } from '../engine/run.js';
 import { roomView, resultView, mapView, stopView, shopView, parseSeed } from './view.js';
 import { renderRoom, renderResult, renderError, focusNextAction, showFromTop } from './render.js';
-import { renderMap, renderStop, renderShop, renderPm } from './floorPlan.js';
+import { renderMap, renderStop, renderShop, renderPm, renderEvent } from './floorPlan.js';
+import { eventView } from './eventView.js';
 import { pmView } from './pmView.js';
 
 const LOT_TYPE_ID = 'cuLine';
@@ -85,6 +87,7 @@ function onTakeStop(stopKind) {
     state = walkCorridor(state, stopKind);
     if (state.shop !== null) showShop(null);
     else if (state.pm !== null) showPm(JUST_OPENED);
+    else if (state.event !== null) showEvent();
     else renderStop(app, stopView(before, state, stopKind), { onContinue: () => safely(enterRoom) });
   });
 }
@@ -100,6 +103,13 @@ function onDoe(cardId) {
   safely(() => {
     state = doeCard(state, cardId);
     showPm(AFTER_CHOICE);
+  });
+}
+
+function onChoose(optionIndex) {
+  safely(() => {
+    state = chooseEventOption(state, optionIndex);
+    showEvent();
   });
 }
 
@@ -152,6 +162,11 @@ const JUST_OPENED = false;
 const AFTER_CHOICE = true;
 function showPm(justChose) {
   renderPm(app, pmView(state), { onPm, onDoe, onContinue: () => safely(enterRoom) }, justChose);
+}
+
+// The event screen: the situation and its options, then the result.
+function showEvent() {
+  renderEvent(app, eventView(state), { onChoose, onContinue: () => safely(enterRoom) });
 }
 
 function enterRoom() {

@@ -320,7 +320,9 @@ export function stopView(before, after, stopKind) {
     name: info.name,
     what: info.what,
     minutes: after.cycleTime - before.cycleTime,
-    text: `${info.name} cost ${after.cycleTime - before.cycleTime} min of cycle time. What this stop does comes in the next update.`,
+    text: info.placeholder
+      ? `${info.name} cost ${after.cycleTime - before.cycleTime} min of cycle time. What this stop does comes in the next update.`
+      : `${info.name} cost ${after.cycleTime - before.cycleTime} min of cycle time. A quiet shift: nothing that matters for this lot comes up.`,
     goText: continueText(route, before.corridor),
   };
 }

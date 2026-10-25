@@ -218,3 +218,15 @@ The rule from the earlier lessons (wait out the double-click window) lives in ea
 ### Rule to Prevent
 ✅ Every screen test that taps twice across a screen change waits `DOUBLE_CLICK_WINDOW_MS` between the taps. When a new spec chains screens, add the wait at each screen change.
 ✅ Run a new screen test with `--repeat-each=5` on the phone before calling it done
+
+## An event's risk could not be diagnosed, and some options cost nothing
+
+### What Happened
+physics-reviewer found that the cheaper-slurry option added a polish-rate risk that never showed on any chart, so rule 6 (every failure is diagnosable) broke. It also found that an event could come up after its room had passed, making "take the cash" free.
+
+### Root Cause
+I checked each option against the physics but not against the evidence on screen, nor against where the lot is on the route. The second is the same root cause as the shop lesson.
+
+### Rule to Prevent
+✅ Every new way to lose yield must show up somewhere on screen (SPC, wafer map, metrology) before it ships. Name where.
+✅ Anything offered between rooms (shop items, PM tools, DOE cards, events) is checked against the route still ahead

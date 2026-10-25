@@ -10,7 +10,8 @@
 //           at a procurement stop, buys each item it can afford on a coin flip;
 //           at a PM/DOE stop, on a coin flip either PMs the tool whose SPC
 //           chart trips the most rules (a random one ahead if none trip),
-//           or runs a DOE on a random offered practice it can afford
+//           or runs a DOE on a random offered practice it can afford;
+//           at an event, picks one of its options at random
 //
 // The random policy has its OWN seeded generator, started from the run's
 // seed mixed with a fixed constant (BOT_SEED_MIX). So the bot's choices never
@@ -23,9 +24,11 @@ import { normalizeSeed, pick } from '../src/engine/rng.js';
 import { lotYield } from '../src/engine/lot.js';
 import {
   createRun, enterStep, legalCards, playCard, resolveStep, walkCorridor, buyItem, pmTool, doeCard, whyCannotDoe,
+  chooseEventOption,
   starterDeck, fullPool,
 } from '../src/engine/run.js';
 import { spcRules, pointsSinceLastPm } from '../src/engine/tools.js';
+import { findEvent } from '../src/engine/events.js';
 import { whyCannotBuy } from '../src/engine/shop.js';
 
 const BOT_SEED_MIX = 0x9E3779B9;   // any fixed number works; this one is a common "mixing" constant
@@ -113,6 +116,16 @@ function doPm(state, botRng) {
   return { state: pmTool(state, choice.value), botRng: choice.rngState, pmRoom: choice.value };
 }
 
+// At an open event, picks one of its options at random. Returns the state,
+// the bot's generator number and "eventId: option label" (or null).
+function doEvent(state, policy, botRng) {
+  if (policy === 'idle' || state.event === null) return { state, botRng, choice: null };
+  const event = findEvent(state.event.eventId);
+  const roll = pick(botRng, event.options.map((_, index) => index));
+  const label = `${event.id}: ${event.options[roll.value].label}`;
+  return { state: chooseEventOption(state, roll.value), botRng: roll.rngState, choice: label };
+}
+
 // Plays a run to the end. options.deck is 'starter' (default), 'full' or a
 // list of card ids; other options go straight to createRun.
 export function playRun(seed, policy = 'idle', options = {}) {
@@ -127,6 +140,7 @@ export function playRun(seed, policy = 'idle', options = {}) {
   const itemsBought = [];
   const toolsPmd = [];
   const cardsUpgraded = [];
+  const eventChoices = [];
   let lowestCashAfterBuying = state.cash;   // starting cash, until something is bought
   while (state.status === 'running') {
     state = enterStep(state);
@@ -149,12 +163,16 @@ export function playRun(seed, policy = 'idle', options = {}) {
       if (pm.pmRoom !== null) toolsPmd.push(pm.pmRoom);
       if (pm.doeCardId !== null) cardsUpgraded.push(pm.doeCardId);
       state = pm.state;
+      const event = doEvent(state, policy, botRng);
+      botRng = event.botRng;
+      if (event.choice !== null) eventChoices.push(event.choice);
+      state = event.state;
     }
   }
 
   const summary = {
     seed, policy, status: state.status, yield: lotYield(state.lot), cash: state.cash,
-    minutesUsed: state.minutesUsed, cycleTime: state.cycleTime, cardsPlayed, sideStops, itemsBought, toolsPmd, cardsUpgraded, lowestCashAfterBuying,
+    minutesUsed: state.minutesUsed, cycleTime: state.cycleTime, cardsPlayed, sideStops, itemsBought, toolsPmd, cardsUpgraded, eventChoices, lowestCashAfterBuying,
   };
   return { state, summary };
 }
@@ -179,6 +197,7 @@ function printSummary(summary) {
   console.log(`Items bought:  ${summary.itemsBought.length} (${summary.itemsBought.join(', ') || 'none'})`);
   console.log(`Tools PM'd:    ${summary.toolsPmd.length} (${summary.toolsPmd.join(', ') || 'none'})`);
   console.log(`DOEs run:      ${summary.cardsUpgraded.length} (${summary.cardsUpgraded.join(', ') || 'none'})`);
+  console.log(`Events:        ${summary.eventChoices.length} (${summary.eventChoices.join('; ') || 'none'})`);
 }
 
 // Only runs when started from the command line, not when a test imports it.
