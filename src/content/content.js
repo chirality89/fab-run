@@ -72,7 +72,7 @@ export const FAILURE_MODES = [
     unlocks: ['preclean', 'megasonicClean'] },
   { id: 'fm_chamber_flakes', draft: true, pattern: 'flakes',
     sig: 'Killed dies that appear at the deposition steps; particle adders on the deposition SPC chart climb between chamber cleans.',
-    unlocks: [] },
+    unlocks: ['shieldKit'] },
   { id: 'fm_residue',        draft: true, pattern: 'residue',
     sig: 'Opens spread evenly across the whole wafer after etch, while the etch rate falls on the etch SPC chart.',
     unlocks: [] },
@@ -84,7 +84,7 @@ export const FAILURE_MODES = [
     unlocks: ['eChuckUpgrade'] },
   { id: 'fm_dishing',        draft: true, pattern: 'dishing',
     sig: 'Wide lines are thin and high-resistance; narrow lines are fine.',
-    unlocks: ['dummyFill', 'lowPressurePolish'] },
+    unlocks: ['dummyFill', 'lowPressurePolish', 'ceriaSlurry'] },
   { id: 'fm_rr_drift',       draft: true, pattern: 'rr_drift',
     sig: 'The CMP removal rate walks steadily lot to lot on the SPC chart.',
     unlocks: ['padConditioner'] },
@@ -102,13 +102,13 @@ export const FAILURE_MODES = [
     unlocks: ['resistCAR', 'freshResist'] },
   { id: 'fm_overhang_void',  draft: true, pattern: 'void',
     sig: 'Opens on narrow, deep trenches; the cross-section shows either a void under a pinched mouth or voids at the lower sidewall where the seed is thin.',
-    unlocks: ['ionizedSeed'] },
+    unlocks: ['ionizedSeed', 'pulseReversePlating'] },
   { id: 'fm_dose_offset',    draft: true, pattern: 'cd_error',
     sig: 'Line width is off target by the same amount on every site and every wafer; SPC shows a step from the previous lot, and the scatter within the lot is small.',
-    unlocks: ['sendAheadWafer'] },
+    unlocks: ['sendAheadWafer', 'barc'] },
   { id: 'fm_channeling',     draft: true, pattern: 'channeling_tail',
     sig: 'Junctions are deeper than the dose and energy predict, on every site; the dopant depth profile has a long tail beyond the main peak.',
-    unlocks: ['tiltedImplant', 'screenOxideImplant', 'implantMonitor'] },
+    unlocks: ['tiltedImplant', 'screenOxideImplant', 'implantMonitor', 'parallelBeamStation'] },
   { id: 'fm_gate_punch',     draft: true, pattern: 'underlayer_attack',
     sig: 'Source/drain junction leakage and higher series resistance on every site and wafer, not just the most over-etched dies; oxide measured after the poly etch is thin or gone beside the gate, and the cross-section shows the silicon recessed or pitted there.',
     unlocks: ['softLandGateEtch'] },
@@ -117,7 +117,7 @@ export const FAILURE_MODES = [
     unlocks: ['hfLastClean'] },
   { id: 'fm_gate_native_oxide', draft: true, pattern: 'qtime_oxide',
     sig: 'Capacitance-voltage shows an electrical oxide thickness larger than the furnace recipe gives, and threshold voltage is shifted, but breakdown voltage is normal; the gap grows with the wait after the pre-gate clean.',
-    unlocks: ['oxideMonitor'] },
+    unlocks: ['oxideMonitor', 'verticalFurnace'] },
 ];
 
 // ---------------------------------------------------------------------------
@@ -486,6 +486,53 @@ export const EQUIPMENT = [
     ],
     tradeoff: 'Stable polish rate, but pads are consumed faster.',
     physicsNote: 'Pad glazing lowers the Preston coefficient over time; conditioning restores the surface by wearing it.' },
+
+  { id: 'parallelBeamStation', draft: true, kind: 'equipment', room: 'implant', rarity: 'advanced',
+    name: 'Parallel-beam scanned end station', unlockedBy: 'fm_channeling',
+    cost: { cash: 550 },
+    // Needs: S/D implant step (NMOS step 12) adds channeling_tail on entering. Implant is not on the Cu line.
+    effects: [
+      { op: 'defectMult', pattern: 'channeling_tail', mult: 0.8 },
+      { op: 'toolHealth', delta: -5 },
+    ],
+    tradeoff: 'Every ion arrives at the same tilt across the wafer, so the tilt works at the edge as well as the centre, but the extra scanning and collimating parts need more maintenance.',
+    physicsNote: 'Channeling depends on the angle between the ion and the crystal. If the beam fans out or the scan changes the angle across the wafer, some sites are tilted correctly and others sit near an open channel. A collimated (parallel) beam scanned over the wafer keeps one angle everywhere.' },
+
+  { id: 'verticalFurnace', draft: true, kind: 'equipment', room: 'diff', rarity: 'advanced',
+    name: 'Vertical furnace with load lock', unlockedBy: 'fm_gate_native_oxide',
+    cost: { cash: 480 },
+    // Needs: gate oxidation (NMOS step 8) realizes gate_oxide and qtime_oxide added at step 7.
+    // Anneal (NMOS step 13): both are already realized, so only the time cost applies there.
+    effects: [
+      { op: 'defectMult', pattern: 'qtime_oxide', mult: 0.7 },
+      { op: 'defectMult', pattern: 'gate_oxide', mult: 0.85 },
+      { op: 'timeCost', delta: 5 },
+    ],
+    tradeoff: 'Less air gets in when the boat loads, so less native oxide and fewer defects under the gate oxide, but the load lock purge and the slower, gentler boat movement add minutes to every furnace step.',
+    physicsNote: 'Loading a boat of wafers into a hot tube lets air in, and oxygen and moisture grow native oxide on the bare silicon before the film starts. A load lock purged with nitrogen keeps that air out. A vertical boat holds wafers flat and moves slowly to avoid shedding particles and stressing hot wafers (slip), which takes time.' },
+
+  { id: 'pulseReversePlating', draft: true, kind: 'equipment', room: 'plate', rarity: 'advanced',
+    name: 'Pulse-reverse plating supply', unlockedBy: 'fm_overhang_void',
+    cost: { cash: 500 },
+    // Needs: void (cuLine step 6) is on the lot when plating is entered. Plate is visited once on the Cu line.
+    effects: [
+      { op: 'defectMult', pattern: 'void', mult: 0.75 },
+      { op: 'timeCost', delta: 2 },
+      { op: 'cashCost', delta: 15 },
+    ],
+    tradeoff: 'Fewer pinched-mouth voids, but the reverse pulses undo some of the plating, so the net rate is lower and the bath breaks down its additives faster.',
+    physicsNote: 'A short reverse pulse removes copper preferentially at the feature mouth, where current density is highest, which keeps the opening from pinching off before the bottom fills. Because part of each cycle removes copper, net deposition is slower, and the extra anodic pulses also consume additives.' },
+
+  { id: 'shieldKit', draft: true, kind: 'equipment', room: 'dep', rarity: 'standard',
+    name: 'Textured chamber shield kit', unlockedBy: 'fm_chamber_flakes',
+    cost: { cash: 400 },
+    // Acts at every deposition visit (Cu line steps 2 and 6; NMOS steps 2, 5, 9, 15). Flakes come from tool drift, so with a healthy chamber it only costs cash.
+    effects: [
+      { op: 'defectMult', pattern: 'flakes', mult: 0.6 },
+      { op: 'cashCost', delta: 20 },
+    ],
+    tradeoff: 'Fewer flakes as the chamber ages, but the roughened shields are consumables that are swapped and re-textured, so each deposition pays for them whether or not the chamber has drifted.',
+    physicsNote: 'Film on chamber shields cracks and flakes when stress builds. A rough, textured shield surface grips the film mechanically, so it can grow thicker before it lifts off. The shields are replaced or re-textured at preventive maintenance, which costs money.' },
 ];
 
 // ---------------------------------------------------------------------------
@@ -534,6 +581,31 @@ export const MATERIALS = [
     ],
     tradeoff: 'Bottom-up fill of narrow features, but it ages every lot and needs watching.',
     physicsNote: 'Suppressor, accelerator and leveler together make plating faster at the bottom of a feature than at its mouth (superfill). The additives are consumed in use.' },
+
+  { id: 'ceriaSlurry', draft: true, kind: 'material', slot: 'slurry', room: 'cmp', rarity: 'advanced',
+    name: 'SiN-selective ceria-type slurry', unlockedBy: 'fm_dishing',
+    cost: { cash: 120 }, shelfLife: 5,
+    // Only meaningful on the NMOS oxide polish that stops on SiN (step 6). On copper it does nothing, so the whole item is NMOS-only.
+    when: { lot: 'siliconFrontEnd' },
+    effects: [
+      { op: 'defectMult', pattern: 'dishing', mult: 0.6 },
+      { op: 'defectMult', pattern: 'particles', mult: 1.4 },
+      { op: 'timeCost', delta: 2 },
+    ],
+    tradeoff: 'The polish stops cleanly on the nitride, so wide oxide areas dish less, but the hard ceria particles scratch more and leave residue that needs a longer post-polish rinse.',
+    physicsNote: 'Ceria-based slurry removes silicon dioxide much faster than silicon nitride (high selectivity), so once the nitride is exposed the removal rate drops and the polish self-stops, which limits dishing in wide features. Hard abrasive particles scratch more and can stick to the wafer, so the clean afterwards takes longer.' },
+
+  { id: 'barc', draft: true, kind: 'material', slot: 'arc', room: 'litho', rarity: 'standard',
+    name: 'Bottom anti-reflective coating', unlockedBy: 'fm_dose_offset',
+    cost: { cash: 90 }, shelfLife: 6,
+    // Acts at each litho step: Cu trench, NMOS active and gate (cd_error is added on entering).
+    effects: [
+      { op: 'defectMult', pattern: 'cd_error', mult: 0.7 },
+      { op: 'defectMult', pattern: 'particles', mult: 1.1 },
+      { op: 'timeCost', delta: 4 },
+    ],
+    tradeoff: 'Steadier line width over reflective films, but it is one more coat and bake before the resist, which takes minutes and adds handling particles.',
+    physicsNote: 'Light that passes through the resist reflects off the film below and interferes with the incoming light (standing waves), so the dose in the resist changes with film thickness and topography and the line width varies. An absorbing coating under the resist cuts the reflection. It must be opened later in the etch.' },
 ];
 
 // ---------------------------------------------------------------------------
