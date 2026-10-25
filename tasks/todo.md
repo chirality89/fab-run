@@ -57,10 +57,14 @@ Each option has a `tradeoff` and a `physicsNote`, as every content entry does.
 4. Seeded, with no repeat until all three are seen?
 - Still open from the DOE item (see tasks/todo.md, M3 item 2d): starter DOE versions strictly better (OK?); the measure-all "3 of 25 wafers" wording; dummy fill against dishing or erosion; a thinner etch stop weakening underlayer protection (later).
 
-**NEEDS NEW LOGIC (noted, not built):** the disposition desk event (Later in ROADMAP); events with three options or a delayed consequence; events that change a material.
+**NEEDS NEW LOGIC (noted, not built):** a thinner DOE etch stop that weakens underlayer protection (David, 25 Oct 2026); the disposition desk event (Later in ROADMAP); events with three options or a delayed consequence; events that change a material.
 
 **Progress notes:**
 - 2026-10-25: plan written; waiting for David's OK.
+- 2026-10-25: David said "Build", so the plan is OK'd as proposed: the three events, `addRisk`, `toolHealth` with a `room`, event minutes counting as Q-time waiting, and seeded draws with no repeat.
+  - He also answered the DOE questions: the starter DOE versions are approved as strictly better; measure-all measures all 25 sites, and 3 of 25 wafers is the sampling (note fixed); dummy fill stays on dishing; a thinner etch stop weakening underlayer protection is noted for later (NEEDS NEW LOGIC).
+- Engine and content built: `addRisk` in resolve.js, `toolHealth` with `room`, src/content/events.js, src/engine/events.js (`drawEvent`), and `chooseEventOption` in run.js. The random bot picks an option at random.
+  - Hand check, seed 123456 (supplier change drawn in the corridor after step 2): Switch now gives × 0.970446 and +150 cash. Passes as computed.
 
 **Result:**
 

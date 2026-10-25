@@ -19,7 +19,7 @@ const FAILURE_IDS = new Set(FAILURE_MODES.map(fm => fm.id));
 // The effect operations the engine will support (CLAUDE.md §6).
 const KNOWN_OPS = new Set([
   'defectMult', 'timeCost', 'cashCost', 'setFlag',
-  'reveal', 'toolHealth', 'enables', 'decayPerUse',
+  'reveal', 'toolHealth', 'enables', 'decayPerUse', 'addRisk',
 ]);
 
 test('every id is unique', () => {

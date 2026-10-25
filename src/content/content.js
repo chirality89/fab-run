@@ -21,7 +21,9 @@
 //   { op: 'cashCost',   delta }              spend budget
 //   { op: 'setFlag',    flag }               mark the lot (e.g. it now has an etch stop)
 //   { op: 'reveal',     what }               show a hidden value (tool drift, all 25 sites…)
-//   { op: 'toolHealth', delta }              repair or wear the room's tool
+//   { op: 'toolHealth', delta, room? }       repair or wear the room's tool (`room` names
+//                                            another room's tool, e.g. from an event)
+//   { op: 'addRisk',    pattern, amount }    a risk enters the lot now (amount ≥ 0)
 //   { op: 'enables',    id }                 makes another card playable
 //   { op: 'decayPerUse', target, mult }      an item weakens each time it is used
 // Any effect can carry  when: { flag | equipment | material | lot }  to make it conditional.
@@ -134,7 +136,7 @@ export const PRACTICES = [
       physicsNote: 'An optimized stage path and a tuned auto-focus and alignment recipe measure the same sites in less time.',
     },
     tradeoff: 'Full information, but slow and paid for.',
-    physicsNote: 'The default sample is 3 of 25 wafers (FabSim rule). Measuring everything removes sampling risk at the cost of tool time.' },
+    physicsNote: 'The usual plan samples 3 of the 25 wafers and a few sites on each. This card measures all 25 sites on the sampled wafers, removing site-sampling risk at the cost of tool time.' },
 
   { id: 'reworkLitho', draft: true, kind: 'practice', room: 'litho', rarity: 'standard',
     name: 'Strip and re-expose', unlockedBy: null,

@@ -11,6 +11,7 @@
 //   walkCorridor → between two rooms: take one side stop, or go straight on
 //   buyItem      → zero or more times, while a procurement stop's shop is open
 //   pmTool or doeCard → one of the two at most, while a PM/DOE stop is open
+//   chooseEventOption → once, while an event stop is open
 //
 // Order inside enterStep (lotTypes.js): add the step's risks and the room
 // tool's drift risk (tools.js), set the room's time budget, apply the
@@ -35,6 +36,7 @@ import { buildMap } from './map.js';
 import { shopStock, whyCannotBuy, findShopItem } from './shop.js';
 import { startingTools, driftRisk, useTool, pmChoices, restoreTool } from './tools.js';
 import { cardInRun, doeOffers } from './doe.js';
+import { drawEvent, findEvent } from './events.js';
 
 // Looks up a content item by id, or throws naming it.
 function findItem(list, id, kind) {
@@ -115,6 +117,8 @@ export function createRun({
     shop: null,             // { corridor, stock, bought } while a procurement stop is open
     pm: null,               // { corridor, choices, done, doeOffers, doeDone } while a PM/DOE stop is open
     upgraded: [],           // practices a DOE has upgraded for this run (doe.js)
+    event: null,            // { corridor, eventId, chosen } while an event stop is open
+    eventsSeen: [],         // event ids already shown this run (events.js)
     tools,                  // per room: { health, spc: [points in sigma] } (tools.js)
     toolDrift,
     toolRngState,           // the tools' own generator, for SPC noise
@@ -176,8 +180,8 @@ export function enterStep(state) {
   const monitor = TOOL_MONITORS[step.room];
   const drift = monitor ? driftRisk(state.tools[step.room].health, monitor.oneSided) : 0;
   if (drift > 0) lot = addRisk(lot, monitor.pattern, drift);
-  // Entering a room also closes any shop or PM stop the lot was standing in.
-  let next = { ...state, lot, shop: null, pm: null, room: { id: step.room, timeLeft: TIME_BUDGETS[step.room], revealed: [] } };
+  // Entering a room also closes any shop, PM/DOE or event stop the lot was at.
+  let next = { ...state, lot, shop: null, pm: null, event: null, room: { id: step.room, timeLeft: TIME_BUDGETS[step.room], revealed: [] } };
 
   // 2. Equipment and materials for this room act once, before any card.
   // applyEffects skips effects whose own `when` fails, but not the item's
@@ -269,8 +273,9 @@ export function resolveStep(state) {
 // of its offers) or go straight on (`stopKind` = null). A stop costs cycle
 // time (SIDE_STOP_MINUTES). In a Q-time corridor, the wait also grows the
 // Q-time pattern: QTIME_RISK_PER_MINUTE × the minutes. A procurement stop
-// opens a shop (shop.js) and a PM/DOE stop opens a PM (pmTool); the other
-// stops only cost their time for now.
+// opens a shop (shop.js), a PM/DOE stop opens a PM or DOE (pmTool, doeCard)
+// and an event stop draws an event (chooseEventOption). Metrology only costs
+// its time for now.
 export function walkCorridor(state, stopKind) {
   checkRunning(state, 'walkCorridor');
   if (state.corridor === null) throw new Error('walkCorridor: the lot is not in a corridor');
@@ -296,7 +301,16 @@ export function walkCorridor(state, stopKind) {
       doeOffers: doeOffers(state, state.corridor), doeDone: [],
     }
     : null;
-  const next = { ...state, lot, map, shop, pm, corridor: null, cycleTime: state.cycleTime + minutes };
+  let event = null;
+  let eventsSeen = state.eventsSeen;
+  if (stopKind === 'event') {
+    const eventId = drawEvent(state, state.corridor);
+    event = { corridor: state.corridor, eventId, chosen: null };
+    eventsSeen = [...eventsSeen, eventId];
+  }
+  const next = {
+    ...state, lot, map, shop, pm, event, eventsSeen, corridor: null, cycleTime: state.cycleTime + minutes,
+  };
   if (stopKind === null) return addLog(next, '  corridor: straight on');
   const stockText = shop ? `, stock ${shop.stock.join(', ')}` : '';
   return addLog(next, `  corridor: ${stopKind} (${minutes} min${stockText})`);
@@ -353,6 +367,31 @@ export function doeCard(state, cardId) {
     pm: { ...state.pm, doeDone: [...state.pm.doeDone, cardId] },
   };
   return addLog(next, `  DOE ${cardId} (${DOE_CASH_COST})`);
+}
+
+// Chooses one option of the open event (M3 item 2e), once. Its minutes
+// change cycle time (never below 0); in a Q-time corridor, positive minutes
+// also grow the Q-time pattern, like a side stop's wait. Then its effects
+// apply (events.js content: cash, addRisk, toolHealth with a room).
+export function chooseEventOption(state, optionIndex) {
+  checkRunning(state, 'chooseEventOption');
+  if (state.event === null) throw new Error('chooseEventOption: no event open');
+  if (state.event.chosen !== null) throw new Error('chooseEventOption: an option was already chosen');
+  const event = findEvent(state.event.eventId);
+  const option = event.options[optionIndex];
+  if (!option) throw new Error(`chooseEventOption: ${event.id} has no option ${optionIndex}`);
+
+  const qtimePattern = LOT_TYPES[state.lotTypeId].route[state.event.corridor].qtime;
+  let lot = state.lot;
+  if (qtimePattern && option.minutes > 0) lot = addRisk(lot, qtimePattern, QTIME_RISK_PER_MINUTE * option.minutes);
+  let next = {
+    ...state,
+    lot,
+    cycleTime: Math.max(0, state.cycleTime + option.minutes),
+    event: { ...state.event, chosen: optionIndex },
+  };
+  next = applyEffects(next, option);
+  return addLog(next, `  event ${event.id}: ${option.label}`);
 }
 
 // Buys one item from the open shop and pays its cash price. Equipment joins
