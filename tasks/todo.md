@@ -1,8 +1,37 @@
 # Fab Run — Task Tracker
 
-## Next: M2 item 3 — Playwright set up; screenshots at 1280×800 and 375×812
+## Current: M2 item 3 — Playwright set up; screenshots at 1280×800 and 375×812
 
-Not planned yet.
+### Task: screen tests and screenshots with Playwright
+- [ ] Add `@playwright/test` as a **dev dependency** (pre-approved in CLAUDE.md §2), pinned to exactly `1.63.0`, the version whose browser is already installed here. Commit `package-lock.json`. It is only for checking the screen. The game itself still loads nothing from npm.
+- [ ] `npm test` stays as it is: Node only, no install needed. A new `npm run screens` runs the screen tests.
+- [ ] `playwright.config.js` (repo root):
+  - It starts `python3 -m http.server 8000` by itself.
+  - It runs every test at two sizes: **desktop** 1280×800, and **phone** with an explicit 375×812, touch on. No device-preset names (lesson: a wrong preset name silently gave desktop size).
+  - Chromium only.
+- [ ] `tests/screens/etch.spec.js`, seed 123456, at both sizes:
+  - The etch room loads with no console errors and no sideways scroll.
+  - A tap on timed over-etch leaves 4 of 8 min, the hand empties, and Run etch is still there.
+  - **Run etch** shows the result screen. **Replay this seed** brings back the same starting numbers (same expected-loss line as the first load).
+  - A fast double tap on the card plays it once and does **not** run etch.
+  - Screenshots at each stage go to `screenshots/desktop/` and `screenshots/phone/`. The test checks each image's pixel width (1280 or 375) before anyone looks at it (lesson).
+- [ ] Screenshots are files for looking at, not compared pixel by pixel against saved ones. Fonts render differently from machine to machine, and that would make tests fail for no reason. `screenshots/` is already in `.gitignore`, so they aren't committed.
+- [ ] CLAUDE.md §11: one line saying `npm run screens` runs the screen tests. On a new computer it needs `npm install` and `npx playwright install chromium` first.
+- [ ] Run it, look at every screenshot, then run `playtester`. Commit.
+
+No game code changes.
+
+**Decisions settled:** none needed.
+
+**Acceptance criteria:**
+- `npm run screens` passes: 2 sizes × the checks above, and every screenshot has the right width.
+- `npm test` still passes with no `node_modules` present.
+- The tap and Run etch buttons are now tested automatically, not only by eye.
+
+**Progress notes:**
+- 2026-10-25: plan written; waiting for David's OK.
+
+**Result:**
 
 ## Done: M2 item 2 — playing a card calls the engine and redraws
 
