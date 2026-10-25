@@ -203,6 +203,9 @@ That makes 24 + 5 + ~5 + ~6 = **about 40 items**, plus new failure modes. Every 
   - pulse + additive bath on NEEDS NEW LOGIC.
   **Item 1 content total: 39 items** (started at 23, not 24: 4 materials). 168/168.
   - Open for David: with a 7° default, the tiltedImplant card's name and note ("tilting about 7 degrees") describe the default. It should become a larger-tilt or quad-rotation card (its DOE version already says "larger tilt").
+  - Ruled: the card becomes 'Larger-tilt implant' (two rotations); its DOE version tunes the twist against planar channeling (four rotations). Effects unchanged.
+- 2026-10-25: item 1 rebased on main (events), 178/178, screens 32/32, bot seeds 1/17/123456 clean. PR #16 opened.
+- David, item 2: NMOS is 13 steps (clean, pad oxide + SiN, litho active, trench etch, fill + CMP stop on SiN, SiN strip + pre-gate clean (Q-time), gate oxidation, poly dep, litho gate, gate etch, S/D implant, anneal, test). Contacts and metal 1 are left out. Start after #16 merges. Then update the 'NMOS step N' comments in content.js to the 13-step numbers.
 
 ### Held back: ceriaSlurry (add back when the shop checks an item's `when`)
 Also needs: an `fm_sti_dishing` failure mode (field-oxide step height, thinning in wide isolation areas, edge leakage at the active areas) to unlock it; the `dishing` pattern text made not metal-only; and NMOS step 6 adding dishing and particles.

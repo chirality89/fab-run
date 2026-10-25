@@ -363,21 +363,21 @@ export const PRACTICES = [
     tradeoff: 'A steadier chamber, but it spends minutes and dummy wafers, and the film coated on the walls can flake.',
     physicsNote: 'Running conditioning wafers coats the chamber walls so they recombine and release radicals at a steady rate. Without it the first wafers see a different etch rate. Wall film can flake as particles.' },
   { id: 'tiltedImplant', draft: true, kind: 'practice', room: 'implant', rarity: 'standard',
-    name: 'Tilted implant (about 7 degrees)', unlockedBy: 'fm_channeling',
+    name: 'Larger-tilt implant', unlockedBy: 'fm_channeling',
     cost: { time: 6 },
     // Needs: S/D implant step (NMOS step 12) adds channeling_tail on entering, before this card is played.
     effects: [
       { op: 'defectMult', pattern: 'channeling_tail', mult: 0.6 },
     ],
     upgrade: {
-      name: 'Tilted implant, DOE-tuned angle', cost: { time: 8 },
+      name: 'Larger-tilt implant, DOE-tuned twist', cost: { time: 8 },
       effects: [
         { op: 'defectMult', pattern: 'channeling_tail', mult: 0.5 },
       ],
-      tradeoff: 'A shorter channeling tail from a larger tilt, but the longer gate shadow means splitting the dose over four rotations instead of two, which takes longer.',
-      physicsNote: 'A DOE on tilt and twist finds a larger tilt, with a twist that also avoids the crystal planes. Ions meet atoms sooner, but the gate shadow grows (about gate height × tan(tilt)), so the dose is split over four rotations instead of two, and each rotation adds handling and settling time.' },
-    tradeoff: 'Cuts the channeling tail, but the tall gate shadows one side of each source or drain, so the wafer must be rotated through several implants, which takes extra minutes.',
-    physicsNote: 'Ions fired along an open crystal direction travel far down open channels between rows of atoms, losing energy slowly (channeling), and make a deep tail on the dopant profile. Tilting the wafer about 7 degrees off the axis makes the ions hit atoms sooner. A tall gate then shadows one side of the implant, so the implant is split into steps with the wafer rotated between them.' },
+      tradeoff: 'A shorter tail, because the twist also avoids the crystal planes, but that twist no longer lines up with the gate edges, so the dose is split over four rotations instead of two, which takes longer.',
+      physicsNote: 'Even off the main axis, ions can still run along crystal planes (planar channeling). A DOE on the twist (the rotation about the wafer normal) finds an angle that avoids those planes too. Gates then sit at an angle to the beam, so shadows fall on more sides, and the dose is split over four rotations instead of two; each rotation adds handling and settling time.' },
+    tradeoff: 'A larger tilt than the standard one cuts the channeling tail further, but the tall gate casts a longer shadow on one side of each source or drain, so the implant is split in two with the wafer rotated between halves, which takes extra minutes.',
+    physicsNote: 'Ions fired along an open crystal direction travel far down open channels between rows of atoms, losing energy slowly (channeling), and make a deep tail on the dopant profile. The standard implant already tilts the wafer about 7 degrees off the axis; tilting further makes the ions hit atoms sooner still. The gate shadow grows with tilt (about gate height × tan(tilt)), so the implant is split into halves with the wafer rotated 180 degrees between them.' },
 
   { id: 'screenOxideImplant', draft: true, kind: 'practice', room: 'implant', rarity: 'standard',
     name: 'Implant through a screen oxide', unlockedBy: 'fm_channeling',
