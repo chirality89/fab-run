@@ -493,9 +493,9 @@ export const EQUIPMENT = [
     // Needs: S/D implant step (NMOS step 12) adds channeling_tail on entering. Implant is not on the Cu line.
     effects: [
       { op: 'defectMult', pattern: 'channeling_tail', mult: 0.8 },
-      { op: 'toolHealth', delta: -5 },
+      { op: 'timeCost', delta: 3 },
     ],
-    tradeoff: 'Every ion arrives at the same tilt across the wafer, so the tilt works at the edge as well as the centre, but the extra scanning and collimating parts need more maintenance.',
+    tradeoff: 'Every ion arrives at the same tilt across the wafer, so the tilt works at the edge as well as the centre, but collimating and scanning the beam cut the usable beam current, so each implant takes longer.',
     physicsNote: 'Channeling depends on the angle between the ion and the crystal. If the beam fans out or the scan changes the angle across the wafer, some sites are tilted correctly and others sit near an open channel. A collimated (parallel) beam scanned over the wafer keeps one angle everywhere.' },
 
   { id: 'verticalFurnace', draft: true, kind: 'equipment', room: 'diff', rarity: 'advanced',
@@ -508,8 +508,8 @@ export const EQUIPMENT = [
       { op: 'defectMult', pattern: 'gate_oxide', mult: 0.85 },
       { op: 'timeCost', delta: 5 },
     ],
-    tradeoff: 'Less air gets in when the boat loads, so less native oxide and fewer defects under the gate oxide, but the load lock purge and the slower, gentler boat movement add minutes to every furnace step.',
-    physicsNote: 'Loading a boat of wafers into a hot tube lets air in, and oxygen and moisture grow native oxide on the bare silicon before the film starts. A load lock purged with nitrogen keeps that air out. A vertical boat holds wafers flat and moves slowly to avoid shedding particles and stressing hot wafers (slip), which takes time.' },
+    tradeoff: 'Less air gets in when the boat loads, so less native oxide and fewer defects under the gate oxide, but the load lock purge cycle adds minutes to every furnace step.',
+    physicsNote: 'Loading a boat of wafers into a hot tube lets air in, and oxygen and moisture grow native oxide on the bare silicon before the film starts. A load lock purged with nitrogen keeps that air out; the purge cycle takes time. Oxide grown in air during loading is uncontrolled and can carry contamination, which harms gate oxide integrity. Simplified: in the game the load lock also trims oxide grown during the wait before the furnace.' },
 
   { id: 'pulseReversePlating', draft: true, kind: 'equipment', room: 'plate', rarity: 'advanced',
     name: 'Pulse-reverse plating supply', unlockedBy: 'fm_overhang_void',
@@ -520,7 +520,7 @@ export const EQUIPMENT = [
       { op: 'timeCost', delta: 2 },
       { op: 'cashCost', delta: 15 },
     ],
-    tradeoff: 'Fewer pinched-mouth voids, but the reverse pulses undo some of the plating, so the net rate is lower and the bath breaks down its additives faster.',
+    tradeoff: 'Fewer pinched-mouth voids, but the reverse pulses undo some of the plating, so the net rate is lower, the bath breaks down its additives faster, and the anodic pulses can dissolve thin seed at the lower sidewall.',
     physicsNote: 'A short reverse pulse removes copper preferentially at the feature mouth, where current density is highest, which keeps the opening from pinching off before the bottom fills. Because part of each cycle removes copper, net deposition is slower, and the extra anodic pulses also consume additives.' },
 
   { id: 'shieldKit', draft: true, kind: 'equipment', room: 'dep', rarity: 'standard',
@@ -532,7 +532,7 @@ export const EQUIPMENT = [
       { op: 'cashCost', delta: 20 },
     ],
     tradeoff: 'Fewer flakes as the chamber ages, but the roughened shields are consumables that are swapped and re-textured, so each deposition pays for them whether or not the chamber has drifted.',
-    physicsNote: 'Film on chamber shields cracks and flakes when stress builds. A rough, textured shield surface grips the film mechanically, so it can grow thicker before it lifts off. The shields are replaced or re-textured at preventive maintenance, which costs money.' },
+    physicsNote: 'Film on chamber shields cracks and flakes when stress builds. A rough, textured shield surface grips the film mechanically, so it can grow thicker before it lifts off. The shields are replaced or re-textured at preventive maintenance, which costs money. Simplified: shields are a sputtering (PVD) measure, but in the game the kit acts at every deposition step.' },
 ];
 
 // ---------------------------------------------------------------------------
@@ -592,8 +592,8 @@ export const MATERIALS = [
       { op: 'defectMult', pattern: 'particles', mult: 1.4 },
       { op: 'timeCost', delta: 2 },
     ],
-    tradeoff: 'The polish stops cleanly on the nitride, so wide oxide areas dish less, but the hard ceria particles scratch more and leave residue that needs a longer post-polish rinse.',
-    physicsNote: 'Ceria-based slurry removes silicon dioxide much faster than silicon nitride (high selectivity), so once the nitride is exposed the removal rate drops and the polish self-stops, which limits dishing in wide features. Hard abrasive particles scratch more and can stick to the wafer, so the clean afterwards takes longer.' },
+    tradeoff: 'The polish stops cleanly on the nitride, so wide oxide areas dish less, but clumped ceria particles scratch, and ceria sticks to the oxide and needs a longer post-polish clean.',
+    physicsNote: 'Ceria-based slurry removes silicon dioxide much faster than silicon nitride (high selectivity), so once the nitride is exposed the removal rate drops and the polish self-stops, cutting the over-polish needed. Its additives also make the rate fall where local pressure is low, so recessed oxide in wide trenches polishes slowly and dishes less. Clumped (agglomerated) particles scratch, and ceria bonds to oxide, so the clean afterwards takes longer.' },
 
   { id: 'barc', draft: true, kind: 'material', slot: 'arc', room: 'litho', rarity: 'standard',
     name: 'Bottom anti-reflective coating', unlockedBy: 'fm_dose_offset',

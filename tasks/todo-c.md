@@ -105,6 +105,7 @@ That makes 24 + 5 + ~5 + ~6 = **about 40 items**, plus new failure modes. Every 
 - **Evidence views for NMOS diagnosis** (batch 2): electrical test (Vt, junction leakage, ramped-voltage breakdown, C-V thickness), a dopant depth profile, and post-etch oxide thickness. Diagnosis must use the route step or lot type to tell apart failure modes that share a pattern: underlayer_attack, qtime_oxide, void and cd_error.
 - **Monitor wafers reveal values nothing models** (batch 2): oxideThickness and implantDose. These need a consumable engine and a dose or thickness risk. implantMonitor is unlocked by fm_channeling, which it cannot see; move it to a future dose failure mode.
 - **Shop sells only items that can act on this lot** (batch 3): the shop ignores an item's top-level `when`, so the NMOS-only ceria slurry is sold on the Cu line.
+- **Parallel beam should strengthen tilt** (batch 3): it would act only when tiltedImplant was played, but cards are played after equipment acts.
 - **BARC etch cost** (batch 3): opening the BARC in etch (time, residue) needs an effect that carries over to a later room.
 - **Low-pressure polish copper residue** (batch 1, optional): a slower polish can leave copper residue (shorts). No pattern fits today.
 
@@ -176,6 +177,21 @@ That makes 24 + 5 + ~5 + ~6 = **about 40 items**, plus new failure modes. Every 
   1. ceriaSlurry is NMOS-only (when siliconFrontEnd) but the shop sells it on the Cu line, where it does nothing (seed 123456 corridor 0). This breaks the shop lesson. Hold it back, or have the shop check an item's `when` (engine, NEEDS NEW LOGIC)?
   2. Unlocks: ceriaSlurry from fm_dishing (a Cu sig); barc from fm_dose_offset (a reflection CD swing may need its own failure mode).
   3. NMOS step 6 (CMP) must add dishing and particles for the slurry to act.
+- 2026-10-25: physics-reviewer on batch 3. Fixed:
+  - parallel beam: the cost is +3 min of beam current (implant tool health feeds nothing);
+  - ceria: clumped particles scratch (ceria is not harder) and an additive mechanism for dishing;
+  - furnace: the purge is the reason for the time, plus a gate-oxide reason and a simplification note;
+  - shield kit: a PVD-only simplification note;
+  - pulse reverse: seed dissolution risk in the tradeoff.
+  168/168.
+  Waiting on David:
+  - A: default S/D tilt (parallel beam alone vs. strengthening tilt);
+  - B: BARC as a new swing-curve pattern (a 3rd new pattern) or ×0.85;
+  - C: an STI dishing failure mode for the slurry;
+  - D: the furnace's gate_oxide/qtime cut;
+  - E: the shield kit at CVD visits;
+  - F: pulse reverse with the additive bath;
+  - plus the ceria shop question.
 
 ## Result
 - (open)
