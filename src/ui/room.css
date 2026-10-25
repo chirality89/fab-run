@@ -321,3 +321,18 @@
 .shop-next { display: block; margin-top: 4px; font-size: 15px; }
 .shop-bought { display: block; margin-top: 8px; font-weight: 600; color: var(--ok); }
 .buy-button { margin-top: 10px; }
+
+/* --- Tool SPC chart (spcChart.js) ------------------------------------------ */
+.spc-title { margin: 0 0 6px; font-weight: 600; }
+.spc-chart { display: block; width: 100%; height: auto; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-small); }
+.spc-centre  { stroke: var(--ink); stroke-width: 1.5; }
+.spc-control { stroke: var(--warn); stroke-width: 1.5; stroke-dasharray: 6 4; }   /* dashed */
+.spc-spec    { stroke: var(--bad); stroke-width: 2; }                              /* solid */
+.spc-trace   { fill: none; stroke: var(--muted); stroke-width: 1; }
+.spc-point     { fill: var(--blue); }
+.spc-point-out { fill: var(--bad); }   /* also a larger square, not only red */
+.spc-limits { margin: 6px 0 0; font-size: 14px; color: var(--muted); }
+.spc-verdict { margin: 8px 0 0; font-weight: 600; color: var(--ok); }
+.spc-verdict-out { color: var(--bad); }
+.spc-rules { margin: 4px 0 0; padding-left: 20px; }
+.spc-rule { font-size: 15px; }

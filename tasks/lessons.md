@@ -171,3 +171,26 @@ The test's check was stricter than the agreed rule (O4: buying is blocked below 
 ### Rule to Prevent
 ✅ A test's limits come from the written decision, not from what the engine happens to do today. Read the decision before writing the limit.
 ✅ When a check fails, ask David which is right, the check or the rule. Never loosen it silently (David chose to change the test, 25 Oct 2026).
+
+## The SPC chart drew a lower spec limit on particle counts
+
+### What Happened
+physics-reviewer found that the particle (clean, deposition) and seam-rate (plating) charts showed a lower spec line, and the yield math counted a lower tail. That teaches that "too few particles" is out of spec, which is false.
+
+### Root Cause
+I used one two-sided capability model for every parameter. Some parameters are only bad in one direction.
+
+### Rule to Prevent
+✅ For every monitored parameter, ask whether it has a lower spec, an upper spec, or both, and keep that as data (`oneSided`)
+✅ A chart line on screen is a claim about physics: review it as content, not as decoration
+
+## New content entries went in without draft: true
+
+### What Happened
+code-explainer found the six tool monitors had no `draft: true`, which CLAUDE.md §6 requires.
+
+### Root Cause
+They were a new kind of content in a new file, so the existing entries weren't there as a pattern to copy.
+
+### Rule to Prevent
+✅ Every new entry in `src/content/`, of any kind and in any file, starts with `draft: true`

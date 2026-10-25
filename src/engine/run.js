@@ -11,24 +11,28 @@
 //   walkCorridor → between two rooms: take one side stop, or go straight on
 //   buyItem      → zero or more times, while a procurement stop's shop is open
 //
-// Order inside enterStep (lotTypes.js): add the step's risks, set the room's
-// time budget, apply the equipment and materials for this room, then deal.
+// Order inside enterStep (lotTypes.js): add the step's risks and the room
+// tool's drift risk (tools.js), set the room's time budget, apply the
+// equipment and materials for this room, then deal. resolveStep then records
+// the tool's SPC point for this lot and wears the tool.
 //
 // Every function returns a NEW state. Nothing is changed in place. All
 // randomness comes from rng.js, and the generator's number (rngState) is
 // kept in the state, so the same seed and the same plays give the same run.
 
-import { PRACTICES, EQUIPMENT, MATERIALS, ROOMS, STARTER_IDS } from '../content/content.js';
+import { PRACTICES, EQUIPMENT, MATERIALS, STARTER_IDS } from '../content/content.js';
+import { TOOL_MONITORS } from '../content/toolMonitors.js';
 import { LOT_TYPES } from '../content/lotTypes.js';
 import {
   STARTING_CASH, HAND_SIZE, SCRAP_LINE, CUSTOMER_SPEC, SCATTER_STRENGTH, TIME_BUDGETS,
-  STARTING_TOOL_HEALTH, SIDE_STOP_MINUTES, QTIME_RISK_PER_MINUTE,
+  SIDE_STOP_MINUTES, QTIME_RISK_PER_MINUTE,
 } from '../content/balance.js';
 import { normalizeSeed, shuffle } from './rng.js';
 import { createLot, addRisk, realizeRisks, rollScatter, lotYield } from './lot.js';
 import { conditionMet, applyEffects } from './resolve.js';
 import { buildMap } from './map.js';
 import { shopStock, whyCannotBuy, findShopItem } from './shop.js';
+import { startingTools, driftRisk, useTool } from './tools.js';
 
 // Looks up a content item by id, or throws naming it.
 function findItem(list, id, kind) {
@@ -72,12 +76,17 @@ export function defaultLoadout() {
 
 // The one state object for a whole run. The lot starts with its latent
 // risks; the first step has not been entered yet (room is null).
+// `toolDrift: false` keeps every tool at full health and stops wear, so
+// drift adds nothing (for hand checks, like scatterStrength: 0).
+// `startingHealth`, e.g. { cmp: 60 }, fixes a tool's starting health.
 export function createRun({
   seed = 1,
   lotTypeId = 'cuLine',
   deck = starterDeck(),
   loadout = defaultLoadout(),
   scatterStrength = SCATTER_STRENGTH,
+  toolDrift = true,
+  startingHealth = {},
 } = {}) {
   if (normalizeSeed(seed) === null) throw new Error(`createRun: bad seed ${seed}`);
   const lotType = LOT_TYPES[lotTypeId];
@@ -88,8 +97,7 @@ export function createRun({
   for (const [pattern, amount] of Object.entries(lotType.startRisks)) {
     lot = addRisk(lot, pattern, amount);
   }
-  const tools = {};
-  for (const roomId of Object.keys(ROOMS)) tools[roomId] = { health: STARTING_TOOL_HEALTH };
+  const { tools, toolRngState } = startingTools(seed, { toolDrift, startingHealth });
 
   return {
     seed,
@@ -103,7 +111,9 @@ export function createRun({
     map: buildMap(seed, lotType.route),   // the corridors (map.js), known from the start
     corridor: null,         // index of the corridor the lot stands in, or null
     shop: null,             // { corridor, stock, bought } while a procurement stop is open
-    tools,                  // tool health stays 100 for now (NEEDS NEW LOGIC)
+    tools,                  // per room: { health, spc: [points in sigma] } (tools.js)
+    toolDrift,
+    toolRngState,           // the tools' own generator, for SPC noise
     equipment: [...loadout.equipment],
     slots: { ...loadout.slots },
     enabled: [],
@@ -158,6 +168,10 @@ export function enterStep(state) {
   // 1. The step's own risks enter the lot.
   let lot = state.lot;
   for (const [pattern, amount] of Object.entries(step.adds)) lot = addRisk(lot, pattern, amount);
+  // A drifted tool adds risk to the pattern it feeds (0 for a healthy tool).
+  const monitor = TOOL_MONITORS[step.room];
+  const drift = monitor ? driftRisk(state.tools[step.room].health, monitor.oneSided) : 0;
+  if (drift > 0) lot = addRisk(lot, monitor.pattern, drift);
   // Entering a room also closes any shop the lot was standing in.
   let next = { ...state, lot, shop: null, room: { id: step.room, timeLeft: TIME_BUDGETS[step.room], revealed: [] } };
 
@@ -229,6 +243,7 @@ export function resolveStep(state) {
     ...state, lot, minutesUsed, rngState: scatter.rngState,
     room: null, hand: [], stepIndex: state.stepIndex + 1,
   };
+  next = useTool(next, step.room);   // this lot's SPC point, then wear
 
   const yieldNow = lotYield(lot);
   const percent = `${(yieldNow * 100).toFixed(1)}%`;
