@@ -282,6 +282,14 @@ export const PRACTICES = [
       { op: 'defectMult', pattern: 'cd_error', mult: 0.5 },
       { op: 'defectMult', pattern: 'particles', mult: 1.1 },
     ],
+    upgrade: {
+      name: 'Send-ahead wafer, DOE-tuned', cost: { time: 7, cash: 40 },
+      effects: [
+        { op: 'defectMult', pattern: 'cd_error', mult: 0.55 },
+        { op: 'defectMult', pattern: 'particles', mult: 1.1 },
+      ],
+      tradeoff: 'Shorter wait for the measurement, but the quicker recipe samples fewer sites, so the dose correction is a little less exact.',
+      physicsNote: 'A DOE on develop, bake and measurement recipe shortens the time the lot waits unexposed. Fewer measured sites average the line width less well, so the corrected dose lands a little farther from target.' },
     tradeoff: 'Sets the dose from a measured wafer, but the lot waits for the measurement, and the send-ahead wafer is stripped and recoated, which adds handling particles.',
     physicsNote: 'Line width changes with exposure dose. One wafer is exposed, developed and measured while the rest of the lot waits unexposed; the dose is then corrected for the rest of the lot.' },
 
@@ -291,6 +299,13 @@ export const PRACTICES = [
     effects: [
       { op: 'defectMult', pattern: 'particles', mult: 0.5 },
     ],
+    upgrade: {
+      name: 'Megasonic clean, DOE-tuned power', cost: { time: 4, cash: 60 },
+      effects: [
+        { op: 'defectMult', pattern: 'particles', mult: 0.55 },
+      ],
+      tradeoff: 'Faster, but the shorter run at lower acoustic power removes a little fewer particles.',
+      physicsNote: 'A DOE on acoustic power and time finds a gentler point that stays below the damage threshold for fine features. Less energy and time in the liquid sweep off fewer of the smallest particles.' },
     tradeoff: 'Strong particle removal, but slow and paid for. On patterned wafers, too much acoustic power can break fine features.',
     physicsNote: 'High-frequency sound in the cleaning liquid makes a thin flow layer that sweeps small particles off the surface. Too much acoustic power can damage delicate fine-line structures.' },
 
@@ -301,6 +316,14 @@ export const PRACTICES = [
       { op: 'defectMult', pattern: 'void', mult: 0.6 },
       { op: 'defectMult', pattern: 'particles', mult: 1.2 },
     ],
+    upgrade: {
+      name: 'Ionized PVD seed, DOE-biased', cost: { time: 9, cash: 90 },
+      effects: [
+        { op: 'defectMult', pattern: 'void', mult: 0.5 },
+        { op: 'defectMult', pattern: 'particles', mult: 1.3 },
+      ],
+      tradeoff: 'Better sidewall seed and fewer voids, but the higher bias and ion flux erode the shields and coil more, so more metal flakes off as particles.',
+      physicsNote: 'A DOE on bias and ionization power steers more metal ions into the feature, so there is less overhang. A harder ion bombardment of chamber parts also sputters more material onto the wafers.' },
     tradeoff: 'Better sidewall coverage in narrow trenches, but slower and dearer, and the extra coil and shields in the plasma collect metal that can flake off as particles.',
     physicsNote: 'Ionizing the sputtered metal lets a substrate bias steer it down into the feature, so the sidewall gets more seed and the opening overhangs less. Less overhang means the plated copper is less likely to pinch off the mouth and trap a void.' },
 
@@ -310,6 +333,13 @@ export const PRACTICES = [
     effects: [
       { op: 'defectMult', pattern: 'dishing', mult: 0.6 },
     ],
+    upgrade: {
+      name: 'Low-pressure final polish, DOE-tuned', cost: { time: 8, cash: 30 },
+      effects: [
+        { op: 'defectMult', pattern: 'dishing', mult: 0.5 },
+      ],
+      tradeoff: 'Even less dishing in wide lines, but the polish is longer still.',
+      physicsNote: 'Preston: removal rate is about k x pressure x velocity. A DOE on down force and platen speed finds a lighter setting, so the pad bends less into wide features, but each wafer needs more minutes on the pad.' },
     tradeoff: 'Less dishing in wide lines, but the polish takes longer and uses more slurry and pad per wafer.',
     physicsNote: 'Preston: removal rate ≈ k × pressure × velocity, so a lighter down force removes less per second and the polish takes longer. Under pressure the pad bends down into wide features and keeps polishing the copper there; less pressure means less bending, so wide lines dish less.' },
 
@@ -320,6 +350,14 @@ export const PRACTICES = [
       { op: 'defectMult', pattern: 'depth_variation', mult: 0.7 },
       { op: 'defectMult', pattern: 'particles', mult: 1.2 },
     ],
+    upgrade: {
+      name: 'Chamber seasoning, DOE-tuned', cost: { time: 3, cash: 55 },
+      effects: [
+        { op: 'defectMult', pattern: 'depth_variation', mult: 0.7 },
+        { op: 'defectMult', pattern: 'particles', mult: 1.1 },
+      ],
+      tradeoff: 'Fewer flaking particles from the wall film, but it uses more conditioning wafers and costs more.',
+      physicsNote: 'A DOE on seasoning recipe and number of wafers lays down a denser, better-bonded wall film that sheds less. The extra conditioning wafers are consumed and cost money.' },
     tradeoff: 'A steadier chamber, but it spends minutes and dummy wafers, and the film coated on the walls can flake.',
     physicsNote: 'Running conditioning wafers coats the chamber walls so they recombine and release radicals at a steady rate. Without it the first wafers see a different etch rate. Wall film can flake as particles.' },
   { id: 'tiltedImplant', draft: true, kind: 'practice', room: 'implant', rarity: 'standard',
@@ -329,6 +367,13 @@ export const PRACTICES = [
     effects: [
       { op: 'defectMult', pattern: 'channeling_tail', mult: 0.6 },
     ],
+    upgrade: {
+      name: 'Tilted implant, DOE-tuned angle', cost: { time: 8 },
+      effects: [
+        { op: 'defectMult', pattern: 'channeling_tail', mult: 0.5 },
+      ],
+      tradeoff: 'A shorter channeling tail, but it needs more rotation steps, so it takes longer.',
+      physicsNote: 'A DOE on tilt and twist angle finds an orientation where the beam meets atoms sooner. More rotation steps are needed to cover all gate sides, each with its own wafer handling time.' },
     tradeoff: 'Cuts the channeling tail, but the tall gate shadows one side of each source or drain, so the wafer must be rotated through several implants, which takes extra minutes.',
     physicsNote: 'Ions fired along an open crystal direction travel far down open channels between rows of atoms, losing energy slowly (channeling), and make a deep tail on the dopant profile. Tilting the wafer about 7 degrees off the axis makes the ions hit atoms sooner. A tall gate then shadows one side of the implant, so the implant is split into steps with the wafer rotated between them.' },
 
@@ -340,6 +385,14 @@ export const PRACTICES = [
       { op: 'defectMult', pattern: 'channeling_tail', mult: 0.7 },
       { op: 'defectMult', pattern: 'implant_damage', mult: 1.3 },
     ],
+    upgrade: {
+      name: 'Screen-oxide implant, DOE-tuned thickness', cost: { time: 4, cash: 30 },
+      effects: [
+        { op: 'defectMult', pattern: 'channeling_tail', mult: 0.75 },
+        { op: 'defectMult', pattern: 'implant_damage', mult: 1.2 },
+      ],
+      tradeoff: 'Less knock-on damage for the anneal to repair, but a thinner oxide scatters the ions less, so channeling is cut by less.',
+      physicsNote: 'A DOE on oxide thickness finds a thinner layer. Fewer oxygen atoms are driven into the silicon, but fewer scattering events randomize the ion direction before it enters the crystal.' },
     tradeoff: 'Less channeling, and the oxide catches beamline contamination, but ions knock oxygen out of the oxide into the silicon, which adds crystal damage the anneal must repair.',
     physicsNote: 'A thin amorphous oxide on the silicon scatters the incoming ions, so they enter the crystal at random angles and channel less. It also catches metal and carbon contamination from the beamline, which is stripped away with the oxide. Collisions push oxygen atoms into the silicon (knock-on) and the oxide shifts the dopant peak shallower, so the dose and energy must be set to suit.' },
 
@@ -352,6 +405,15 @@ export const PRACTICES = [
       { op: 'defectMult', pattern: 'underlayer_attack', mult: 0.5, when: { lot: 'thinGateOxide' } },
       { op: 'defectMult', pattern: 'residue', mult: 1.1 },
     ],
+    upgrade: {
+      name: 'Soft-landing gate etch, DOE-shortened', cost: { time: 5 },
+      effects: [
+        { op: 'defectMult', pattern: 'underlayer_attack', mult: 0.75 },
+        { op: 'defectMult', pattern: 'underlayer_attack', mult: 0.5, when: { lot: 'thinGateOxide' } },
+        { op: 'defectMult', pattern: 'residue', mult: 1.1 },
+      ],
+      tradeoff: 'Takes fewer minutes, but the shorter soft-landing step protects the oxide a little less.',
+      physicsNote: 'A DOE on the soft-landing step finds a shorter time at low ion energy. Selectivity is finite, so a shorter step leaves the oxide exposed to the main etch a little longer.' },
     tradeoff: 'Protects the thin gate oxide, but the slow final step takes most of the room\'s minutes, and polymer micromasking can leave small poly residues.',
     physicsNote: 'Near the end the etch switches to a chemistry with high poly-to-oxide selectivity and low ion energy, so it removes the last poly without punching the thin oxide below. The polymer that makes it selective can micromask a little poly and leave small residues.' },
 
@@ -363,6 +425,14 @@ export const PRACTICES = [
       { op: 'defectMult', pattern: 'gate_oxide', mult: 0.5 },
       { op: 'defectMult', pattern: 'qtime_oxide', mult: 1.5 },
     ],
+    upgrade: {
+      name: 'HF-last clean, DOE-tuned dip', cost: { time: 4, cash: 40 },
+      effects: [
+        { op: 'defectMult', pattern: 'gate_oxide', mult: 0.55 },
+        { op: 'defectMult', pattern: 'qtime_oxide', mult: 1.5 },
+      ],
+      tradeoff: 'Shorter dip, but it strips a little less of the thin oxide and its trapped metals; the Q-time window is as tight as before.',
+      physicsNote: 'A DOE on HF concentration and dip time finds a shorter etch. Dilute HF removes oxide at a finite rate, so less time leaves a little more chemical oxide and contamination, while the hydrogen-terminated surface still regrows native oxide when the lot waits.' },
     tradeoff: 'A final dip in dilute HF strips the thin chemical oxide left by the earlier cleans and the contamination in it, but the bare silicon regrows native oxide as soon as the lot waits, so the Q-time window gets tighter.',
     physicsNote: 'Dilute HF removes silicon dioxide and the metals trapped in it, leaving a hydrogen-terminated silicon surface that makes a cleaner, more uniform gate oxide. That surface is only stable for a short time; it regrows native oxide in air and moisture.' },
 ];
