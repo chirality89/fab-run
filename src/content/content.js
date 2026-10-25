@@ -57,6 +57,7 @@ export const PATTERNS = {
   qtime_oxide:      'native oxide grew while the lot waited',
   implant_damage:   'crystal damage not repaired',
   junction_spread:  'dopant diffused too far',
+  gate_oxide:       'thin gate oxide that leaks or breaks down early',
 };
 
 // ---------------------------------------------------------------------------
@@ -104,6 +105,18 @@ export const FAILURE_MODES = [
   { id: 'fm_dose_offset',    draft: true, pattern: 'cd_error',
     sig: 'Line width is off target by the same amount on every site and every wafer; SPC shows a step from the previous lot, and the scatter within the lot is small.',
     unlocks: ['sendAheadWafer'] },
+  { id: 'fm_channeling',     draft: true, pattern: 'junction_spread',
+    sig: 'Junctions are deeper than the dose and anneal predict, on every site; the dopant depth profile has a long tail beyond the main peak, and the tail shrinks on a wafer implanted at a tilt or through an oxide. Anneal time does not change the tail.',
+    unlocks: ['tiltedImplant', 'screenOxideImplant', 'implantMonitor'] },
+  { id: 'fm_gate_punch',     draft: true, pattern: 'underlayer_attack',
+    sig: 'Gate-to-substrate leakage on every site and wafer, not just the most over-etched dies; oxide thickness measured after the poly etch is thin or gone beside the gate, and the cross-section shows pits in the silicon there.',
+    unlocks: ['softLandGateEtch'] },
+  { id: 'fm_gate_breakdown', draft: true, pattern: 'gate_oxide',
+    sig: 'On a ramped-voltage test the gate oxide breaks down at a low voltage, with a wide spread of breakdown voltage from site to site; the oxide thickness itself is on target, and the early breakdowns are worse on lots that waited long after the pre-gate clean.',
+    unlocks: ['hfLastClean'] },
+  { id: 'fm_gate_native_oxide', draft: true, pattern: 'qtime_oxide',
+    sig: 'Capacitance-voltage shows an electrical oxide thickness larger than the furnace recipe gives, and threshold voltage is shifted, but breakdown voltage is normal; the gap grows with the wait after the pre-gate clean.',
+    unlocks: ['oxideMonitor'] },
 ];
 
 // ---------------------------------------------------------------------------
@@ -306,6 +319,50 @@ export const PRACTICES = [
     ],
     tradeoff: 'A steadier chamber, but it spends minutes and dummy wafers, and the film coated on the walls can flake.',
     physicsNote: 'Running conditioning wafers coats the chamber walls so they recombine and release radicals at a steady rate. Without it the first wafers see a different etch rate. Wall film can flake as particles.' },
+  { id: 'tiltedImplant', draft: true, kind: 'practice', room: 'implant', rarity: 'standard',
+    name: 'Tilted implant (about 7 degrees)', unlockedBy: 'fm_channeling',
+    cost: { time: 6 },
+    // Needs: S/D implant step (NMOS step 12) adds junction_spread on entering, before this card is played.
+    effects: [
+      { op: 'defectMult', pattern: 'junction_spread', mult: 0.6 },
+    ],
+    tradeoff: 'Cuts the channeling tail, but the tall gate shadows one side of each source or drain, so the wafer must be rotated through several implants, which takes extra minutes.',
+    physicsNote: 'Ions fired along an open crystal direction travel far between atoms (channeling) and make a deep tail on the dopant profile. Tilting the wafer about 7 degrees off the axis makes the ions hit atoms sooner. A tall gate then shadows one side of the implant, so the implant is split into steps with the wafer rotated between them.' },
+
+  { id: 'screenOxideImplant', draft: true, kind: 'practice', room: 'implant', rarity: 'standard',
+    name: 'Implant through a screen oxide', unlockedBy: 'fm_channeling',
+    cost: { time: 4, cash: 30 },
+    // Needs: S/D implant step (NMOS step 12) adds junction_spread, particles and implant_damage on entering, before this card is played.
+    effects: [
+      { op: 'defectMult', pattern: 'junction_spread', mult: 0.7 },
+      { op: 'defectMult', pattern: 'particles', mult: 0.8 },
+      { op: 'defectMult', pattern: 'implant_damage', mult: 1.3 },
+    ],
+    tradeoff: 'Less channeling and fewer particles on the bare silicon, but ions knock oxygen out of the oxide into the silicon, which adds crystal damage the anneal must repair.',
+    physicsNote: 'A thin amorphous oxide on the silicon scatters the incoming ions, so they enter the crystal at random angles and channel less. It also keeps particles and contamination off the silicon surface. Collisions push oxygen atoms into the silicon (knock-on) and the oxide shifts the dopant peak shallower, so the dose and energy must be set to suit.' },
+
+  { id: 'softLandGateEtch', draft: true, kind: 'practice', room: 'etch', rarity: 'advanced',
+    name: 'Soft-landing gate etch', unlockedBy: 'fm_gate_punch',
+    cost: { time: 6 },
+    // Needs: gate etch step (NMOS step 11) adds underlayer_attack and residue on entering, before this card is played.
+    effects: [
+      { op: 'defectMult', pattern: 'underlayer_attack', mult: 0.7 },
+      { op: 'defectMult', pattern: 'underlayer_attack', mult: 0.5, when: { lot: 'thinGateOxide' } },
+      { op: 'defectMult', pattern: 'residue', mult: 1.4 },
+    ],
+    tradeoff: 'Protects the thin gate oxide, but the slow, polymer-rich final step can leave poly stringers at the foot of the gate, and it takes most of the room\'s minutes.',
+    physicsNote: 'Near the end the etch switches to a chemistry with high poly-to-oxide selectivity and low ion energy, so it removes the last poly without punching the thin oxide below. The same polymer that protects the oxide can mask poly at the gate foot and leave residue.' },
+
+  { id: 'hfLastClean', draft: true, kind: 'practice', room: 'clean', rarity: 'standard',
+    name: 'HF-last clean before gate oxidation', unlockedBy: 'fm_gate_breakdown',
+    cost: { time: 6, cash: 40 },
+    // Needs: SiN strip + pre-gate clean step (NMOS step 7) adds gate_oxide and qtime_oxide on entering. Play it in that step; the earlier clean (step 1) comes before the risk exists.
+    effects: [
+      { op: 'defectMult', pattern: 'gate_oxide', mult: 0.5 },
+      { op: 'defectMult', pattern: 'qtime_oxide', mult: 1.5 },
+    ],
+    tradeoff: 'A final dip in dilute HF strips the old oxide and the contamination in it, but the bare silicon regrows native oxide as soon as the lot waits, so the Q-time window gets tighter.',
+    physicsNote: 'Dilute HF removes silicon dioxide and the metals and particles trapped in it, leaving a hydrogen-terminated silicon surface that makes a cleaner, more uniform gate oxide. That surface is only stable for a short time; it regrows native oxide in air and moisture.' },
 ];
 
 // ---------------------------------------------------------------------------
@@ -438,6 +495,20 @@ export const CONSUMABLES = [
     resets: { slot: 'bath', field: 'decay', fraction: 0.5 },
     tradeoff: 'Recovers half the bath\'s lost performance; a full dump costs a new bath.',
     physicsNote: 'Measuring additive levels lets you top them up; breakdown products build up and eventually force a dump.' },
+
+  { id: 'oxideMonitor', draft: true, kind: 'consumable', rarity: 'standard',
+    name: 'Oxide monitor wafer', unlockedBy: 'fm_gate_native_oxide',
+    cost: { cash: 60 },
+    effects: [ { op: 'reveal', what: 'oxideThickness' } ],
+    tradeoff: 'Shows whether the furnace grows the right thickness, but it is a bare, freshly cleaned wafer: it says nothing about native oxide or contamination on your product wafers.',
+    physicsNote: 'A bare wafer runs through the oxidation and its oxide thickness is measured optically (ellipsometry). It separates the furnace from earlier steps: if the monitor is on target and product is not, the cause is upstream, such as a wait after clean.' },
+
+  { id: 'implantMonitor', draft: true, kind: 'consumable', rarity: 'standard',
+    name: 'Implant monitor wafer', unlockedBy: 'fm_channeling',
+    cost: { cash: 70 },
+    effects: [ { op: 'reveal', what: 'implantDose' } ],
+    tradeoff: 'Shows the dose and its uniformity from sheet resistance, but sheet resistance adds up all the dopant and cannot see how deep it went, so a channeling tail can hide.',
+    physicsNote: 'A bare wafer is implanted and annealed, then its sheet resistance is read with a four-point probe. Sheet resistance falls as active dose rises, so it checks dose and uniformity. A depth profile is needed to see the shape of the dopant.' },
 ];
 
 // Everything with unlockedBy: null is in the starter pool.
