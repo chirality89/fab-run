@@ -1,14 +1,15 @@
 // run.js — one run: one lot walking its route from the first room to ship.
 //
 // Walk the route, deal a hand in each room, play cards, resolve the room,
-// walk the corridor to the next room, ship. What side stops do, procurement
-// and saves come later in M3.
+// walk the corridor to the next room, ship. A procurement side stop opens a
+// shop (buyItem); the other side stops and saves come later in M3.
 //
 // A run goes like this, one step of the route at a time:
 //   enterStep    → the lot arrives in the step's room
 //   playCard     → zero or more times, while time and cash allow
 //   resolveStep  → the room's risks bite; scrap, move on, or ship
 //   walkCorridor → between two rooms: take one side stop, or go straight on
+//   buyItem      → zero or more times, while a procurement stop's shop is open
 //
 // Order inside enterStep (lotTypes.js): add the step's risks, set the room's
 // time budget, apply the equipment and materials for this room, then deal.
@@ -27,6 +28,7 @@ import { normalizeSeed, shuffle } from './rng.js';
 import { createLot, addRisk, realizeRisks, rollScatter, lotYield } from './lot.js';
 import { conditionMet, applyEffects } from './resolve.js';
 import { buildMap } from './map.js';
+import { shopStock, whyCannotBuy, findShopItem } from './shop.js';
 
 // Looks up a content item by id, or throws naming it.
 function findItem(list, id, kind) {
@@ -100,6 +102,7 @@ export function createRun({
     room: null,             // { id, timeLeft, budget, revealed } while in a room
     map: buildMap(seed, lotType.route),   // the corridors (map.js), known from the start
     corridor: null,         // index of the corridor the lot stands in, or null
+    shop: null,             // { corridor, stock, bought } while a procurement stop is open
     tools,                  // tool health stays 100 for now (NEEDS NEW LOGIC)
     equipment: [...loadout.equipment],
     slots: { ...loadout.slots },
@@ -155,7 +158,8 @@ export function enterStep(state) {
   // 1. The step's own risks enter the lot.
   let lot = state.lot;
   for (const [pattern, amount] of Object.entries(step.adds)) lot = addRisk(lot, pattern, amount);
-  let next = { ...state, lot, room: { id: step.room, timeLeft: TIME_BUDGETS[step.room], revealed: [] } };
+  // Entering a room also closes any shop the lot was standing in.
+  let next = { ...state, lot, shop: null, room: { id: step.room, timeLeft: TIME_BUDGETS[step.room], revealed: [] } };
 
   // 2. Equipment and materials for this room act once, before any card.
   // applyEffects skips effects whose own `when` fails, but not the item's
@@ -245,8 +249,8 @@ export function resolveStep(state) {
 // Between two rooms: take one of the corridor's side stops (`stopKind`, one
 // of its offers) or go straight on (`stopKind` = null). A stop costs cycle
 // time (SIDE_STOP_MINUTES). In a Q-time corridor, the wait also grows the
-// Q-time pattern: QTIME_RISK_PER_MINUTE × the minutes. What a stop gives
-// you comes in M3 item 2; for now it only costs time.
+// Q-time pattern: QTIME_RISK_PER_MINUTE × the minutes. A procurement stop
+// opens a shop (shop.js); the other stops only cost their time for now.
 export function walkCorridor(state, stopKind) {
   checkRunning(state, 'walkCorridor');
   if (state.corridor === null) throw new Error('walkCorridor: the lot is not in a corridor');
@@ -262,6 +266,34 @@ export function walkCorridor(state, stopKind) {
 
   const map = state.map.map((entry, index) =>
     index === state.corridor ? { ...entry, walked: true, taken: stopKind } : entry);
-  const next = { ...state, lot, map, corridor: null, cycleTime: state.cycleTime + minutes };
-  return addLog(next, stopKind === null ? '  corridor: straight on' : `  corridor: ${stopKind} (${minutes} min)`);
+  const shop = stopKind === 'procurement'
+    ? { corridor: state.corridor, stock: shopStock(state, state.corridor), bought: [] }
+    : null;
+  const next = { ...state, lot, map, shop, corridor: null, cycleTime: state.cycleTime + minutes };
+  if (stopKind === null) return addLog(next, '  corridor: straight on');
+  const stockText = shop ? `, stock ${shop.stock.join(', ')}` : '';
+  return addLog(next, `  corridor: ${stopKind} (${minutes} min${stockText})`);
+}
+
+// Buys one item from the open shop and pays its cash price. Equipment joins
+// the lot's equipment and acts every time the lot enters its room, from the
+// next room on. A material replaces whatever is in its slot. Buying never
+// takes cash below 0 (decision O4): an item you can't afford is refused.
+export function buyItem(state, itemId) {
+  checkRunning(state, 'buyItem');
+  const reason = whyCannotBuy(state, itemId);
+  if (reason) throw new Error(`Cannot buy ${itemId}: ${reason}`);
+
+  const item = findShopItem(itemId);
+  let next = {
+    ...state,
+    cash: state.cash - item.cost.cash,
+    shop: { ...state.shop, bought: [...state.shop.bought, itemId] },
+  };
+  if (item.kind === 'equipment') {
+    next = { ...next, equipment: [...next.equipment, itemId] };
+  } else {
+    next = { ...next, slots: { ...next.slots, [item.slot]: slotEntry(itemId) } };
+  }
+  return addLog(next, `  bought ${itemId} (${item.cost.cash})`);
 }

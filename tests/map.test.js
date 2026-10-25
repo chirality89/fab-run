@@ -6,6 +6,7 @@ import assert from 'node:assert/strict';
 import { buildMap, SIDE_STOP_KINDS } from '../src/engine/map.js';
 import { createRun } from '../src/engine/run.js';
 import { LOT_TYPES } from '../src/content/lotTypes.js';
+import { SIDE_STOPS } from '../src/content/sideStops.js';
 
 const SEED = 123456;
 const ROUTE = LOT_TYPES.cuLine.route;
@@ -56,4 +57,12 @@ test('building the map does not use the lot\'s random numbers', () => {
   const state = createRun({ seed: SEED });
   assert.equal(state.rngState, SEED, `seed ${SEED}`);
   assert.deepEqual(state.map, buildMap(SEED, ROUTE));
+});
+
+test('every side-stop kind has its words in sideStops.js, and nothing extra', () => {
+  assert.deepEqual(Object.keys(SIDE_STOPS).sort(), [...SIDE_STOP_KINDS].sort());
+  for (const [kind, stop] of Object.entries(SIDE_STOPS)) {
+    for (const field of ['name', 'short', 'what']) assert.ok(stop[field], `${kind}.${field}`);
+    assert.equal(typeof stop.placeholder, 'boolean', `${kind}.placeholder`);
+  }
 });
