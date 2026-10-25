@@ -76,10 +76,10 @@ export const FAILURE_MODES = [
     unlocks: [] },
   { id: 'fm_underlayer',     draft: true, pattern: 'underlayer_attack',
     sig: 'Leakage on the dies with the most over-etch; the cross-section shows a notch in the film below.',
-    unlocks: ['etchStopLayer', 'oesEndpoint', 'endpointEtch'] },
+    unlocks: ['etchStopLayer', 'oesEndpoint', 'endpointEtch', 'chamberSeasoning'] },
   { id: 'fm_edge_ring',      draft: true, pattern: 'edge_ring',
     sig: 'Only the outer ring of sites fails; inner sites are clean.',
-    unlocks: ['eChuckUpgrade', 'chamberSeasoning'] },
+    unlocks: ['eChuckUpgrade'] },
   { id: 'fm_dishing',        draft: true, pattern: 'dishing',
     sig: 'Wide lines are thin and high-resistance; narrow lines are fine.',
     unlocks: ['dummyFill', 'lowPressurePolish'] },
@@ -298,7 +298,7 @@ export const PRACTICES = [
     physicsNote: 'Preston: removal rate ≈ k × pressure × velocity, so a lighter down force removes less per second and the polish takes longer. Under pressure the pad bends down into wide features and keeps polishing the copper there; less pressure means less bending, so wide lines dish less.' },
 
   { id: 'chamberSeasoning', draft: true, kind: 'practice', room: 'etch', rarity: 'standard',
-    name: 'Chamber seasoning', unlockedBy: 'fm_edge_ring',
+    name: 'Chamber seasoning', unlockedBy: 'fm_underlayer',
     cost: { time: 3, cash: 40 },
     effects: [
       { op: 'defectMult', pattern: 'depth_variation', mult: 0.7 },

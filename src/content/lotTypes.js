@@ -52,11 +52,13 @@ export const LOT_TYPES = {
         adds: { particles: 0.01, qtime_oxide: 0.04 },
         realizes: ['particles'],
         qtime: 'qtime_oxide' },
+      // Void risk enters here: the seed's coverage down the trench sets how
+      // hard the fill will be (ionizedSeed scales it), and plating realizes it.
       { room: 'dep', label: 'Deposition (barrier + seed)',
-        adds: { particles: 0.01 },
+        adds: { particles: 0.01, void: 0.08 },
         realizes: ['particles', 'qtime_oxide', 'flakes'] },
       { room: 'plate', label: 'Plating (Cu fill)',
-        adds: { particles: 0.01, void: 0.08 },
+        adds: { particles: 0.01 },
         realizes: ['particles', 'void'] },
       { room: 'cmp', label: 'CMP',
         adds: { particles: 0.01, rr_drift: 0.04 },

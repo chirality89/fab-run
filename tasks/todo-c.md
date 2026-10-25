@@ -120,6 +120,12 @@ That makes 24 + 5 + ~5 + ~6 = **about 40 items**, plus new failure modes. Every 
   2. Seasoning: unlock from fm_underlayer, or a new first-wafer-effect failure mode (needs per-wafer evidence)?
   3. Is coil/shield flaking a fair particle cost for ionized PVD?
   4. Agree that low-pressure finishing should not add scratches?
+- 2026-10-25: David's rulings on batch 1:
+  1. Void enters at step 6 (barrier + seed) in cuLine, not at plating. Checked: ionizedSeed takes void 0.08 → 0.048; the do-nothing yield is still 0.517954.
+  2. Seasoning is now unlocked by fm_underlayer.
+  3. The ionized PVD particle cost stays.
+  4. Low-pressure polish: agreed, no scratch cost.
+  Batch 1 done: 29 items. 132/132.
 
 ## Result
 - (open)
