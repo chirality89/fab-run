@@ -1,21 +1,25 @@
 # Fab Run — Task Tracker
 
-## Current: M2 item 2 — playing a card calls the engine and redraws
+## Next: M2 item 3 — Playwright set up; screenshots at 1280×800 and 375×812
+
+Not planned yet.
+
+## Done: M2 item 2 — playing a card calls the engine and redraws
 
 (25 Oct 2026: the M1 and M2 item 1 work below was on an unmerged branch, PR #1; it is now merged with `main`.)
 
 ### Task: tap a card to play it; "Run etch" ends the room
-- [ ] `src/ui/main.js` keeps the current run state in one variable. A tap on a card calls the engine's `playCard`, stores the new state, and redraws. The screen never changes the state itself.
-- [ ] `src/ui/render.js`: playable cards become buttons (at least 44 px, keyboard focus shows). Unplayable cards stay greyed out and do nothing. A **Run etch** button under the hand.
-- [ ] **Run etch** calls the engine's `resolveStep`: the room's risks bite. The screen then shows the result: yield before → after, points lost, the new wafer map, and the end status if the lot was scrapped. Two buttons: **Replay this seed** (same `?seed=`) and **New seed**.
-- [ ] `src/ui/view.js`: a `resultView(before, after)` that turns the two states into display data, with no DOM, so Node can test it.
-- [ ] `src/ui/room.css`: button styles, tokens only.
-- [ ] Tests in `tests/view.test.js`. Seed 123456, scatter off, idle to etch:
+- [x] `src/ui/main.js` keeps the current run state in one variable. A tap on a card calls the engine's `playCard`, stores the new state, and redraws. The screen never changes the state itself.
+- [x] `src/ui/render.js`: playable cards become buttons (at least 44 px, keyboard focus shows). Unplayable cards stay greyed out and do nothing. A **Run etch** button under the hand.
+- [x] **Run etch** calls the engine's `resolveStep`: the room's risks bite. The screen then shows the result: yield before → after, points lost, the new wafer map, and the end status if the lot was scrapped. Two buttons: **Replay this seed** (same `?seed=`) and **New seed**.
+- [x] `src/ui/view.js`: a `resultView(before, after)` that turns the two states into display data, with no DOM, so Node can test it.
+- [x] `src/ui/room.css`: button styles, tokens only.
+- [x] Tests in `tests/view.test.js`. Seed 123456, scatter off, idle to etch:
   - After playing timed over-etch, the time left is 4 of 8 min and the card has left the hand.
   - The expected-loss line drops from 22.9 to **19.7** points (hand-computed, below).
   - `resultView` after Run etch with nothing played shows 91.4% → **68.5%**, 22.9 points lost; after the over-etch it shows 91.4% → **71.7%**, 19.7 points lost.
-- [ ] Throwaway screenshots at 1280×800 and 375×812, before and after a tap and after Run etch, checked by eye. Playwright proper is M2 item 3.
-- [ ] `npm test` passes; `code-explainer` reviews; commit.
+- [x] Throwaway screenshots at 1280×800 and 375×812, before and after a tap and after Run etch, checked by eye. Playwright proper is M2 item 3.
+- [x] `npm test` passes; `code-explainer` reviews; commit.
 
 Only `src/ui/` changes, plus its test. No engine change.
 
@@ -35,9 +39,13 @@ Only `src/ui/` changes, plus its test. No engine change.
 - Works at 375 px and with the keyboard; no console errors.
 
 **Progress notes:**
-- 2026-10-25: plan written; waiting for David's OK.
+- 2026-10-25: plan written; David OK'd it and checked the hand numbers.
+- 2026-10-25: built. Screenshots at 1280×800 and 375×812 (light, plus dark on the phone), before and after a tap and after Run etch: fixed "No practices left" touching the Run button, and the result screen now opens at the top on a phone. No console errors, no sideways scroll.
+- 2026-10-25: code-explainer fixes: a fast double tap no longer plays the card AND runs etch (the second click is ignored); after a play, focus goes to the card now in the same place; hand keeps its list role; Run button in its own function.
+- Replay this seed restarts the seed fresh, with nothing played, so you can try another choice. Same seed gives the same starting numbers (checked: 22.8 then 68.1% idle, twice).
+- The taps are checked by eye only; automated screen tests come with Playwright in M2 item 3.
 
-**Result:**
+**Result:** etch room is playable: tap to play, Run etch, result screen with Replay and New seed. 102/102 tests pass.
 
 ## Done: M2 item 1 — the etch room on screen (`src/ui/`)
 

@@ -78,9 +78,10 @@ function safely(draw) {
 
 function onPlay(cardId) {
   safely(() => {
+    const position = state.hand.indexOf(cardId);   // where the card sat in the hand
     state = playCard(state, cardId);
     showRoom();
-    focusNextAction(app);
+    focusNextAction(app, position);
   });
 }
 

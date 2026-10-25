@@ -14,6 +14,20 @@ function el(tag, className, text) {
   return node;
 }
 
+// Calls `handler` when the button is clicked, tapped or pressed with Enter
+// or Space, but ignores the second click of a double click. Playing a card
+// redraws the screen at once, so without this the second click of a fast
+// double tap would land on whatever slid into that spot (often Run etch).
+// event.detail counts the clicks in a row: 1, then 2 for a double click
+// (0 for a key press).
+function onSingleClick(button, handler) {
+  button.type = 'button';
+  button.addEventListener('click', event => {
+    if (event.detail > 1) return;
+    handler();
+  });
+}
+
 // A small heading for each panel.
 function panel(title, className) {
   const box = el('section', `panel ${className}`);
@@ -114,15 +128,19 @@ function drawCard(card, actions) {
   const node = card.playable
     ? el('button', 'card card-button')
     : el('div', 'card card-unplayable');
-  if (card.playable) {
-    node.type = 'button';
-    node.addEventListener('click', () => actions.onPlay(card.id));
-  }
+  if (card.playable) onSingleClick(node, () => actions.onPlay(card.id));
   const top = el('div', 'card-top');
   top.append(el('span', 'card-name', card.name), el('span', 'card-cost', costText(card)));
   node.append(top, el('span', 'card-summary', card.summary));
   if (!card.playable) node.append(el('span', 'card-reason', `Can't play: ${card.reason}`));
   return node;
+}
+
+// The button that ends the room: "Run etch".
+function drawRunButton(view, actions) {
+  const run = el('button', 'action-button run-button', `Run ${view.roomName.toLowerCase()}`);
+  onSingleClick(run, actions.onRunRoom);
+  return run;
 }
 
 // The hand, then the button that ends the room.
@@ -132,6 +150,7 @@ function drawHand(view, actions) {
     box.append(el('p', 'slot-empty hand-empty', 'No practices left in your hand.'));
   } else {
     const list = el('ul', 'hand');
+    list.setAttribute('role', 'list');   // some screen readers drop it when bullets are hidden
     for (const card of view.hand) {
       const item = el('li', 'hand-item');
       item.append(drawCard(card, actions));
@@ -139,10 +158,7 @@ function drawHand(view, actions) {
     }
     box.append(list);
   }
-  const run = el('button', 'action-button run-button', `Run ${view.roomName.toLowerCase()}`);
-  run.type = 'button';
-  run.addEventListener('click', () => actions.onRunRoom());
-  box.append(run);
+  box.append(drawRunButton(view, actions));
   return box;
 }
 
@@ -160,12 +176,18 @@ export function renderRoom(container, view, actions) {
   container.replaceChildren(drawHeader(view), drawYield(view), body);
 }
 
-// Moves keyboard focus to the first playable card, or else the Run button.
-// main.js calls it after a card is played, so a keyboard player doesn't
-// lose their place when the screen redraws.
-export function focusNextAction(container) {
-  const target = container.querySelector('.card-button') ?? container.querySelector('.run-button');
-  if (target) target.focus();
+// After a card is played, moves keyboard focus to the playable card now in
+// the same place in the hand (`position`, counted from 0), or the nearest
+// playable card after it, or else the Run button. That way a keyboard
+// player doesn't lose their place when the screen redraws.
+export function focusNextAction(container, position) {
+  const items = [...container.querySelectorAll('.hand-item')];
+  const later = items.slice(position).map(item => item.querySelector('.card-button'));
+  const earlier = items.slice(0, position).reverse().map(item => item.querySelector('.card-button'));
+  const card = [...later, ...earlier].find(button => button !== null);
+  // `??` means: use the right-hand side if the left is missing (undefined).
+  const target = card ?? container.querySelector('.run-button');
+  target.focus();
 }
 
 // The yield before and after the room, with the bar showing "after".
@@ -186,8 +208,7 @@ function drawResultYield(view) {
 // A plain button that calls `onClick`.
 function actionButton(text, className, onClick) {
   const button = el('button', `action-button ${className}`, text);
-  button.type = 'button';
-  button.addEventListener('click', onClick);
+  onSingleClick(button, onClick);
   return button;
 }
 
