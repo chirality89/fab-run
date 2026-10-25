@@ -7,7 +7,7 @@
 // turn into page code.
 
 import { el, panel } from './dom.js';
-import { drawSpc } from './spcChart.js';
+import { drawSpc, drawSpcPicture } from './spcChart.js';
 
 // el and panel live in dom.js; they are passed on from here so the other
 // screen files can keep importing them from render.js.
@@ -262,8 +262,52 @@ function drawStepTable(view) {
   return box;
 }
 
-// The screen after a run ends: the verdict, the three numbers, yield by step
-// and the final wafer map. `actions` holds onReplay() and onNewSeed().
+// The Diagnose panel (M4 item 1): four failure modes to choose from, then
+// what the guess earned. Each choice is a button with its signature text.
+function drawDiagnose(view, actions) {
+  const box = panel('Diagnose', 'diagnose-panel');
+  box.setAttribute('role', 'status');   // the result is announced when it appears
+  box.append(el('p', 'diagnose-text', view.text));
+  if (view.state === 'choose') {
+    const list = el('div', 'stop-list');
+    for (const choice of view.candidates) {
+      const button = el('button', 'stop-button diagnose-button');
+      const top = el('span', 'card-top');
+      top.append(el('span', 'card-name', choice.name));
+      if (choice.known) top.append(el('span', 'chip chip-known', 'In notebook'));
+      button.append(top, el('span', 'card-summary', choice.sig));
+      onSingleClick(button, () => actions.onDiagnose(choice.id));
+      list.append(button);
+    }
+    box.append(list);
+  }
+  if (view.state === 'done' && view.earned) {
+    const text = view.unlocks.length > 0
+      ? `Unlocks for later runs: ${view.unlocks.join(', ')}. (Unlocks start to count in a later update.)`
+      : 'It unlocks nothing yet.';
+    box.append(el('p', 'map-key', text));
+  }
+  return box;
+}
+
+// Every monitored tool's SPC chart after the run: drift is evidence too.
+function drawRouteSpc(view) {
+  const box = panel('Tool SPC after the run', 'route-spc-panel');
+  const grid = el('div', 'route-spc');
+  for (const tool of view.tools) {
+    const item = el('div', 'route-spc-item');
+    item.append(el('span', `room-chip room-${tool.roomId}`, tool.roomName),
+      el('p', 'spc-title', `${tool.spc.parameter} (${tool.spc.unit})`), drawSpcPicture(tool.spc),
+      el('p', tool.spc.inControl ? 'spc-verdict' : 'spc-verdict spc-verdict-out', tool.spc.verdictText));
+    grid.append(item);
+  }
+  box.append(grid);
+  return box;
+}
+
+// The screen after a run ends: the verdict, the three numbers, the diagnose
+// panel, yield by step, the tools' SPC and the final wafer map. `actions`
+// holds onDiagnose(id), onReplay() and onNewSeed().
 export function renderShip(container, view, actions) {
   const header = el('header', 'room-band map-band');
   header.append(el('h1', 'room-name', 'Ship report'), el('p', 'room-step', view.lotName));
@@ -283,7 +327,8 @@ export function renderShip(container, view, actions) {
     actionButton('New seed', 'new-seed-button secondary-button', actions.onNewSeed),
   );
   verdict.append(buttons);
-  container.replaceChildren(header, verdict, drawStepTable(view), drawWaferMap(view));
+  container.replaceChildren(header, verdict, drawDiagnose(view.diagnose, actions), drawStepTable(view),
+    drawWaferMap(view), drawRouteSpc(view));
   showFromTop(container);
 }
 

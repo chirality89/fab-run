@@ -2,10 +2,13 @@
 // run is over: shipped, rejected or scrapped. No DOM and no game rules: it
 // only reads the finished state and the content.
 
-import { ROOMS } from '../content/content.js';
+import { ROOMS, PATTERNS, PRACTICES, EQUIPMENT, MATERIALS, CONSUMABLES } from '../content/content.js';
+import { TOOL_MONITORS } from '../content/toolMonitors.js';
 import { LOT_TYPES } from '../content/lotTypes.js';
 import { STARTING_CASH, SCRAP_LINE, CUSTOMER_SPEC, LOT_BASE_COST } from '../content/balance.js';
 import { lotYield } from '../engine/lot.js';
+import { diagnosisFor, findFailureMode, inNotebook, emptyNotebook } from '../engine/notebook.js';
+import { spcView } from './spcView.js';
 import { toPercent, siteView, mapKeyText } from './view.js';
 
 // Every die on the lot: 25 wafers × 25 sites. Lot yield is the average of
@@ -65,8 +68,68 @@ function stepRows(state, route) {
   });
 }
 
-// Everything the ship report shows.
-export function shipView(state) {
+// --- diagnosis (M4 item 1) ---
+
+// A failure mode's name. Entries without a name yet fall back to the
+// pattern's description, so new content still shows something readable.
+const modeName = mode => mode.name ?? PATTERNS[mode.pattern];
+
+// The names of what a failure mode unlocks: practices, equipment, materials
+// or consumables.
+function unlockNames(mode) {
+  const everything = [...PRACTICES, ...EQUIPMENT, ...MATERIALS, ...CONSUMABLES];
+  return mode.unlocks.map(id => everything.find(item => item.id === id)?.name ?? id);
+}
+
+// One choice on the diagnose panel.
+function candidateView(notebook, failureModeId) {
+  const mode = findFailureMode(failureModeId);
+  return { id: mode.id, name: modeName(mode), sig: mode.sig, known: inNotebook(notebook, mode.id) };
+}
+
+// The words after a guess. `result` comes from notebook.js diagnoseLot.
+function resultText(result) {
+  const mode = findFailureMode(result.failureModeId);
+  if (result.correct && result.alreadyKnown) return `Right: ${modeName(mode)}. It is already in your notebook.`;
+  if (result.correct) return `Diagnosed: ${modeName(mode)}. Written in your notebook.`;
+  const revealed = findFailureMode(result.revealedId);
+  return `Not this one. What did hurt this lot: ${modeName(revealed)}. `
+    + 'It is not written in your notebook: diagnose it on a later run to earn it.';
+}
+
+// The Diagnose panel. Before a guess: the choices. After: what happened.
+// `result` is null until the player names a failure mode; after that the
+// panel only shows what happened, so the notebook is not read again.
+function diagnoseView(state, notebook, result) {
+  if (result !== null) {
+    const mode = findFailureMode(result.failureModeId);
+    const earned = result.correct && !result.alreadyKnown;
+    return {
+      state: 'done',
+      text: resultText(result),
+      correct: result.correct,
+      earned,
+      unlocks: earned ? unlockNames(mode) : [],
+    };
+  }
+  const { candidates } = diagnosisFor(state, notebook);
+  if (candidates.length === 0) return { state: 'nothing', text: 'This lot lost too little to tell what hurt it.' };
+  return {
+    state: 'choose',
+    text: 'Which failure mode hurt this lot? Read the evidence: yield by step, the wafer map and the tool charts. One guess.',
+    candidates: candidates.map(id => candidateView(notebook, id)),
+  };
+}
+
+// The SPC chart of every monitored tool on the route, in route order.
+function routeSpc(state, route) {
+  const rooms = [...new Set(route.map(step => step.room))].filter(roomId => TOOL_MONITORS[roomId]);
+  return rooms.map(roomId => ({ roomId, roomName: ROOMS[roomId].name, spc: spcView(state, roomId) }));
+}
+
+// Everything the ship report shows. `notebook` is the player's notebook;
+// `diagnosis` is diagnoseLot's result for this lot, or null before the guess.
+export function shipView(state, notebook = emptyNotebook(), diagnosis = null) {
   if (state.status === 'running') throw new Error('shipView: the run is not over yet');
   const lotType = LOT_TYPES[state.lotTypeId];
   const yieldNow = lotYield(state.lot);
@@ -93,5 +156,7 @@ export function shipView(state) {
     stepsNotRun: lotType.route.length - state.stepYields.length,
     sites: state.lot.sites.map(siteView),
     mapKeyText: mapKeyText(),
+    tools: routeSpc(state, lotType.route),
+    diagnose: diagnoseView(state, notebook, diagnosis),
   };
 }
