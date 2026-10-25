@@ -106,6 +106,8 @@ That makes 24 + 5 + ~5 + ~6 = **about 40 items**, plus new failure modes. Every 
 - **Monitor wafers reveal values nothing models** (batch 2): oxideThickness and implantDose. These need a consumable engine and a dose or thickness risk. implantMonitor is unlocked by fm_channeling, which it cannot see; move it to a future dose failure mode.
 - **Shop sells only items that can act on this lot** (batch 3): the shop ignores an item's top-level `when`, so the NMOS-only ceria slurry is sold on the Cu line.
 - **Parallel beam should strengthen tilt** (batch 3): it would act only when tiltedImplant was played, but cards are played after equipment acts.
+- **Pulse reverse with the additive bath** (batch 3): reverse pulses strip the adsorbed accelerator that drives superfill, so the two together should be weaker than their product.
+- **Swing-curve pattern** (batch 3): reflection-driven CD swing as its own pattern and failure mode, so the BARC acts on that and not on dose or focus drift.
 - **BARC etch cost** (batch 3): opening the BARC in etch (time, residue) needs an effect that carries over to a later room.
 - **Low-pressure polish copper residue** (batch 1, optional): a slower polish can leave copper residue (shorts). No pattern fits today.
 
@@ -192,6 +194,32 @@ That makes 24 + 5 + ~5 + ~6 = **about 40 items**, plus new failure modes. Every 
   - E: the shield kit at CVD visits;
   - F: pulse reverse with the additive bath;
   - plus the ceria shop question.
+- David's rulings on batch 3:
+  - BARC ×0.85, with a note that it doesn't fix dose or focus errors (a swing-curve pattern is for later);
+  - ceria slurry held back (entry saved below);
+  - default S/D tilt is about 7°, so the parallel beam stands alone;
+  - furnace qtime ×0.85, gate_oxide ×0.95;
+  - shield kit at CVD visits is OK;
+  - pulse + additive bath on NEEDS NEW LOGIC.
+  **Item 1 content total: 39 items** (started at 23, not 24: 4 materials). 168/168.
+  - Open for David: with a 7° default, the tiltedImplant card's name and note ("tilting about 7 degrees") describe the default. It should become a larger-tilt or quad-rotation card (its DOE version already says "larger tilt").
+
+### Held back: ceriaSlurry (add back when the shop checks an item's `when`)
+Also needs: an `fm_sti_dishing` failure mode (field-oxide step height, thinning in wide isolation areas, edge leakage at the active areas) to unlock it; the `dishing` pattern text made not metal-only; and NMOS step 6 adding dishing and particles.
+```js
+  { id: 'ceriaSlurry', draft: true, kind: 'material', slot: 'slurry', room: 'cmp', rarity: 'advanced',
+    name: 'SiN-selective ceria-type slurry', unlockedBy: 'fm_dishing',
+    cost: { cash: 120 }, shelfLife: 5,
+    // Only meaningful on the NMOS oxide polish that stops on SiN (step 6). On copper it does nothing, so the whole item is NMOS-only.
+    when: { lot: 'siliconFrontEnd' },
+    effects: [
+      { op: 'defectMult', pattern: 'dishing', mult: 0.6 },
+      { op: 'defectMult', pattern: 'particles', mult: 1.4 },
+      { op: 'timeCost', delta: 2 },
+    ],
+    tradeoff: 'The polish stops cleanly on the nitride, so wide oxide areas dish less, but clumped ceria particles scratch, and ceria sticks to the oxide and needs a longer post-polish clean.',
+    physicsNote: 'Ceria-based slurry removes silicon dioxide much faster than silicon nitride (high selectivity), so once the nitride is exposed the removal rate drops and the polish self-stops, cutting the over-polish needed. Its additives also make the rate fall where local pressure is low, so recessed oxide in wide trenches polishes slowly and dishes less. Clumped (agglomerated) particles scratch, and ceria bonds to oxide, so the clean afterwards takes longer.' },
+```
 
 ## Result
 - (open)

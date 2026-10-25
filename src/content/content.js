@@ -84,7 +84,7 @@ export const FAILURE_MODES = [
     unlocks: ['eChuckUpgrade'] },
   { id: 'fm_dishing',        draft: true, pattern: 'dishing',
     sig: 'Wide lines are thin and high-resistance; narrow lines are fine.',
-    unlocks: ['dummyFill', 'lowPressurePolish', 'ceriaSlurry'] },
+    unlocks: ['dummyFill', 'lowPressurePolish'] },
   { id: 'fm_rr_drift',       draft: true, pattern: 'rr_drift',
     sig: 'The CMP removal rate walks steadily lot to lot on the SPC chart.',
     unlocks: ['padConditioner'] },
@@ -496,7 +496,7 @@ export const EQUIPMENT = [
       { op: 'timeCost', delta: 3 },
     ],
     tradeoff: 'Every ion arrives at the same tilt across the wafer, so the tilt works at the edge as well as the centre, but collimating and scanning the beam cut the usable beam current, so each implant takes longer.',
-    physicsNote: 'Channeling depends on the angle between the ion and the crystal. If the beam fans out or the scan changes the angle across the wafer, some sites are tilted correctly and others sit near an open channel. A collimated (parallel) beam scanned over the wafer keeps one angle everywhere.' },
+    physicsNote: 'Channeling depends on the angle between the ion and the crystal. If the beam fans out or the scan changes the angle across the wafer, some sites are tilted correctly and others sit near an open channel. A collimated (parallel) beam scanned over the wafer keeps the standard tilt (about 7 degrees) the same everywhere.' },
 
   { id: 'verticalFurnace', draft: true, kind: 'equipment', room: 'diff', rarity: 'advanced',
     name: 'Vertical furnace with load lock', unlockedBy: 'fm_gate_native_oxide',
@@ -504,8 +504,8 @@ export const EQUIPMENT = [
     // Needs: gate oxidation (NMOS step 8) realizes gate_oxide and qtime_oxide added at step 7.
     // Anneal (NMOS step 13): both are already realized, so only the time cost applies there.
     effects: [
-      { op: 'defectMult', pattern: 'qtime_oxide', mult: 0.7 },
-      { op: 'defectMult', pattern: 'gate_oxide', mult: 0.85 },
+      { op: 'defectMult', pattern: 'qtime_oxide', mult: 0.85 },
+      { op: 'defectMult', pattern: 'gate_oxide', mult: 0.95 },
       { op: 'timeCost', delta: 5 },
     ],
     tradeoff: 'Less air gets in when the boat loads, so less native oxide and fewer defects under the gate oxide, but the load lock purge cycle adds minutes to every furnace step.',
@@ -582,30 +582,18 @@ export const MATERIALS = [
     tradeoff: 'Bottom-up fill of narrow features, but it ages every lot and needs watching.',
     physicsNote: 'Suppressor, accelerator and leveler together make plating faster at the bottom of a feature than at its mouth (superfill). The additives are consumed in use.' },
 
-  { id: 'ceriaSlurry', draft: true, kind: 'material', slot: 'slurry', room: 'cmp', rarity: 'advanced',
-    name: 'SiN-selective ceria-type slurry', unlockedBy: 'fm_dishing',
-    cost: { cash: 120 }, shelfLife: 5,
-    // Only meaningful on the NMOS oxide polish that stops on SiN (step 6). On copper it does nothing, so the whole item is NMOS-only.
-    when: { lot: 'siliconFrontEnd' },
-    effects: [
-      { op: 'defectMult', pattern: 'dishing', mult: 0.6 },
-      { op: 'defectMult', pattern: 'particles', mult: 1.4 },
-      { op: 'timeCost', delta: 2 },
-    ],
-    tradeoff: 'The polish stops cleanly on the nitride, so wide oxide areas dish less, but clumped ceria particles scratch, and ceria sticks to the oxide and needs a longer post-polish clean.',
-    physicsNote: 'Ceria-based slurry removes silicon dioxide much faster than silicon nitride (high selectivity), so once the nitride is exposed the removal rate drops and the polish self-stops, cutting the over-polish needed. Its additives also make the rate fall where local pressure is low, so recessed oxide in wide trenches polishes slowly and dishes less. Clumped (agglomerated) particles scratch, and ceria bonds to oxide, so the clean afterwards takes longer.' },
 
   { id: 'barc', draft: true, kind: 'material', slot: 'arc', room: 'litho', rarity: 'standard',
     name: 'Bottom anti-reflective coating', unlockedBy: 'fm_dose_offset',
     cost: { cash: 90 }, shelfLife: 6,
     // Acts at each litho step: Cu trench, NMOS active and gate (cd_error is added on entering).
     effects: [
-      { op: 'defectMult', pattern: 'cd_error', mult: 0.7 },
+      { op: 'defectMult', pattern: 'cd_error', mult: 0.85 },
       { op: 'defectMult', pattern: 'particles', mult: 1.1 },
       { op: 'timeCost', delta: 4 },
     ],
     tradeoff: 'Steadier line width over reflective films, but it is one more coat and bake before the resist, which takes minutes and adds handling particles.',
-    physicsNote: 'Light that passes through the resist reflects off the film below and interferes with the incoming light (standing waves), so the dose in the resist changes with film thickness and topography and the line width varies. An absorbing coating under the resist cuts the reflection. It must be opened later in the etch.' },
+    physicsNote: 'Light that passes through the resist reflects off the film below and interferes with the incoming light (standing waves), so the dose in the resist changes with film thickness and topography and the line width varies. An absorbing coating under the resist cuts the reflection. It does nothing for dose or focus errors, which also drive line width. It must be opened later in the etch.' },
 ];
 
 // ---------------------------------------------------------------------------
