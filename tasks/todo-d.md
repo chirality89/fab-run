@@ -142,8 +142,10 @@ All checked against `--view-dark` so they read on the microscope window (3:1 or 
 - 25 Oct: code-explainer review: fixed cost chip `flex: none`, screenshot test now uses the real theme button, simpler `block()` in the test, color check also catches `rgb()`/`hsl()`, "art missing" note instead of a blank window, phone-hand cards named, no pointless `tabIndex`. Left for later: the card-text helpers in `art-preview.html` should move to `src/ui/view.js` with tests when the hand uses the frame (not a Lane D file).
 
 **Open questions for David**
-- **ASK DAVID (dummy fill):** at textbook level dummy fill mainly cuts density-driven *erosion*; dishing of one wide line depends mostly on its width (slotting is the usual fix). Is "dummy fill reduces dishing" an OK simplification for the card? The art shows a slight dish either way.
-- **ASK DAVID (low-current start):** confirm the art should show conformal fill with the mouth kept open, not bottom-up fill. That's what the card's own physicsNote says.
+- **Answered 25 Oct: dummy fill.** David: the simplification is fine. Art and card stay as they are.
+- ~~ASK DAVID (dummy fill):~~ at textbook level dummy fill mainly cuts density-driven *erosion*; dishing of one wide line depends mostly on its width (slotting is the usual fix). Is "dummy fill reduces dishing" an OK simplification for the card? The art shows a slight dish either way.
+- **Answered 25 Oct: low-current start.** David: keep the art (conformal Cu, mouth open).
+- ~~ASK DAVID (low-current start):~~ confirm the art should show conformal fill with the mouth kept open, not bottom-up fill. That's what the card's own physicsNote says.
 - **Content wording (not Lane D's file):** `measureAll`'s physicsNote says "3 of 25 wafers", but the card is about 25 *sites*. Which is meant?
 - **Phone text size:** at 0.75× the 11 px labels come out about 8 px and body text about 10 px. Readable in the screenshot, but small. Keep 0.75×, or use a larger phone scale? That belongs to the M6 phone layout pass.
 
