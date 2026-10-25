@@ -61,7 +61,9 @@ test('a scrapped lot ships no good die: lot cost only, no cost per good die', ()
   const money = lotMoney(finished('scrapped'));
   assert.equal(money.goodDie, 0);
   assert.equal(money.costPerGoodDie, null);
-  assert.equal(shipView({ ...finished('scrapped'), scrappedBy: 'player' }).tiles[1].value, 'none');
+  const view = shipView({ ...finished('scrapped'), scrappedBy: 'player' });
+  assert.equal(view.tiles[1].value, 'none');
+  assert.equal(view.tiles[0].label, 'Yield at scrap');   // it never shipped
 });
 
 test('stepYields: one entry per room on an idle walk, the last equal to the final yield', () => {

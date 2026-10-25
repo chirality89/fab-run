@@ -252,7 +252,8 @@ function drawStepTable(view) {
     const row = el('tr');
     row.append(el('td', null, `${step.stepNumber}`));
     const room = el('td', null);
-    room.append(el('span', `room-chip room-${step.roomId}`, step.roomName), ` ${step.stepLabel}`);
+    room.append(el('span', `room-chip room-${step.roomId}`, step.roomName));
+    if (step.stepLabel) room.append(` ${step.stepLabel}`);
     row.append(room, el('td', null, `${step.yieldPercent}%`), el('td', null, step.lossPoints));
     table.append(row);
   }

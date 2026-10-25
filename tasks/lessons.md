@@ -230,3 +230,15 @@ I checked each option against the physics but not against the evidence on screen
 ### Rule to Prevent
 ✅ Every new way to lose yield must show up somewhere on screen (SPC, wafer map, metrology) before it ships. Name where.
 ✅ Anything offered between rooms (shop items, PM tools, DOE cards, events) is checked against the route still ahead
+
+## The ship report said "Shipped yield" for a scrapped lot, and "CMP CMP"
+
+### What Happened
+The unit tests for the ship report passed, but the screenshots showed two wrong texts: a lot the player scrapped was labelled "Shipped yield", and steps whose label equals the room's name read twice ("CMP CMP", "Metrology Metrology").
+
+### Root Cause
+I wrote the labels for the shipped case and tested numbers, not words. Text built from two content fields can repeat itself when the fields hold the same words.
+
+### Rule to Prevent
+✅ Every label on an end screen is checked once for each end state (shipped, rejected, scrapped by the line, scrapped by the player)
+✅ When text joins two content fields, check the screenshot for the case where both say the same thing

@@ -55,7 +55,8 @@ function stepRows(state, route) {
       stepNumber: entry.stepIndex + 1,
       roomId: entry.roomId,
       roomName: ROOMS[entry.roomId].name,
-      stepLabel: route[entry.stepIndex].label,
+      // The step's own words, unless they only repeat the room's name ("CMP").
+      stepLabel: route[entry.stepIndex].label === ROOMS[entry.roomId].name ? '' : route[entry.stepIndex].label,
       yieldPercent: toPercent(entry.yieldAfter),
       lossPoints: ((before - entry.yieldAfter) * 100).toFixed(1),
     };
@@ -79,7 +80,12 @@ export function shipView(state) {
     verdictText: verdictText(state, lotType.route, yieldPercent),
     // The three numbers, side by side, never combined (DESIGN.md §12).
     tiles: [
-      { label: 'Shipped yield', value: `${yieldPercent}%`, detail: `Customer spec ${toPercent(CUSTOMER_SPEC)}%` },
+      {
+        // A scrapped lot never shipped, so its yield is the yield when it was scrapped.
+        label: state.status === 'scrapped' ? 'Yield at scrap' : 'Shipped yield',
+        value: `${yieldPercent}%`,
+        detail: `Customer spec ${toPercent(CUSTOMER_SPEC)}%`,
+      },
       costTile(state, money),
       { label: 'Cycle time', value: `${state.cycleTime} min`, detail: 'Room time, side stops and events' },
     ],

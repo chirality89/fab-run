@@ -17,14 +17,14 @@
 - **Scrap the lot:** a new button on the map between rooms (O4: "or the player scraps it"). It asks once ("Scrap this lot? This ends the run."), then goes to the ship report as Scrapped. A scrapped lot ships no good die, so the report shows the money spent instead of a cost per good die.
 
 **Engine (`src/engine/`)**
-- [ ] **Step 0: split `run.js`** (420 lines, over the ~400 rule). Move the side-stop functions into a new `src/engine/sideStops.js`:
+- [x] **Step 0: split `run.js`** (420 lines, over the ~400 rule). Move the side-stop functions into a new `src/engine/sideStops.js`:
   - `buyItem`, `whyCannotPm`/`pmTool`, `whyCannotDoe`/`doeCard`, `chooseEventOption`, `stopUsed`;
   - about 140 lines moved, no behavior change;
   - `run.js` re-exports them, so no import elsewhere changes.
   - All 178 tests must pass unchanged. Its own commit.
-- [ ] `state.stepYields`: after each room, push `{ stepIndex, roomId, yieldAfter }`. The report reads it. Nothing else changes.
-- [ ] `scrapLot(state)`: allowed only in a corridor while the run is running. It sets `status: 'scrapped'` and `scrappedBy: 'player'` (the yield scrap sets `'scrapLine'`). Refused anywhere else.
-- [ ] Bot: the random bot never scraps. A test scraps at step 3 and checks that the run is over.
+- [x] `state.stepYields`: after each room, push `{ stepIndex, roomId, yieldAfter }`. The report reads it. Nothing else changes.
+- [x] `scrapLot(state)`: allowed only in a corridor while the run is running. It sets `status: 'scrapped'` and `scrappedBy: 'player'` (the yield scrap sets `'scrapLine'`). Refused anywhere else.
+- [x] Bot: the random bot never scraps. A test scraps at step 3 and checks that the run is over.
 
 **The money (David, please check; see Q1)**
 - **Lot cost** = `LOT_BASE_COST` (new in `balance.js`: wafers plus routine processing, proposed 2000) + the cash spent during the run (STARTING_CASH − cash at the end; event income lowers it).
@@ -33,15 +33,15 @@
 - For Scrapped, the report shows lot cost and "no good die shipped".
 
 **UI (`src/ui/`)**
-- [ ] `shipView(state)` in a new `src/ui/shipView.js`: pure, tested in Node (like `pmView`).
-- [ ] `renderShip` in `render.js`. `main.js` gets one `showShipReport()`: the single place where a run ends, which Lane B hooks to clear the save.
-- [ ] Scrap button and its confirm on the map (`floorPlan.js`, about 20 lines; it is at 347).
+- [x] `shipView(state)` in a new `src/ui/shipView.js`: pure, tested in Node (like `pmView`).
+- [x] `renderShip` in `render.js`. `main.js` gets one `showShipReport()`: the single place where a run ends, which Lane B hooks to clear the save.
+- [x] Scrap button and its confirm on the map (`floorPlan.js`, about 20 lines; it is at 347).
 
 **Tests**
-- [ ] Unit, hand-computed: cost per good die for a fixed state, e.g. base 2000 + 300 spent = 2300; yield 0.74 → 462.5 good die → 4.97 per die.
-- [ ] Unit: `stepYields` has one entry per room on a full idle walk, and the last entry equals the final yield.
-- [ ] Unit: `scrapLot` is refused in a room and after the run ends.
-- [ ] Screens, desktop and phone: the ship report after an idle walk (seed 123456), plus a player scrap. Run with `--repeat-each=5` on the phone.
+- [x] Unit, hand-computed: cost per good die for a fixed state, e.g. base 2000 + 300 spent = 2300; yield 0.74 → 462.5 good die → 4.97 per die.
+- [x] Unit: `stepYields` has one entry per room on a full idle walk, and the last entry equals the final yield.
+- [x] Unit: `scrapLot` is refused in a room and after the run ends.
+- [x] Screens, desktop and phone: the ship report after an idle walk (seed 123456), plus a player scrap. Run with `--repeat-each=5` on the phone.
 
 **Size**: about 60 engine lines + 140 moved; about 150 UI lines; about 150 test lines. It touches `src/engine/`, `src/ui/` and `src/content/balance.js`, so this plan is the ask (CLAUDE.md §3).
 
@@ -53,6 +53,14 @@
 2. **"Against your previous runs"** (DESIGN.md §12): saving past runs needs storage, which is Lane B's file. Should the report show this run only for now, with a best and last comparison added after Lane B merges?
 3. **Player scrap:** in a corridor only (my proposal), or also inside a room before running it?
 4. **Rejected lot:** keep cost per good die on screen marked "not paid", or show only the lot cost, like a scrap?
+
+**David said "Build" without answering Q1–Q4, so the proposals above were built as defaults.** Each is one small change if David decides otherwise:
+- Q1: `LOT_BASE_COST` 2000 + cash spent (`balance.js`, `shipView.js lotMoney`).
+- Q2: this run only. Best and last runs come after Lane B's storage merges.
+- Q3: scrap anywhere between rooms (the engine allows door, corridor and side stops; the button shows on the map in a corridor only).
+- Q4: a rejected lot keeps its cost per good die, marked "Not paid".
+
+**Result:** done. `run.js` was split first (420 → 319 lines, with `sideStops.js` and `runState.js`; no behavior change, 178/178 before any new code). After that: the ship report, yield by step, and the player's scrap with a confirm. npm test 188/188, npm run screens 36/36, and the new phone tests pass 5 runs in a row. The screenshots were checked by eye. Two label bugs were found there and fixed (lessons.md). Seed 123456 with an idle walk ends Rejected: 51.8%, cost 6.18 per good die, 133 min.
 
 ## Done: M3 item 2e — three events with a tradeoff each
 
