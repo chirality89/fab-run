@@ -19,6 +19,10 @@ Settled decisions first, then open ones. Each open decision has a proposed answe
 | S11 | Tool color in art (Oct 24, 2026) | Tools are drawn in their room's color, litho tools included (yellow), as in the toy diorama style |
 | S12 | Tech stack, was D7 (Oct 24, 2026) | Plain JavaScript ES modules, no bundler, no framework, no build step, no runtime dependencies. Engine runs in Node for tests and bot runs. Layout in `CLAUDE.md` §4 |
 | S13 | Name, was O8 (Oct 24, 2026) | "Fab Run" |
+| S14 | Energy resource, was O2 (Oct 25, 2026) | Time budget per room; practices cost minutes. Cash only for procurement |
+| S15 | How a run ends, was O4 (Oct 25, 2026) | Shipped (meets spec, scored), rejected (shipped below spec) or scrapped (yield below the scrap line, or the player scraps it). Cash below zero blocks purchases but does not end the run |
+| S16 | First lot type, was O5 (Oct 25, 2026) | Inlaid Cu line. NMOS is the second |
+| S17 | Hand, was O6 (Oct 25, 2026) | Draw a hand of 5 from the room-legal cards in the deck; hand size lives in `balance.js` |
 
 ## Open
 
@@ -26,21 +30,6 @@ Settled decisions first, then open ones. Each open decision has a proposed answe
 - A: Finishing a run with a lot type. B: Diagnosing a failure mode.
 - **Proposed: B.** Meta-progression becomes knowledge, and each unlock is the remedy for a problem you just understood.
 
-**O2 — The energy resource** (blocks M1)
-- A: Time budget per room. B: Cash per card. C: Both.
-- **Proposed: A, with cash only for procurement.** Time is what real process choices cost, and it keeps Q-time meaningful.
-
 **O3 — Map form** (blocks M3)
 - A: Abstract node graph like Slay the Spire. B: Cleanroom floor plan where bays are rooms and corridors are paths.
 - **Proposed: B, behaving like A.** Fixed process rooms in route order, with a pick of 1 side stop from 2–3 between them.
-
-**O4 — How a run ends** (blocks M1)
-- **Proposed:** the lot ships (score it), is rejected (shipped below spec) or is scrapped (yield below the scrap line, or the player scraps it). Cash below zero blocks purchases but does not end the run.
-
-**O5 — First lot type** (blocks M1)
-- A: Inlaid Cu line. B: NMOS transistor.
-- **Proposed: A.** The content draft already covers its route, and it has the clearest failures (voids, dishing, underlayer attack). NMOS is the second lot type.
-
-**O6 — How cards reach your hand** (blocks M1)
-- A: Draw a hand of 5 from the room-legal cards in your deck. B: All room-legal cards visible, like a menu.
-- **Proposed: A.** A limited hand is where the chaos and the build identity come from.
