@@ -23,13 +23,10 @@ Settled decisions first, then open ones. Each open decision has a proposed answe
 | O5 | First lot type (23 Oct 2026) | Inlaid Cu line. NMOS is the second lot type |
 | O6 | Cards to hand (23 Oct 2026) | Draw a hand of 5 (size in `balance.js`) from the room-legal cards in the deck, using the seeded generator |
 | O8 | Name (23 Oct 2026) | "Fab Run" |
+| O3 | Map form (25 Oct 2026) | Cleanroom floor plan (bays are rooms, corridors are paths) that plays like Slay the Spire: the route's process rooms are fixed and in order; between them you pick 1 side stop from 2–3 offered (metrology, PM/DOE, procurement, event). Each side stop costs cycle time |
 
 ## Open
 
 **O1 — What earns an unlock** (blocks M4)
 - A: Finishing a run with a lot type. B: Diagnosing a failure mode.
 - **Proposed: B.** Meta-progression becomes knowledge, and each unlock is the remedy for a problem you just understood.
-
-**O3 — Map form** (blocks M3)
-- A: Abstract node graph like Slay the Spire. B: Cleanroom floor plan where bays are rooms and corridors are paths.
-- **Proposed: B, behaving like A.** Fixed process rooms in route order, with a pick of 1 side stop from 2–3 between them.

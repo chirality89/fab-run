@@ -38,7 +38,7 @@ Between process rooms the corridor branches. You pick **one side stop** from 2â€
 | **Procurement** | Spend cash on equipment, materials, consumables |
 | **Event** | A text choice with a tradeoff (hot lot request, audit, supplier change) |
 
-Every side stop costs cycle time, so Q-time clocks keep running. The map is drawn as a **cleanroom floor plan**: rooms are bays, corridors are the paths between them (proposed; `docs/decisions.md` O3).
+Every side stop costs cycle time, so Q-time clocks keep running. The map is drawn as a **cleanroom floor plan**: rooms are bays, corridors are the paths between them (settled 25 Oct 2026; `docs/decisions.md` O3).
 
 **Litho is the recurring room.** Reentrant flow means a lot visits litho once per layer, each visit harder (tighter overlay, finer CD). In later lot types it plays the role of an elite.
 

@@ -1,8 +1,8 @@
 # Fab Run — Task Tracker
 
-## Next: M3 item 1 — map of the Cu line route with side stops (needs O3)
+## Next: M3 item 1 — map of the Cu line route with side stops
 
-Not planned yet.
+Not planned yet. O3 settled 25 Oct 2026 (floor plan, plays like Slay the Spire).
 
 ## Done: M2 item 3 — Playwright set up; screenshots at 1280×800 and 375×812
 
