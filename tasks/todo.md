@@ -17,8 +17,8 @@
 
 **Engine (`src/engine/`)**
 - [ ] `run.js`:
-  - the PM stop in `walkCorridor` opens `state.pm = { corridor, choices, done: null }`;
-  - new `pmTool(state, roomId)` restores health to `PM_RESTORES_TO` (100) and records `pmAt` (the SPC point count) on that tool. It refuses a room not ahead, a room without a monitored tool, a second PM at the same stop, or no PM stop open;
+  - the PM stop in `walkCorridor` opens `state.pm = { corridor, choices, done: [] }`;
+  - new `pmTool(state, roomId)` restores health to a seeded 75–95 (`PM_RESTORE_MIN`/`MAX`) and records `pmAt` (the SPC point count) on that tool. It refuses a room not ahead, a room without a monitored tool, a second PM at the same stop, or no PM stop open;
   - `enterStep` closes it, as it closes the shop.
 - [ ] `tools.js`: nothing new. Drift and wear already read `health`.
 - [ ] Bot: the random bot PMs the tool with the most rules tripped (ties broken by its own generator), or a random tool ahead if none trip.
@@ -53,6 +53,8 @@
 
 **Progress notes:**
 - 2026-10-25: plan written; waiting for David's OK.
+- 2026-10-25: David: split PM and DOE into two boxes (done in ROADMAP.md). A PM restores a tool to a random 75–95, not 100 (`PM_RESTORE_MIN`/`MAX`, drawn from the tools' generator). Side effects are noted for later. One PM per stop. Yes to the SPC chip.
+- Engine built. Hand check, seed 123456: PM on CMP (starting at 60) in the corridor after step 2 draws health 84, a 0.8σ shift. Final yield = healthy × 0.999375, against × 0.977312 without the PM; +40 min. Passes as computed.
 
 **Result:**
 

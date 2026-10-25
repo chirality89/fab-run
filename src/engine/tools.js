@@ -21,8 +21,9 @@ import { ROOMS } from '../content/content.js';
 import { TOOL_MONITORS } from '../content/toolMonitors.js';
 import {
   HEALTH_PER_SIGMA, SPEC_LIMIT_SIGMA, CONTROL_LIMIT_SIGMA, WEAR_PER_RUN,
-  STARTING_TOOL_HEALTH, STARTING_HEALTH_MIN, SPC_HISTORY,
+  STARTING_TOOL_HEALTH, STARTING_HEALTH_MIN, SPC_HISTORY, PM_RESTORE_MIN, PM_RESTORE_MAX,
 } from '../content/balance.js';
+import { LOT_TYPES } from '../content/lotTypes.js';
 import { normalizeSeed, randomInt, gauss } from './rng.js';
 
 // Any fixed number works; it differs from the map's, the shop's and the bot's.
@@ -112,7 +113,7 @@ export function startingTools(seed, { toolDrift = true, startingHealth = {} } = 
         spc.push(point.value);
       }
     }
-    tools[roomId] = { health, spc };
+    tools[roomId] = { health, spc, pmAt: [] };   // pmAt: SPC point counts where a PM happened
   }
   return { tools, toolRngState: rngState };
 }
@@ -133,6 +134,30 @@ export function useTool(state, roomId) {
     ...state,
     toolRngState: point.rngState,
     tools: { ...state.tools, [roomId]: { ...tool, health, spc: [...tool.spc, point.value] } },
+  };
+}
+
+// --- PM (M3 item 2c) --------------------------------------------------------
+
+// The rooms with a monitored tool that the lot still has ahead after
+// corridor `corridorIndex` (corridor i sits after route step i), in route
+// order, each once. These are the tools a PM stop there can PM.
+export function pmChoices(state, corridorIndex) {
+  const stepsAhead = LOT_TYPES[state.lotTypeId].route.slice(corridorIndex + 1);
+  const rooms = stepsAhead.map(step => step.room).filter(roomId => TOOL_MONITORS[roomId]);
+  return [...new Set(rooms)];
+}
+
+// A PM on one room's tool: its health goes to a seeded value from
+// PM_RESTORE_MIN to PM_RESTORE_MAX, and the SPC history gets a PM mark
+// before its next point.
+export function restoreTool(state, roomId) {
+  const roll = randomInt(state.toolRngState, PM_RESTORE_MIN, PM_RESTORE_MAX);
+  const tool = state.tools[roomId];
+  return {
+    ...state,
+    toolRngState: roll.rngState,
+    tools: { ...state.tools, [roomId]: { ...tool, health: roll.value, pmAt: [...tool.pmAt, tool.spc.length] } },
   };
 }
 
