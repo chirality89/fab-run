@@ -48,6 +48,11 @@ export const TIME_BUDGETS = {
   metro:   20,
 };
 
+// How many side stops one corridor on the map offers: from MIN to MAX,
+// both included (decision O3: "a pick of 1 from 2–3").
+export const MIN_SIDE_STOP_OFFERS = 2;
+export const MAX_SIDE_STOP_OFFERS = 3;
+
 // Cycle time (minutes) each kind of side stop costs on the map (decision O3).
 // PM/DOE is the slowest because it takes the tool offline. Agreed with
 // David, 25 Oct 2026.

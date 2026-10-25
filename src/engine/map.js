@@ -12,27 +12,27 @@
 // gives the same map.
 
 import { normalizeSeed, randomInt, shuffle } from './rng.js';
+import { MIN_SIDE_STOP_OFFERS, MAX_SIDE_STOP_OFFERS } from '../content/balance.js';
 
 // The four kinds of side stop, in the order they are listed on screen.
 export const SIDE_STOP_KINDS = ['metrology', 'pm', 'procurement', 'event'];
-
-// How many stops one corridor offers: from MIN to MAX, both included.
-const MIN_OFFERS = 2;
-const MAX_OFFERS = 3;
 
 // Any fixed number works. It differs from the bot's (tools/bot.js) so the
 // map and the bot never share a sequence.
 const MAP_SEED_MIX = 0x85EBCA6B;
 
-// The map's own generator start: (seed XOR constant), as a positive 32-bit number.
+// The map's own generator start. `^` (XOR) flips the seed's bits wherever
+// the constant has a 1, which gives a different but fixed start for every
+// seed. `>>> 0` turns the result back into a positive whole number, the
+// kind of seed rng.js expects.
 function mapSeed(seed) {
   return normalizeSeed((seed ^ MAP_SEED_MIX) >>> 0);
 }
 
-// One corridor's offers: MIN_OFFERS to MAX_OFFERS different kinds, listed
+// One corridor's offers: MIN_SIDE_STOP_OFFERS to MAX_SIDE_STOP_OFFERS different kinds, listed
 // in SIDE_STOP_KINDS order.
 function rollOffers(rngState) {
-  const count = randomInt(rngState, MIN_OFFERS, MAX_OFFERS);
+  const count = randomInt(rngState, MIN_SIDE_STOP_OFFERS, MAX_SIDE_STOP_OFFERS);
   const mixed = shuffle(count.rngState, SIDE_STOP_KINDS);
   const chosen = mixed.value.slice(0, count.value);
   const offers = SIDE_STOP_KINDS.filter(kind => chosen.includes(kind));

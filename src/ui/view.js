@@ -247,6 +247,13 @@ function offerView(kind, qtimePattern) {
   };
 }
 
+// The pattern a corridor's wait grows, or null if it isn't a Q-time
+// corridor. The route step before the corridor says so with `qtime`.
+function qtimeOfCorridor(route, corridor) {
+  if (corridor === null) return null;
+  return route[corridor.afterStep].qtime || null;
+}
+
 // Everything the map screen shows. Call it only between rooms.
 export function mapView(state) {
   const position = mapPosition(state);
@@ -254,7 +261,7 @@ export function mapView(state) {
   const nextIndex = position === 'start' ? 0 : state.map[state.corridor].afterStep + 1;
   const nextStep = route[nextIndex];
   const here = position === 'corridor' ? state.map[state.corridor] : null;
-  const qtimePattern = here ? route[here.afterStep].qtime ?? null : null;
+  const qtimePattern = qtimeOfCorridor(route, here);
   const yieldFraction = lotYield(state.lot);
 
   return {

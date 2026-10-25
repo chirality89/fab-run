@@ -211,7 +211,7 @@
 .bay-number { font: 600 22px/1 var(--cond); }
 .bay-name { font-size: 13px; line-height: 1.2; font-weight: 500; }
 .bay-status { margin-top: auto; font: 600 12px/1 var(--mono); text-transform: uppercase; }
-.bay-done { border-style: solid; border-color: var(--ink); opacity: 0.75; }        /* faded, with "Done" */
+.bay-done { border-style: solid; border-color: var(--ink); }   /* solid dark edge, with "Done" (no fading: text keeps its contrast) */
 .bay-next { border: 3px dashed var(--ink); }                                       /* dashed, with "Next" */
 
 /* Corridors: a strip of short labels between two bays */
@@ -227,8 +227,7 @@
 }
 .corridor-across { flex-direction: column; flex-wrap: nowrap; }
 .corridor-here { outline: 3px solid var(--ink); outline-offset: -3px; border-radius: var(--radius-small); }
-.corridor-walked .chip { opacity: 0.6; }
-.corridor-walked .chip-taken { opacity: 1; }
+.corridor-walked { border: 2px dashed var(--line); border-radius: var(--radius-small); }   /* walked: dashed edge, no fading */
 .chip {
   padding: 2px 4px;
   border: 1px solid var(--line);

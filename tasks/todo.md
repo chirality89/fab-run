@@ -1,15 +1,19 @@
 # Fab Run — Task Tracker
 
-## Current: M3 item 1 — map of the Cu line route with side stops
+## Next: M3 item 2 — procurement screen; PM/DOE upgrade; three events with a tradeoff each
+
+Not planned yet. Start by moving `SIDE_STOP_INFO` (view.js) into `src/content/`.
+
+## Done: M3 item 1 — map of the Cu line route with side stops
 
 ### Task: the floor-plan map, corridors with side stops, and a walk through the whole route
 
 **Engine (`src/engine/`)**
-- [ ] New `src/engine/map.js` (pure functions, no DOM):
+- [x] New `src/engine/map.js` (pure functions, no DOM):
   - `buildMap(seed, route)` makes one corridor after every route step except the last (8 corridors for the Cu line).
   - Each corridor offers 2 or 3 different side stops from the four kinds: metrology, PM/DOE, procurement, event.
   - The map is built from the seed alone, using its own generator (seed mixed with a fixed number, like the bot). So the map never uses up the lot's random numbers, and every existing seed keeps the same lot draws.
-- [ ] `run.js`:
+- [x] `run.js`:
   - `createRun` builds the map and puts it in the state, so the whole map is known and shown from the start (CLAUDE.md §5 rule 5: chaos is announced).
   - After a room resolves (and the lot is still running), the lot is **in a corridor**.
   - New `walkCorridor(state, stopKind)`: `stopKind` is one of that corridor's offers, or `null` to go straight on.
@@ -17,36 +21,36 @@
     - In a **Q-time corridor** it also adds Q-time risk (below).
     - The stop does nothing else yet: its contents come in M3 item 2.
   - `enterStep` refuses to run while the lot is still standing in a corridor (an error naming the problem, like the other checks).
-- [ ] Q-time, as data:
+- [x] Q-time, as data:
   - In `lotTypes.js`, the "Resist strip + wet clean" step gets `qtime: 'qtime_oxide'`. That means waiting in the corridor after this step grows that pattern.
   - `walkCorridor` adds `QTIME_RISK_PER_MINUTE × the stop's minutes` to that pattern's risk.
   - Going straight on adds nothing beyond the 0.04 the route already adds.
-- [ ] `balance.js`:
+- [x] `balance.js`:
   - `SIDE_STOP_MINUTES = { metrology: 20, pm: 40, procurement: 10, event: 10 }`.
   - `QTIME_RISK_PER_MINUTE = 0.001`, so a 40-minute PM stop doubles the Q-time oxide (0.04 → 0.08). Placeholder, tuned in M7.
-- [ ] `tools/bot.js`:
+- [x] `tools/bot.js`:
   - The idle bot always goes straight on.
   - The random bot picks a random offer or straight on, from its own generator.
 
 **Screen (`src/ui/`)**
-- [ ] A **corridor screen** between rooms:
+- [x] A **corridor screen** between rooms:
   - The floor plan: the 9 process bays drawn in route order as a snake of flat tiles, each in its room color. Done bays, the current position and the next bay are marked by more than color: a tick, an outline, a "you are here" label.
   - The side-stop alcoves along each corridor, with their kinds written out.
   - Below the plan: one button per offer, with name and minutes; the Q-time warning when it applies; and **Go straight to step N: label**.
   - Flat and simple for now. The toy-diorama look comes in M6.
-- [ ] The run starts on this map: "Enter step 1: Wet clean". It then plays the whole route: room → Run → result → **Continue** → corridor → next room …
-- [ ] After the last room: the result screen says shipped or rejected, with Replay and New seed. The real ship screen is M3 item 3.
+- [x] The run starts on this map: "Enter step 1: Wet clean". It then plays the whole route: room → Run → result → **Continue** → corridor → next room …
+- [x] After the last room: the result screen says shipped or rejected, with Replay and New seed. The real ship screen is M3 item 3.
 
 **Tests**
-- [ ] `tests/map.test.js`:
+- [x] `tests/map.test.js`:
   - 8 corridors, each with 2–3 different known kinds, the same for the same seed and different across seeds.
   - Building the map doesn't change `rngState`.
-- [ ] `tests/run.test.js`:
+- [x] `tests/run.test.js`:
   - `walkCorridor` adds the right minutes, refuses a kind that isn't offered, and refuses when not in a corridor; `enterStep` refuses inside a corridor.
   - **Hand check:** seed 123456, scatter off, idle, going straight on everywhere gives the same final yield as today. Taking PM/DOE in the Q-time corridor instead gives that yield × e^(−0.04) = × **0.960789** (qtime_oxide 0.08 instead of 0.04, even pattern, weight 1 at every site), and +40 min of cycle time. If PM isn't offered there for this seed, the test picks a seed where it is.
-- [ ] Existing tests and the screen tests: their helpers that walk the route add a "go straight on" between rooms. No expected value changes. `etch.spec.js` reaches etch through the map.
-- [ ] Screen tests for the corridor at both sizes; screenshots checked by eye.
-- [ ] `physics-reviewer` on the Q-time rule; `code-explainer` on the diff; `playtester` before done.
+- [x] Existing tests and the screen tests: their helpers that walk the route add a "go straight on" between rooms. No expected value changes. `etch.spec.js` reaches etch through the map.
+- [x] Screen tests for the corridor at both sizes; screenshots checked by eye.
+- [x] `physics-reviewer` on the Q-time rule; `code-explainer` on the diff; `playtester` before done.
 
 **Size:** this touches `src/engine/`, `src/ui/` and `src/content/` together, probably 300–400 lines including tests. CLAUDE.md §3 says to ask before more than ~100 lines or more than one folder; **this plan is that ask.** I'll commit in steps: engine and tests first, then the screen.
 
@@ -63,9 +67,19 @@
 - Same seed → same map → same run. `npm test` and `npm run screens` pass.
 
 **Progress notes:**
-- 2026-10-25: plan written; waiting for David's OK.
+- 2026-10-25: plan OK'd by David; built in two commits (engine, then screen).
+- Seed 123456's Q-time corridor offers metrology and event, not PM, so the hand-check test uses the first seed from 123456 up that offers PM (123458). With scatter off the yield doesn't depend on the seed; the ratio is 0.960789 as computed.
+- physics-reviewer: pass. Linear oxide growth is a fair first-order simplification at these small waits (most a stop can add is 0.04); an even pattern is reasonable. Its suggestions were done in the screen: the Q-time corridor is marked on the plan (QT), and the warning says "the lot waits". Two wording questions went to David.
+- Screen: the first side-stop button showed a focus ring after a screen change, which looked pre-selected. New screens now focus the title instead.
+- code-explainer fixes:
+  - the side-stop screen test now checks the exact minutes;
+  - fading on done bays and walked corridors removed (it dropped text below 4.5:1); they are marked by a "Done" word and solid or dashed edges instead;
+  - 2–3 offers moved to `balance.js`;
+  - a small Q-time helper in `view.js`, and a plain-words comment on the seed mixing.
+- Left for M3 item 2: move the side-stop names and descriptions (`SIDE_STOP_INFO` in `view.js`) into `src/content/` when the stops become real entries.
+- Known behavior: two taps at the same spot within about half a second count as a double click even across a screen change, so the second is ignored. The screen tests wait out that window.
 
-**Result:**
+**Result:** the page plays the whole Cu line: floor plan, 9 rooms, 8 corridors with side stops (placeholders) or straight on, Q-time growth in the Q-time corridor. `npm test` 118/118, `npm run screens` 18/18.
 
 ## Done: M2 item 3 — Playwright set up; screenshots at 1280×800 and 375×812
 

@@ -83,16 +83,19 @@ test('taking a side stop costs its minutes, then continues to the next room', as
   await page.goto(PAGE);
   await press(page, goButton(page));
   await runRoomAndContinue(page);
-  const cycleBefore = await page.locator('.room-facts').textContent();
-  await press(page, page.locator('.stop-button').first());
+  // The minutes printed on the stop's button, e.g. "+20 min" → 20.
+  const stop = page.locator('.stop-button').first();
+  const costText = await stop.locator('.card-cost').textContent();
+  const minutes = Number(costText.match(/\+(\d+) min/)[1]);
+  expect(minutes, `stop cost (seed ${SEED})`).toBeGreaterThan(0);
+  await press(page, stop);
+  await expect(page.locator('.stop-panel')).toContainText(`cost ${minutes} min of cycle time`);
   await expect(page.locator('.stop-panel')).toContainText('comes in the next update');
   await screenshot(page, '6-side-stop');
   await press(page, goButton(page));
   await expect(title(page)).toHaveText('Deposition');
   await runRoomAndContinue(page);
   await expect(page.locator('.chip-taken')).toHaveCount(1);
-  const cycleAfter = await page.locator('.room-facts').textContent();
-  expect(cycleAfter, `seed ${SEED}`).not.toEqual(cycleBefore);
 });
 
 test('the Q-time corridor after step 5 warns about waiting', async ({ page }) => {
