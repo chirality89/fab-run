@@ -7,7 +7,9 @@
 //           check by hand
 //   random  plays random legal cards until none fits, then resolves the
 //           room; in each corridor picks a random side stop or straight on;
-//           at a procurement stop, buys each item it can afford on a coin flip
+//           at a procurement stop, buys each item it can afford on a coin flip;
+//           at a PM/DOE stop, PMs the tool whose SPC chart trips the most
+//           rules (a random one ahead if none trip)
 //
 // The random policy has its OWN seeded generator, started from the run's
 // seed mixed with a fixed constant (BOT_SEED_MIX). So the bot's choices never
@@ -19,8 +21,9 @@ import { pathToFileURL } from 'node:url';
 import { normalizeSeed, pick } from '../src/engine/rng.js';
 import { lotYield } from '../src/engine/lot.js';
 import {
-  createRun, enterStep, legalCards, playCard, resolveStep, walkCorridor, buyItem, starterDeck, fullPool,
+  createRun, enterStep, legalCards, playCard, resolveStep, walkCorridor, buyItem, pmTool, starterDeck, fullPool,
 } from '../src/engine/run.js';
+import { spcRules, pointsSinceLastPm } from '../src/engine/tools.js';
 import { whyCannotBuy } from '../src/engine/shop.js';
 
 const BOT_SEED_MIX = 0x9E3779B9;   // any fixed number works; this one is a common "mixing" constant
@@ -80,6 +83,21 @@ function shop(state, policy, botRng) {
   return { state: current, botRng: rng, bought, lowestCash };
 }
 
+// At an open PM stop, PMs the tool ahead whose recent SPC points trip the
+// most rules; if none trips any, a random one. Returns the state, the bot's
+// generator number and the room PM'd (or null).
+function doPm(state, policy, botRng) {
+  if (policy === 'idle' || state.pm === null || state.pm.choices.length === 0) {
+    return { state, botRng, pmRoom: null };
+  }
+  // The same points the screen's rules look at: the latest, since the last PM.
+  const alarms = roomId => spcRules(pointsSinceLastPm(state.tools[roomId])).length;
+  const most = Math.max(...state.pm.choices.map(alarms));
+  const candidates = most > 0 ? state.pm.choices.filter(roomId => alarms(roomId) === most) : state.pm.choices;
+  const choice = pick(botRng, candidates);
+  return { state: pmTool(state, choice.value), botRng: choice.rngState, pmRoom: choice.value };
+}
+
 // Plays a run to the end. options.deck is 'starter' (default), 'full' or a
 // list of card ids; other options go straight to createRun.
 export function playRun(seed, policy = 'idle', options = {}) {
@@ -92,6 +110,7 @@ export function playRun(seed, policy = 'idle', options = {}) {
   const cardsPlayed = [];
   const sideStops = [];
   const itemsBought = [];
+  const toolsPmd = [];
   let lowestCashAfterBuying = state.cash;   // starting cash, until something is bought
   while (state.status === 'running') {
     state = enterStep(state);
@@ -109,12 +128,16 @@ export function playRun(seed, policy = 'idle', options = {}) {
       itemsBought.push(...shopping.bought);
       lowestCashAfterBuying = Math.min(lowestCashAfterBuying, shopping.lowestCash);
       state = shopping.state;
+      const pm = doPm(state, policy, botRng);
+      botRng = pm.botRng;
+      if (pm.pmRoom !== null) toolsPmd.push(pm.pmRoom);
+      state = pm.state;
     }
   }
 
   const summary = {
     seed, policy, status: state.status, yield: lotYield(state.lot), cash: state.cash,
-    minutesUsed: state.minutesUsed, cycleTime: state.cycleTime, cardsPlayed, sideStops, itemsBought, lowestCashAfterBuying,
+    minutesUsed: state.minutesUsed, cycleTime: state.cycleTime, cardsPlayed, sideStops, itemsBought, toolsPmd, lowestCashAfterBuying,
   };
   return { state, summary };
 }
@@ -137,6 +160,7 @@ function printSummary(summary) {
   console.log(`Cards played:  ${summary.cardsPlayed.length} (${summary.cardsPlayed.join(', ') || 'none'})`);
   console.log(`Side stops:    ${summary.sideStops.length} (${summary.sideStops.join(', ') || 'none'})`);
   console.log(`Items bought:  ${summary.itemsBought.length} (${summary.itemsBought.join(', ') || 'none'})`);
+  console.log(`Tools PM'd:    ${summary.toolsPmd.length} (${summary.toolsPmd.join(', ') || 'none'})`);
 }
 
 // Only runs when started from the command line, not when a test imports it.

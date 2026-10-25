@@ -194,3 +194,15 @@ They were a new kind of content in a new file, so the existing entries weren't t
 
 ### Rule to Prevent
 ✅ Every new entry in `src/content/`, of any kind and in any file, starts with `draft: true`
+
+## A PM could make a healthy tool worse
+
+### What Happened
+code-explainer found that a PM set health to the 75–95 roll whatever the tool's health was before, so a PM on a tool at 100 dropped it to 84.
+
+### Root Cause
+I built "PM restores to 75–95" literally as "set to 75–95" and never tested a tool that was already healthier than the range.
+
+### Rule to Prevent
+✅ For any "restore" or "repair" action, test it on something already in good shape. Repairing must never make a thing worse unless David asked for that as a side effect.
+✅ When a rule moves a value into a range, write down what happens to values already above and below the range

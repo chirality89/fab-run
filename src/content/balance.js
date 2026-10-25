@@ -97,3 +97,12 @@ export const STARTING_HEALTH_MIN = 50;
 
 // Points on an SPC chart: earlier lots, then this lot once it has run.
 export const SPC_HISTORY = 12;
+
+// A PM restores a tool to a health from MIN to MAX, both included, drawn
+// from the tools' generator: a PM is never perfect and never the same
+// twice. Agreed with David, 25 Oct 2026.
+export const PM_RESTORE_MIN = 75;
+export const PM_RESTORE_MAX = 95;
+
+// How many tools one PM/DOE stop can PM.
+export const PM_TOOLS_PER_STOP = 1;

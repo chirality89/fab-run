@@ -37,7 +37,30 @@ function horizontalLine(z, className) {
   return svgEl('line', { x1: 0, x2: WIDTH, y1: yOf(z), y2: yOf(z), class: className });
 }
 
-function drawPicture(view) {
+// The x position of a PM mark that sits just before point `index`: halfway
+// between that point and the one before, or at an edge of the chart.
+function xOfMark(index, count) {
+  if (index <= 0) return PAD / 2;
+  if (index >= count) return WIDTH - PAD / 2;
+  return (xOf(index - 1, count) + xOf(index, count)) / 2;
+}
+
+// A PM mark: a dotted vertical line with the word "PM" at its top.
+function drawPmMark(index, count) {
+  const x = xOfMark(index, count);
+  const group = svgEl('g', { class: 'spc-pm' });
+  // At an edge, the label hangs inwards so it is not cut off.
+  let anchor = 'middle';
+  if (index >= count) anchor = 'end';
+  if (index <= 0) anchor = 'start';
+  const label = svgEl('text', { x, y: PAD + 4, 'text-anchor': anchor, class: 'spc-pm-label' });
+  label.textContent = 'PM';
+  group.append(svgEl('line', { x1: x, x2: x, y1: PAD + 8, y2: HEIGHT - 2, class: 'spc-pm-line' }), label);
+  return group;
+}
+
+// The chart picture alone (also used on the PM screen).
+export function drawSpcPicture(view) {
   const svg = svgEl('svg', { viewBox: `0 0 ${WIDTH} ${HEIGHT}`, class: 'spc-chart' });
   svg.setAttribute('role', 'img');
   svg.setAttribute('aria-label', `SPC chart of ${view.parameter}, last ${view.zs.length} lots. ${view.verdictText}`);
@@ -49,6 +72,7 @@ function drawPicture(view) {
   const count = view.zs.length;
   const corners = view.zs.map((z, index) => `${xOf(index, count)},${yOf(z)}`).join(' ');
   svg.append(svgEl('polyline', { points: corners, class: 'spc-trace' }));
+  for (const index of view.pmMarks) svg.append(drawPmMark(index, count));
   view.zs.forEach((z, index) => {
     const x = xOf(index, count);
     const y = yOf(z);
@@ -70,9 +94,9 @@ export function drawSpc(view) {
     return box;
   }
   box.append(el('p', 'spc-title', `${view.parameter} (${view.unit})`));
-  box.append(drawPicture(view));
+  box.append(drawSpcPicture(view));
   box.append(el('p', 'spc-limits', view.limitsText));
-  box.append(el('p', 'spc-limits', 'Key: solid red lines spec, dashed lines control limits, black line centre; a red square is beyond control.'));
+  box.append(el('p', 'spc-limits', 'Key: solid red lines spec, dashed lines control limits, black line centre; a red square is beyond control; PM marks a PM.'));
   if (view.latestText) box.append(el('p', 'spc-limits', view.latestText));
   box.append(el('p', view.inControl ? 'spc-verdict' : 'spc-verdict spc-verdict-out', view.verdictText));
   if (view.rules.length > 0) {

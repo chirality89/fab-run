@@ -314,3 +314,32 @@ test('spcView: a one-sided spec (particle adders) shows only an upper spec limit
   // target 20, sigma 4: control 8–32, spec up to 36.
   assert.equal(spc.limitsText, 'Centre 20.0 · control 8.0–32.0 · spec up to 36.0 per wafer');
 });
+
+// --- PM and the map's SPC chip (M3 item 2c) ---------------------------------
+
+test('mapView: a bay ahead whose tool trips an SPC rule has spcAlarm', () => {
+  const state = idleToEtch();   // drift off: tools at 100, so only chance alarms
+  const forced = { ...state.tools, cmp: { ...state.tools.cmp, spc: [-0.2, -0.5, -0.1, -0.9, -0.3, -0.4, -0.2, -0.6] } };
+  const view = mapView(resolveStep({ ...state, tools: forced }));   // in the corridor after etch
+  const cmpBay = view.bays.find(bay => bay.roomId === 'cmp');
+  assert.equal(cmpBay.spcAlarm, true);
+  assert.equal(view.bays.find(bay => bay.roomId === 'metro').spcAlarm, false, 'metrology has no chart');
+});
+
+test('spcView: a PM mark sits before the next point', () => {
+  const state = idleToEtch();
+  const tool = { ...state.tools.etch, spc: [0, 0, 0], pmAt: [2] };
+  assert.deepEqual(roomView({ ...state, tools: { ...state.tools, etch: tool } }).spc.pmMarks, [2]);
+});
+
+test('spcView: after a PM the rules look only at lots measured since it', () => {
+  const state = idleToEtch();
+  const drifting = [-0.2, -0.5, -0.1, -0.9, -0.3, -0.4, -0.2, -0.6];
+  const justPmd = { ...state.tools.etch, spc: drifting, pmAt: [8] };
+  const view = roomView({ ...state, tools: { ...state.tools, etch: justPmd } }).spc;
+  assert.equal(view.inControl, true);
+  assert.equal(view.verdictText, "Just PM'd: no lots measured since the PM yet.");
+  const oneLater = { ...justPmd, spc: [...drifting, 0.3] };
+  assert.equal(roomView({ ...state, tools: { ...state.tools, etch: oneLater } }).spc.verdictText,
+    'In control: no rule tripped in the last 1 lot since the PM.');
+});

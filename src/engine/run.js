@@ -10,6 +10,7 @@
 //   resolveStep  → the room's risks bite; scrap, move on, or ship
 //   walkCorridor → between two rooms: take one side stop, or go straight on
 //   buyItem      → zero or more times, while a procurement stop's shop is open
+//   pmTool       → once at most, while a PM/DOE stop is open
 //
 // Order inside enterStep (lotTypes.js): add the step's risks and the room
 // tool's drift risk (tools.js), set the room's time budget, apply the
@@ -25,14 +26,14 @@ import { TOOL_MONITORS } from '../content/toolMonitors.js';
 import { LOT_TYPES } from '../content/lotTypes.js';
 import {
   STARTING_CASH, HAND_SIZE, SCRAP_LINE, CUSTOMER_SPEC, SCATTER_STRENGTH, TIME_BUDGETS,
-  SIDE_STOP_MINUTES, QTIME_RISK_PER_MINUTE,
+  SIDE_STOP_MINUTES, PM_TOOLS_PER_STOP, QTIME_RISK_PER_MINUTE,
 } from '../content/balance.js';
 import { normalizeSeed, shuffle } from './rng.js';
 import { createLot, addRisk, realizeRisks, rollScatter, lotYield } from './lot.js';
 import { conditionMet, applyEffects } from './resolve.js';
 import { buildMap } from './map.js';
 import { shopStock, whyCannotBuy, findShopItem } from './shop.js';
-import { startingTools, driftRisk, useTool } from './tools.js';
+import { startingTools, driftRisk, useTool, pmChoices, restoreTool } from './tools.js';
 
 // Looks up a content item by id, or throws naming it.
 function findItem(list, id, kind) {
@@ -111,6 +112,7 @@ export function createRun({
     map: buildMap(seed, lotType.route),   // the corridors (map.js), known from the start
     corridor: null,         // index of the corridor the lot stands in, or null
     shop: null,             // { corridor, stock, bought } while a procurement stop is open
+    pm: null,               // { corridor, choices, done } while a PM/DOE stop is open
     tools,                  // per room: { health, spc: [points in sigma] } (tools.js)
     toolDrift,
     toolRngState,           // the tools' own generator, for SPC noise
@@ -172,8 +174,8 @@ export function enterStep(state) {
   const monitor = TOOL_MONITORS[step.room];
   const drift = monitor ? driftRisk(state.tools[step.room].health, monitor.oneSided) : 0;
   if (drift > 0) lot = addRisk(lot, monitor.pattern, drift);
-  // Entering a room also closes any shop the lot was standing in.
-  let next = { ...state, lot, shop: null, room: { id: step.room, timeLeft: TIME_BUDGETS[step.room], revealed: [] } };
+  // Entering a room also closes any shop or PM stop the lot was standing in.
+  let next = { ...state, lot, shop: null, pm: null, room: { id: step.room, timeLeft: TIME_BUDGETS[step.room], revealed: [] } };
 
   // 2. Equipment and materials for this room act once, before any card.
   // applyEffects skips effects whose own `when` fails, but not the item's
@@ -265,7 +267,8 @@ export function resolveStep(state) {
 // of its offers) or go straight on (`stopKind` = null). A stop costs cycle
 // time (SIDE_STOP_MINUTES). In a Q-time corridor, the wait also grows the
 // Q-time pattern: QTIME_RISK_PER_MINUTE × the minutes. A procurement stop
-// opens a shop (shop.js); the other stops only cost their time for now.
+// opens a shop (shop.js) and a PM/DOE stop opens a PM (pmTool); the other
+// stops only cost their time for now.
 export function walkCorridor(state, stopKind) {
   checkRunning(state, 'walkCorridor');
   if (state.corridor === null) throw new Error('walkCorridor: the lot is not in a corridor');
@@ -284,10 +287,35 @@ export function walkCorridor(state, stopKind) {
   const shop = stopKind === 'procurement'
     ? { corridor: state.corridor, stock: shopStock(state, state.corridor), bought: [] }
     : null;
-  const next = { ...state, lot, map, shop, corridor: null, cycleTime: state.cycleTime + minutes };
+  const pm = stopKind === 'pm'
+    ? { corridor: state.corridor, choices: pmChoices(state, state.corridor), done: [] }
+    : null;
+  const next = { ...state, lot, map, shop, pm, corridor: null, cycleTime: state.cycleTime + minutes };
   if (stopKind === null) return addLog(next, '  corridor: straight on');
   const stockText = shop ? `, stock ${shop.stock.join(', ')}` : '';
   return addLog(next, `  corridor: ${stopKind} (${minutes} min${stockText})`);
+}
+
+// Why this room's tool can't be PM'd right now, or null if it can.
+// Exported so the screen can say why a PM button is missing.
+export function whyCannotPm(state, roomId) {
+  if (state.pm === null) return 'no PM stop open';
+  if (state.pm.done.length >= PM_TOOLS_PER_STOP) return 'already used this stop\'s PM';
+  if (!state.pm.choices.includes(roomId)) return 'not a tool on the route ahead';
+  return null;
+}
+
+// PMs one tool at an open PM/DOE stop (M3 item 2c). Its health goes back
+// to a seeded 75–95 (tools.js restoreTool), so drift and wear start again
+// from there. One PM per stop (PM_TOOLS_PER_STOP).
+export function pmTool(state, roomId) {
+  checkRunning(state, 'pmTool');
+  const reason = whyCannotPm(state, roomId);
+  if (reason) throw new Error(`Cannot PM ${roomId}: ${reason}`);
+  const before = state.tools[roomId].health;
+  let next = restoreTool(state, roomId);
+  next = { ...next, pm: { ...next.pm, done: [...next.pm.done, roomId] } };
+  return addLog(next, `  PM ${roomId}: health ${before} → ${next.tools[roomId].health}`);
 }
 
 // Buys one item from the open shop and pays its cash price. Equipment joins

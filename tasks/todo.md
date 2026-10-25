@@ -1,6 +1,73 @@
 # Fab Run — Task Tracker
 
-## Current: M3 item 2b — tool drift and wear, shown on SPC
+## Current: M3 item 2c — PM/DOE stop, part 1: PM restores one tool
+
+(Proposed split, for David to OK: the roadmap box "PM/DOE stop: restore a tool or upgrade one practice" becomes two. **PM** comes first, because worn tools now exist. **DOE** follows: upgrading a practice needs an upgraded version of each card written as data, drafted by content-drafter and reviewed by David and physics-reviewer.)
+
+### Task: the PM/DOE side stop lets you PM one tool on the route ahead
+
+**What you'll see**
+- Picking **PM / DOE** in a corridor (40 min, as now) opens a PM screen.
+  - It lists every tool the lot still has ahead on the route, each with a small SPC chart and its verdict ("In control" or "Out of control: 8 in a row below centre").
+  - Tool health stays hidden (SPC only), so you choose from the charts as an engineer would.
+- Tap **PM this tool** on one of them: its health goes back to 100. Then **Continue to step N**.
+- You may PM **one** tool per stop. You can also leave without one; the 40 minutes are spent either way.
+- On the room's chart, a PM'd tool shows a **PM** mark between points. The points after it sit back on target, a visible step change.
+- **Telegraph on the map:** a bay whose tool's chart trips a rule gets an **SPC** chip, with words and a pattern, not color alone. You can see from the corridor which tools need a PM.
+
+**Engine (`src/engine/`)**
+- [x] `run.js`:
+  - the PM stop in `walkCorridor` opens `state.pm = { corridor, choices, done: [] }`;
+  - new `pmTool(state, roomId)` restores health to a seeded 75–95 (`PM_RESTORE_MIN`/`MAX`) and records `pmAt` (the SPC point count) on that tool. It refuses a room not ahead, a room without a monitored tool, a second PM at the same stop, or no PM stop open;
+  - `enterStep` closes it, as it closes the shop.
+- [x] `tools.js`: nothing new. Drift and wear already read `health`.
+- [x] Bot: the random bot PMs the tool with the most rules tripped (ties broken by its own generator), or a random tool ahead if none trip.
+
+**Content (`src/content/`)**
+- [x] `balance.js`: `PM_RESTORES_TO = 100`, `PM_TOOLS_PER_STOP = 1`.
+- [x] `sideStops.js`: PM / DOE is no longer a placeholder. The DOE half says "coming next".
+
+**Screen (`src/ui/`)**
+- [x] PM screen: tool cards with a small SPC chart (reusing spcChart.js), the verdict, and **PM this tool** buttons; a "PM done" state; Continue.
+- [x] The room's SPC chart shows the PM mark.
+- [x] Map: an SPC chip on bays whose tool trips a rule.
+
+**Tests**
+- [x] `run.test.js` / new `pm.test.js`: a PM restores 100; it refuses a tool behind the lot, metrology, a second PM, and no stop open; the stop closes on entering a room; the lot's `rngState` is untouched.
+- [x] **Hand check:** scatter off, drift off (no wear), CMP starting at 60. With no PM, final yield is 0.517954 × 0.977312 (as in 2b). A PM on CMP at a stop before step 8 gives exactly **0.517954**, the healthy run, and +40 min of cycle time. The test uses the first seed from 123456 up that offers PM before CMP.
+- [x] Screen tests at both sizes, including the map SPC chip; screenshots checked.
+- [x] `code-explainer` on the diff and `playtester` before done. `physics-reviewer` only if PM effects beyond "health to 100" come up.
+
+**Size:** engine, content and screen, about 300 lines with tests. This plan is the ask.
+
+**Questions for David**
+1. OK to split PM and DOE into two boxes?
+2. Does PM restore a tool fully to 100?
+3. Should a PM have a side effect? For example, the first lot after a chamber clean sees more particles while the chamber re-seasons. This is proposed as NEEDS NEW LOGIC for later, not now.
+4. One PM per stop, any tool still ahead?
+5. The SPC chip on the map's bays: yes or no?
+
+**NEEDS NEW LOGIC (noted, not built):** post-PM seasoning effects; a PM that can fail (ties into O9, unexpected tool down); the metrology stop revealing tool health.
+
+**After this item (M3, in order):** DOE upgrade (practice upgrades as data); three events with a tradeoff each; ship screen (yield against spec, cost per good die, cycle time; scrap and reject end states); save and resume (`SAVE_KEY`). Then M4, the notebook, which needs decision O1.
+
+**Progress notes:**
+- 2026-10-25: plan written; waiting for David's OK.
+- 2026-10-25: David: split PM and DOE into two boxes (done in ROADMAP.md). A PM restores a tool to a random 75–95, not 100 (`PM_RESTORE_MIN`/`MAX`, drawn from the tools' generator). Side effects are noted for later. One PM per stop. Yes to the SPC chip.
+- Engine built. Hand check, seed 123456: PM on CMP (starting at 60) in the corridor after step 2 draws health 84, a 0.8σ shift. Final yield = healthy × 0.999375, against × 0.977312 without the PM; +40 min. Passes as computed.
+- Screen built: the PM screen (pmView.js, renderPm in floorPlan.js) shows a card per tool ahead with its SPC chart and verdict. The chart has a dotted PM mark, and the map has a red SPC chip with the word. On desktop the cards sit three to a row.
+- From the screenshots: after a PM the etch chart still said "Out of control" from its old points. The rules now look only at lots measured since the last PM, as an engineer restarts the chart, and the verdict says "Just PM'd". The PM label no longer clips at the chart edge.
+- code-explainer fixes:
+  - a PM never lowers a tool already healthier than its roll (it keeps the higher; tested);
+  - "75 and 95" on screen now comes from balance.js;
+  - the "rules since the last PM" logic moved to the engine (`pointsSinceLastPm`), so the screen, the map chip and the bot agree;
+  - a test for a monitored tool behind the lot;
+  - plain if-statements for the verdict.
+- playtester: pass. 157/157 tests; 45 bot runs with no errors (random bots PM 0–2 times a run); 26/26 screens, with nothing clipped or overflowing. Balance note for M7: still no bot run ships.
+
+**Result:** a PM/DOE stop PMs one tool still ahead back to a seeded 75–95 health, never lowering it. Charts mark the PM and restart their rules, and the map flags tools whose chart trips a rule. `npm test` 159/159, `npm run screens` 26/26.
+
+## Done: M3 item 2b — tool drift and wear, shown on SPC
 
 (David, 25 Oct 2026: plan tool wear before the PM/DOE stop, as drift shown on SPC. An unexpected tool-down mechanic is wanted too, low chance but possible. It is designed later, once more of the framework exists: decision O9.)
 
