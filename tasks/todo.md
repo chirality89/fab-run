@@ -75,6 +75,8 @@
 - 2026-10-25: David OK'd it: the table and model are fine for now (more detail later if needed); SPC only, no health number on screen; those three rules. Also settled: the Q-time failure mode says "via resistance" (changed in content.js).
 - Engine built: tools.js, toolMonitors.js (named so it is not confused with tools/, the bot folder), the balance numbers. Hand check 0.977312 and the factor table pass as computed. The existing expected values are unchanged; their setups add `toolDrift: false`.
 - The hand check runs with drift off and CMP fixed at 60, so no tool wears and the ratio is exactly CMP's 2σ factor.
+- Screen built: spcView.js and spcChart.js are new files, so view.js stays under 400 lines. The SPC panel replaces the tool health meter. Seed 123456's etch tool starts at 73 and shows "8 in a row below the centre line" from the first visit.
+- The verdict says the parameter "may be shifting": a healthy tool can trip a rule by chance (a false alarm), so the screen does not claim drift as a fact.
 
 **Result:**
 

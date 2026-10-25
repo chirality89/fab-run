@@ -15,6 +15,7 @@ import { normalizeSeed } from '../engine/rng.js';
 import { lotYield, realizeRisks } from '../engine/lot.js';
 import { whyIllegal } from '../engine/run.js';
 import { whyCannotBuy, findShopItem } from '../engine/shop.js';
+import { spcView } from './spcView.js';
 
 // A fraction (0..1) as a percent with one decimal, e.g. 0.913931 → 91.4.
 function toPercent(fraction) {
@@ -138,7 +139,8 @@ export function roomView(state) {
     timeLeft: state.room.timeLeft,
     budget: state.room.budget,
     slots: slotsView(state, roomId),
-    toolHealth: state.tools[roomId].health,
+    toolHealth: state.tools[roomId].health,   // not shown: the screen shows SPC only (David)
+    spc: spcView(state, roomId),
     hand: state.hand.map(cardId => cardView(state, cardId)),
     expectedLossPoints: lossPoints,
     expectedLossText: `This room will cost about ${lossPoints.toFixed(1)} points of yield if nothing changes.`,

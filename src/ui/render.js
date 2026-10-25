@@ -6,6 +6,8 @@
 // always set with textContent (never innerHTML), so nothing in the data can
 // turn into page code.
 
+import { drawSpc } from './spcChart.js';
+
 // Makes an element with a class and, optionally, some text.
 export function el(tag, className, text) {
   const node = document.createElement(tag);
@@ -170,7 +172,7 @@ export function renderRoom(container, view, actions) {
     drawWaferMap(view),
     meter('Time budget', `${view.timeLeft} of ${view.budget} min left`, view.timeLeft / view.budget, 'time-panel'),
     drawSlots(view),
-    meter('Tool health', `${view.toolHealth} / 100`, view.toolHealth / 100, 'tool-panel'),
+    drawSpc(view.spc),
     drawHand(view, actions),
   );
   container.replaceChildren(drawHeader(view), drawYield(view), body);
