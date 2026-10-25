@@ -63,6 +63,11 @@ async function walkToEtch(page) {
     await press(page, goButton(page));               // straight on
   }
   await expect(page.locator('.room-name')).toHaveText('Etch');
+  // The last tap ("go straight on") was a moment ago; on a phone it can sit
+  // where the etch card now is. Two taps there within the double-click
+  // window count as one double click, and the guard ignores the second
+  // (tasks/lessons.md). Wait it out, as a person would after a new screen.
+  await page.waitForTimeout(DOUBLE_CLICK_WINDOW_MS);
 }
 
 const card = page => page.locator('.card-button', { hasText: 'Timed over-etch' });
@@ -126,12 +131,8 @@ test('a fast double tap plays the card once and does not run etch', async ({ pag
   // a raw tap at a spot off the screen hits nothing.
   await card(page).scrollIntoViewIfNeeded();
   const box = await card(page).boundingBox();
-  // walkToEtch's last tap ("go straight on") was a moment ago, near this
-  // spot on a phone. Within the browser's double-click window that tap and
-  // the next one count as a double click, and the guard ignores the second,
-  // as it should. Wait the window out so this starts as a fresh gesture,
-  // the way a person would after the screen changes.
-  await page.waitForTimeout(DOUBLE_CLICK_WINDOW_MS);
+  // walkToEtch has already waited out the double-click window after its
+  // last tap, so this starts as a fresh gesture.
   const x = box.x + box.width / 2;
   const y = box.y + box.height - 4;
   if (test.info().project.use.hasTouch) {

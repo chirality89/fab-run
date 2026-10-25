@@ -7,12 +7,14 @@
 
 import { PRACTICES, EQUIPMENT, MATERIALS, ROOMS } from '../content/content.js';
 import { LOT_TYPES } from '../content/lotTypes.js';
+import { SIDE_STOPS } from '../content/sideStops.js';
 import {
   SCRAP_LINE, CUSTOMER_SPEC, SITE_GOOD_LINE, SIDE_STOP_MINUTES, QTIME_RISK_PER_MINUTE,
 } from '../content/balance.js';
 import { normalizeSeed } from '../engine/rng.js';
 import { lotYield, realizeRisks } from '../engine/lot.js';
 import { whyIllegal } from '../engine/run.js';
+import { whyCannotBuy, findShopItem } from '../engine/shop.js';
 
 // A fraction (0..1) as a percent with one decimal, e.g. 0.913931 → 91.4.
 function toPercent(fraction) {
@@ -198,19 +200,10 @@ export function resultView(before, after) {
 
 // --- the floor-plan map (M3 item 1) ----------------------------------------
 
-// What each kind of side stop is called and does (DESIGN.md §4). `short` is
-// the label in the corridor on the floor plan. The stops' contents come in
-// M3 item 2; until then a stop only costs its minutes.
-export const SIDE_STOP_INFO = {
-  metrology:   { name: 'Metrology',   short: 'MET', what: 'Measure: reveals hidden values' },
-  pm:          { name: 'PM / DOE',    short: 'PM',  what: 'Restore a tool, or upgrade one practice' },
-  procurement: { name: 'Procurement', short: 'BUY', what: 'Spend cash on equipment and materials' },
-  event:       { name: 'Event',       short: 'EVT', what: 'A choice with a tradeoff' },
-};
-
-// The legend under the floor plan, built from SIDE_STOP_INFO.
+// The legend under the floor plan, built from the side stops' words
+// (src/content/sideStops.js).
 function stopKeyText() {
-  return Object.values(SIDE_STOP_INFO).map(info => `${info.short} ${info.name}`).join(' · ');
+  return Object.values(SIDE_STOPS).map(info => `${info.short} ${info.name}`).join(' · ');
 }
 
 // Where the lot is on the map. Between rooms it stands in a corridor; at the
@@ -236,11 +229,12 @@ function bayStatus(index, nextIndex) {
 // One offered side stop, as a button on the map.
 function offerView(kind, qtimePattern) {
   const minutes = SIDE_STOP_MINUTES[kind];
-  const info = SIDE_STOP_INFO[kind];
+  const info = SIDE_STOPS[kind];
   return {
     kind,
     name: info.name,
     what: info.what,
+    placeholder: info.placeholder,
     minutes,
     // In a Q-time corridor, the stop's wait grows the pattern (run.js walkCorridor).
     qtimeRisk: qtimePattern ? QTIME_RISK_PER_MINUTE * minutes : 0,
@@ -281,7 +275,7 @@ export function mapView(state) {
     })),
     corridors: state.map.map((corridor, index) => ({
       afterStep: corridor.afterStep,
-      offers: corridor.offers.map(kind => ({ kind, short: SIDE_STOP_INFO[kind].short })),
+      offers: corridor.offers.map(kind => ({ kind, short: SIDE_STOPS[kind].short })),
       walked: corridor.walked,
       taken: corridor.taken,
       here: index === state.corridor,
@@ -301,19 +295,90 @@ export function mapView(state) {
   };
 }
 
-// The placeholder screen after taking a side stop (its contents come in M3
-// item 2). `before` is the state in the corridor, `after` what walkCorridor
-// returned.
+// The "Continue to step N" text after a side stop. `corridorIndex` is the
+// corridor the stop was in; the next room is the step after it.
+function continueText(route, corridorIndex) {
+  const nextIndex = corridorIndex + 1;
+  return `Continue to step ${nextIndex + 1}: ${route[nextIndex].label}`;
+}
+
+// The placeholder screen after taking a side stop that does nothing yet
+// (PM/DOE, metrology and events come later in M3). `before` is the state in
+// the corridor, `after` what walkCorridor returned.
 export function stopView(before, after, stopKind) {
-  const info = SIDE_STOP_INFO[stopKind];
+  const info = SIDE_STOPS[stopKind];
   const route = LOT_TYPES[after.lotTypeId].route;
-  const nextIndex = before.map[before.corridor].afterStep + 1;
   return {
     seed: after.seed,
     name: info.name,
     what: info.what,
     minutes: after.cycleTime - before.cycleTime,
     text: `${info.name} cost ${after.cycleTime - before.cycleTime} min of cycle time. What this stop does comes in the next update.`,
-    goText: `Continue to step ${nextIndex + 1}: ${route[nextIndex].label}`,
+    goText: continueText(route, before.corridor),
+  };
+}
+
+// --- the procurement stop (M3 item 2a) -------------------------------------
+
+// Where an item next acts: the first route step from `fromIndex` on that is
+// in the item's room.
+function nextUseText(route, fromIndex, roomId) {
+  const index = route.findIndex((step, i) => i >= fromIndex && step.room === roomId);
+  return index === -1 ? 'Not used again on this route' : `Next used at step ${index + 1}: ${route[index].label}`;
+}
+
+// What kind of item it is, in words: "Equipment" or "Material, resist slot".
+function itemKindText(item) {
+  return item.kind === 'equipment' ? 'Equipment' : `Material, ${item.slot} slot`;
+}
+
+// For a material: what it would push out of its slot, or null if the slot
+// is empty.
+function replacesText(state, item) {
+  if (item.kind !== 'material') return null;
+  const current = state.slots[item.slot];
+  if (!current) return null;
+  return `Replaces the ${MATERIALS.find(entry => entry.id === current.id).name}`;
+}
+
+// The engine's short reason, as words under a greyed-out Buy button.
+const BUY_REASON_TEXT = {
+  'not enough cash': 'Not enough cash',
+  'already bought': 'Bought',
+};
+
+// One item on sale.
+function shopItemView(state, route, itemId) {
+  const item = findShopItem(itemId);
+  const reason = whyCannotBuy(state, itemId);
+  const bought = state.shop.bought.includes(itemId);
+  return {
+    id: item.id,
+    name: item.name,
+    kindText: itemKindText(item),
+    roomName: ROOMS[item.room].name,
+    price: item.cost.cash,
+    tradeoff: item.tradeoff,
+    nextUseText: nextUseText(route, state.shop.corridor + 1, item.room),
+    replacesText: bought ? null : replacesText(state, item),
+    bought,
+    buyable: reason === null,
+    reason: reason === null ? null : (BUY_REASON_TEXT[reason] ?? reason),
+  };
+}
+
+// Everything the procurement screen shows, while its shop is open.
+export function shopView(state) {
+  if (state.shop === null) throw new Error('shopView: no shop is open');
+  const route = LOT_TYPES[state.lotTypeId].route;
+  const minutes = SIDE_STOP_MINUTES.procurement;
+  return {
+    seed: state.seed,
+    cash: state.cash,
+    name: SIDE_STOPS.procurement.name,
+    what: SIDE_STOPS.procurement.what,
+    text: `${SIDE_STOPS.procurement.name} cost ${minutes} min of cycle time. Equipment acts every time the lot enters its room; a material replaces what is in its slot.`,
+    items: state.shop.stock.map(itemId => shopItemView(state, route, itemId)),
+    goText: continueText(route, state.shop.corridor),
   };
 }
