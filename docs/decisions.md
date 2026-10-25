@@ -18,7 +18,7 @@ Settled decisions first, then open ones. Each open decision has a proposed answe
 | S10 | Card art (Oct 24, 2026) | Split by card kind: microscope cross-section on practices, bay window on equipment, materials and consumables, tool schematic for the inspect view and notebook, toy diorama for map rooms. Details: `docs/card-art-plan.md` |
 | S11 | Tool color in art (Oct 24, 2026) | Tools are drawn in their room's color, litho tools included (yellow), as in the toy diorama style |
 | D7 | Tech stack (23 Oct 2026) | Plain JavaScript ES modules, no bundler, no framework, no build step. Engine runs in Node. Matches CLAUDE.md §4 |
-| O2 | Energy resource (23 Oct 2026) | Time budget per room; cards cost time. Cash is spent only at procurement. Equipment may still carry a running cash cost (e.g. the pad conditioner's `cashCost`) |
+| O2 | Energy resource (23 Oct 2026; amended 25 Oct 2026) | Time budget per room; cards cost time. Cash is spent at procurement and on a DOE (its extra tool time and test wafers, `DOE_CASH_COST`). Equipment may still carry a running cash cost (e.g. the pad conditioner's `cashCost`) |
 | O4 | How a run ends (23 Oct 2026) | Shipped (meets spec, scored), rejected (shipped below spec) or scrapped (yield below the scrap line, or the player scraps it). Cash below zero blocks purchases but does not end the run |
 | O5 | First lot type (23 Oct 2026) | Inlaid Cu line. NMOS is the second lot type |
 | O6 | Cards to hand (23 Oct 2026) | Draw a hand of 5 (size in `balance.js`) from the room-legal cards in the deck, using the seeded generator |

@@ -307,7 +307,7 @@ function continueText(route, corridorIndex) {
 }
 
 // The placeholder screen after taking a side stop that does nothing yet
-// (PM/DOE, metrology and events come later in M3). `before` is the state in
+// (metrology and events come later in M3). `before` is the state in
 // the corridor, `after` what walkCorridor returned.
 export function stopView(before, after, stopKind) {
   const info = SIDE_STOPS[stopKind];

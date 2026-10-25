@@ -104,5 +104,15 @@ export const SPC_HISTORY = 12;
 export const PM_RESTORE_MIN = 75;
 export const PM_RESTORE_MAX = 95;
 
-// How many tools one PM/DOE stop can PM.
-export const PM_TOOLS_PER_STOP = 1;
+// How many choices one PM/DOE stop gives: one PM OR one DOE (David,
+// 25 Oct 2026).
+export const PM_DOE_CHOICES_PER_STOP = 1;
+
+// Cash a DOE costs: the extra tool time and test wafers it uses (David,
+// 25 Oct 2026; this amends decision O2). Placeholder until M7.
+export const DOE_CASH_COST = 100;
+
+// How many practices one DOE stop offers to upgrade, drawn by the seed:
+// from MIN to MAX, both included, or fewer if fewer are eligible.
+export const DOE_OFFER_MIN = 2;
+export const DOE_OFFER_MAX = 3;

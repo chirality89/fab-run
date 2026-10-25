@@ -60,6 +60,13 @@
 
 **Progress notes:**
 - 2026-10-25: plan written; waiting for David's OK.
+- 2026-10-25: David answered:
+  - one choice per stop;
+  - the DOE rule is right, and the three starter versions are right;
+  - a DOE costs cash for its extra tool time: `DOE_CASH_COST = 100`, a placeholder, with O2 amended in decisions.md;
+  - random 2–3 offers (`DOE_OFFER_MIN`/`MAX`, drawn with the DOE's own generator).
+- There are 10 practices, not 11: content-drafter drafted the 7 non-starter upgrades. All are drafts inside their card entries; physics-reviewer is next.
+- Engine built: doe.js (`cardInRun`, `doeOffers`) and `doeCard`/`whyCannotDoe` in run.js, with one choice per stop shared with PM. The bot flips a coin between PM and DOE. Hand check × 1.012578 passes as computed (seed 123456, DOE after step 2, offers: timed over-etch, measure all).
 
 **Result:**
 

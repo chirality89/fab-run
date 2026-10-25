@@ -78,3 +78,21 @@ test('unlocks point both ways', () => {
 test('the starter pool is not empty', () => {
   assert.ok(STARTER_IDS.length > 0);
 });
+
+// DOE versions (M3 item 2d): only these fields may change in an upgrade.
+const UPGRADE_FIELDS = new Set(['name', 'cost', 'effects', 'tradeoff', 'physicsNote']);
+
+test('every practice has a DOE version that keeps a tradeoff and changes something', () => {
+  for (const card of PRACTICES) {
+    const upgrade = card.upgrade;
+    assert.ok(upgrade, `${card.id} has no DOE upgrade`);
+    for (const field of Object.keys(upgrade)) assert.ok(UPGRADE_FIELDS.has(field), `${card.id} upgrade changes ${field}`);
+    assert.ok(upgrade.name && upgrade.name !== card.name, `${card.id} upgrade needs its own name`);
+    assert.ok(upgrade.tradeoff && upgrade.physicsNote, `${card.id} upgrade needs a tradeoff and a physics note`);
+    assert.ok(upgrade.cost || upgrade.effects, `${card.id} upgrade changes neither cost nor effects`);
+    for (const effect of upgrade.effects ?? []) {
+      assert.ok(KNOWN_OPS.has(effect.op), `${card.id} upgrade uses unknown op ${effect.op}`);
+      if (effect.pattern) assert.ok(PATTERNS[effect.pattern], `${card.id} upgrade uses unknown pattern ${effect.pattern}`);
+    }
+  }
+});
