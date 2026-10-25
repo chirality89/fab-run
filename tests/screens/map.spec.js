@@ -10,6 +10,7 @@ import { test, expect } from '@playwright/test';
 const SEED = 123456;
 const PAGE = `/?seed=${SEED}`;
 const STEP_COUNT = 9;
+const DOUBLE_CLICK_WINDOW_MS = 600;   // a little more than Chrome's 500 ms
 
 async function press(page, locator) {
   if (test.info().project.use.hasTouch) await locator.tap();
@@ -41,8 +42,12 @@ const runButton = page => page.locator('.run-button');
 const continueButton = page => page.getByRole('button', { name: 'Continue to the corridor' });
 
 // Runs the room the lot is in doing nothing, then continues to the corridor.
+// Each tap after a screen change waits out the double-click window first
+// (tasks/lessons.md), or a phone tap at the same spot is ignored.
 async function runRoomAndContinue(page) {
+  await page.waitForTimeout(DOUBLE_CLICK_WINDOW_MS);
   await press(page, runButton(page));
+  await page.waitForTimeout(DOUBLE_CLICK_WINDOW_MS);
   await press(page, continueButton(page));
   await expect(title(page)).toHaveText('Floor plan');
 }

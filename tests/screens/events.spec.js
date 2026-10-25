@@ -63,7 +63,7 @@ test('an event shows its situation and two options with their consequences', asy
   const errors = watchForErrors(page);
   await walkToEvent(page);
   await expect(page.locator('.event-panel .shop-item')).toHaveCount(2);
-  await expect(option(page, 'Switch now')).toContainText('+150 cash · +0.03 risk: polish rate wandering run to run');
+  await expect(option(page, 'Switch now')).toContainText('+150 cash · CMP tool steps off target (watch its SPC chart)');
   await expect(option(page, 'Keep the qualified slurry')).toContainText('Nothing changes');
   await expect(page.locator('.event-button')).toHaveCount(2);
   await expectNoSidewaysScroll(page);
@@ -78,7 +78,7 @@ test('choosing an option shows its result, then Continue goes to the next room',
   await expect(page.locator('.event-cash')).toHaveText('Cash 1650');
   await expect(option(page, 'Switch now')).toContainText('Chosen');
   await expect(page.locator('.event-button')).toHaveCount(0);
-  await expect(page.locator('.event-result')).toContainText('150 cash saved');
+  await expect(page.locator('.event-result')).toContainText('Watch the CMP SPC chart');
   await screenshot(page, '16-event-chosen');
   await pressFresh(page, goButton(page));
   await expect(title(page)).toHaveText('Litho bay');

@@ -20,33 +20,33 @@
 Each option has a `tradeoff` and a `physicsNote`, as every content entry does.
 
 **Engine (`src/engine/`) — an engine change; this is the ask (CLAUDE.md §6)**
-- [ ] One new effect operation, **`addRisk { pattern, amount }`**: a risk enters the lot now and bites when its room realizes it. (The existing `defectMult` only scales risk already there, and between rooms most risks are 0.) `amount` may not be negative: yield only goes down (rule 2).
-- [ ] `toolHealth` gets an optional `room`, so an event outside a room can name the tool. Today it always means the room the lot is in.
-- [ ] An option's `minutes` (negative allowed for the hot lot) changes cycle time. In a Q-time corridor, positive minutes also grow the Q-time pattern, like a side stop's wait. Cycle time never goes below 0.
-- [ ] New `src/engine/events.js`: `drawEvent(state, corridorIndex)`. `run.js`: the event stop opens `state.event = { corridor, eventId, chosen: null }`; new `chooseEventOption(state, optionIndex)` applies the option once, then the stop is done. Refused: no event open, already chosen, or a bad index.
-- [ ] Bot: the random bot picks an option at random.
+- [x] One new effect operation, **`addRisk { pattern, amount }`**: a risk enters the lot now and bites when its room realizes it. (The existing `defectMult` only scales risk already there, and between rooms most risks are 0.) `amount` may not be negative: yield only goes down (rule 2).
+- [x] `toolHealth` gets an optional `room`, so an event outside a room can name the tool. Today it always means the room the lot is in.
+- [x] An option's `minutes` (negative allowed for the hot lot) changes cycle time. In a Q-time corridor, positive minutes also grow the Q-time pattern, like a side stop's wait. Cycle time never goes below 0.
+- [x] New `src/engine/events.js`: `drawEvent(state, corridorIndex)`. `run.js`: the event stop opens `state.event = { corridor, eventId, chosen: null }`; new `chooseEventOption(state, optionIndex)` applies the option once, then the stop is done. Refused: no event open, already chosen, or a bad index.
+- [x] Bot: the random bot picks an option at random.
 
 **Content (`src/content/`)**
-- [ ] New `src/content/events.js`: the three events as data (`draft: true`).
-- [ ] content.js header: document `addRisk` and `toolHealth`'s `room`. `content.test.js` knows the new op.
-- [ ] `sideStops.js`: Event is no longer a placeholder.
+- [x] New `src/content/events.js`: the three events as data (`draft: true`).
+- [x] content.js header: document `addRisk` and `toolHealth`'s `room`. `content.test.js` knows the new op.
+- [x] `sideStops.js`: Event is no longer a placeholder.
 
 **Screen (`src/ui/`)**
-- [ ] Event screen: the situation, two option cards with their effects in words and the tradeoff, then the result and Continue.
+- [x] Event screen: the situation, two option cards with their effects in words and the tradeoff, then the result and Continue.
 
 **Tests**
-- [ ] `tests/events.test.js`:
+- [x] `tests/events.test.js`:
   - draws are seeded, with no repeat until all three are seen, and `rngState` is untouched;
   - each option applies its effects exactly once;
   - the refusals above;
   - `addRisk` refuses a negative amount;
   - `toolHealth` with `room` works outside a room.
-- [ ] **Hand check** (scatter off, drift off): take **Switch now** at an event before CMP.
+- [x] **Hand check** (scatter off, drift off): take **Switch now** at an event before CMP.
   - Cash +150.
   - rr_drift reaches CMP at 0.04 + 0.03 = 0.07, so final yield = the idle run × e^(−0.03) = × **0.970446**.
   - The test finds the first seed from 123456 up that draws the supplier event before CMP.
-- [ ] Screen tests at both sizes, run 5 times on the phone (lessons.md); screenshots checked.
-- [ ] `physics-reviewer` on the events; `code-explainer`; `playtester`.
+- [x] Screen tests at both sizes, run 5 times on the phone (lessons.md); screenshots checked.
+- [x] `physics-reviewer` on the events; `code-explainer`; `playtester`.
 
 **Size:** content, engine and screen, about 300 lines plus 3 events. This plan is the ask, including the new op.
 
@@ -66,8 +66,15 @@ Each option has a `tradeoff` and a `physicsNote`, as every content entry does.
 - Engine and content built: `addRisk` in resolve.js, `toolHealth` with `room`, src/content/events.js, src/engine/events.js (`drawEvent`), and `chooseEventOption` in run.js. The random bot picks an option at random.
   - Hand check, seed 123456 (supplier change drawn in the corridor after step 2): Switch now gives × 0.970446 and +150 cash. Passes as computed.
 - Screen built: eventView.js and renderEvent (floorPlan.js, now 347 lines; split it before it passes 400). Consequences are in plain words using each pattern's own description, and tool health is said as "tool serviced" (SPC only). The new screen spec waits out the double-click window at every screen change and passes 5 of 5 on the phone.
+- physics-reviewer: two must-fixes, both fixed.
+  - The slurry risk could not be diagnosed. David chose a step on the CMP chart: Switch now sets the CMP tool health −40 (a 2σ removal-rate step), shown on the CMP SPC chart and costing yield by Cpk. **Hand check changed with David's OK** from × 0.970446 to × 0.977312.
+  - Events could cost nothing late in the route. Each event now has `mattersFor` (a room or a pattern still ahead); after CMP no event matters and the stop is a "quiet shift".
+  - Also fixed: the hot lot physics note says hand-carrying and manual loading.
+  - Questions for David: should an unqualified slurry be offered on a production lot at all, given change control? Can an audit be deferred, and does one lead to a bench being serviced?
+- code-explainer: run.js is 418 lines, over the ~400 split line. Proposed to David: move the side-stop functions (walkCorridor, buyItem, pmTool, doeCard, chooseEventOption and their checks) into src/engine/sideStops.js. A deferred audit can take cash below 0, which O4 allows (purchases are then blocked).
+- playtester: engine and bot clean (events in 18 of 20 random runs). The phone map test timed out: the double-click window again; map.spec now waits at each screen change.
 
-**Result:**
+**Result:** an event stop draws one of three events that still matters on the route ahead (seeded, no repeats). You pick one of two options, shown in plain words. Supplier change is a 2σ step on the CMP chart (× 0.977312). `npm test` 178/178, `npm run screens` 32/32.
 
 ## Done: M3 item 2d — DOE stop: upgrade one practice for the run
 

@@ -7,6 +7,7 @@
 // corridor number. So the lot's random numbers are untouched.
 
 import { EVENTS } from '../content/events.js';
+import { LOT_TYPES } from '../content/lotTypes.js';
 import { normalizeSeed, pick } from './rng.js';
 
 // Any fixed number works; it differs from the other generators' constants.
@@ -24,9 +25,21 @@ export function findEvent(eventId) {
   return event;
 }
 
-// The id of the event an event stop in corridor `corridorIndex` shows.
+// Does this event still matter after corridor `corridorIndex`? Its room, or
+// a room that realizes its pattern, must still be ahead on the route.
+function matters(state, event, corridorIndex) {
+  const stepsAhead = LOT_TYPES[state.lotTypeId].route.slice(corridorIndex + 1);
+  const need = event.mattersFor;
+  if (need.room) return stepsAhead.some(step => step.room === need.room);
+  return stepsAhead.some(step => step.realizes.includes(need.pattern));
+}
+
+// The id of the event an event stop in corridor `corridorIndex` shows, or
+// null if no event matters any more (a quiet shift).
 export function drawEvent(state, corridorIndex) {
-  const unseen = EVENTS.filter(event => !state.eventsSeen.includes(event.id));
-  const pool = unseen.length > 0 ? unseen : EVENTS;   // all seen: start over
+  const relevant = EVENTS.filter(event => matters(state, event, corridorIndex));
+  if (relevant.length === 0) return null;
+  const unseen = relevant.filter(event => !state.eventsSeen.includes(event.id));
+  const pool = unseen.length > 0 ? unseen : relevant;   // all seen: start over
   return pick(eventSeed(state.seed, corridorIndex), pool).value.id;
 }

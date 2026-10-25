@@ -83,7 +83,7 @@ test('an option applies once; a second choice, a bad index and no event are refu
   const atEvent = openEvent(handCheckRun());
   const chosen = chooseEventOption(atEvent, SWITCH_NOW);
   assert.equal(chosen.cash, atEvent.cash + 150);
-  close(chosen.lot.risks.rr_drift ?? 0, 0.03, 'rr_drift added');
+  assert.equal(chosen.tools.cmp.health, atEvent.tools.cmp.health - 40, 'CMP removal rate steps 2σ');
   assert.throws(() => chooseEventOption(chosen, 1), /already chosen/);
   assert.throws(() => chooseEventOption(atEvent, 2), /no option 2/);
   assert.equal(enterStep(chosen).event, null, 'the event closes on entering the next room');
@@ -124,14 +124,26 @@ test('addRisk refuses a negative amount; toolHealth with a room works between ro
   assert.throws(() => applyEffect(state, { op: 'toolHealth', delta: 15 }), /not in a room/);
 });
 
-// Hand check (tasks/todo.md, M3 item 2e): scatter off, drift off, seed
-// 123456. "Switch now" at the event after step 2: cash +150, and rr_drift
-// reaches CMP at 0.04 + 0.03 = 0.07. rr_drift is even and realized only at
-// CMP, so final yield = the idle run × e^(−0.03) = × 0.970446.
-test('hand check: switching slurry costs the lot × 0.970446 and pays 150', () => {
+// Hand check (tasks/todo.md, M3 item 2e; changed by David on review, 25 Oct
+// 2026, from an rr_drift risk to a step on the CMP chart): scatter off,
+// drift off, seed 123456. "Switch now" at the event after step 2: cash
+// +150, and the CMP tool goes 100 → 60, a 2σ shift. rr_drift is even and
+// realized only at CMP, so final yield = the idle run × 0.977312 (M3 2b).
+test('hand check: switching slurry costs the lot × 0.977312 and pays 150', () => {
   const idle = playIdle(handCheckRun());
   const switched = playIdle(chooseEventOption(openEvent(handCheckRun()), SWITCH_NOW));
   close(lotYield(idle.lot), 0.517954, `the idle run (seed ${SEED})`);
-  close(lotYield(switched.lot) / lotYield(idle.lot), 0.970446, `yield ratio (seed ${SEED})`);
+  close(lotYield(switched.lot) / lotYield(idle.lot), 0.977312, `yield ratio (seed ${SEED})`);
   assert.equal(switched.cash, idle.cash + 150, `cash (seed ${SEED})`);
+});
+
+test('an event is only drawn if it still matters: none after CMP, a quiet shift', () => {
+  const state = handCheckRun();
+  assert.equal(drawEvent(state, 7), null, 'after CMP only metrology is left');
+  // After plating (corridor 6) only CMP and metrology are ahead: the supplier
+  // change still matters (CMP), and so does the hot lot (CMP realizes
+  // particles), but not the audit (no wet clean ahead).
+  for (let seed = SEED; seed < SEED + 40; seed++) {
+    assert.notEqual(drawEvent({ ...createRun({ seed }), eventsSeen: [] }, 6), 'audit', `seed ${seed}`);
+  }
 });

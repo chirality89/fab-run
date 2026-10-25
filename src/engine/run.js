@@ -305,8 +305,10 @@ export function walkCorridor(state, stopKind) {
   let eventsSeen = state.eventsSeen;
   if (stopKind === 'event') {
     const eventId = drawEvent(state, state.corridor);
-    event = { corridor: state.corridor, eventId, chosen: null };
-    eventsSeen = [...eventsSeen, eventId];
+    if (eventId !== null) {   // null: no event matters any more, a quiet shift
+      event = { corridor: state.corridor, eventId, chosen: null };
+      eventsSeen = [...eventsSeen, eventId];
+    }
   }
   const next = {
     ...state, lot, map, shop, pm, event, eventsSeen, corridor: null, cycleTime: state.cycleTime + minutes,

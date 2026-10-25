@@ -15,7 +15,8 @@ const riskText = (amount, pattern) => `+${amount} risk: ${PATTERNS[pattern]}`;
 function effectText(effect) {
   if (effect.op === 'cashCost') return effect.delta < 0 ? `+${-effect.delta} cash` : `−${effect.delta} cash`;
   if (effect.op === 'addRisk') return riskText(effect.amount, effect.pattern);
-  if (effect.op === 'toolHealth') return `${ROOMS[effect.room].name} tool serviced`;
+  if (effect.op === 'toolHealth' && effect.delta > 0) return `${ROOMS[effect.room].name} tool serviced`;
+  if (effect.op === 'toolHealth') return `${ROOMS[effect.room].name} tool steps off target (watch its SPC chart)`;
   return effect.op;   // any other op: show its name rather than invent words
 }
 
