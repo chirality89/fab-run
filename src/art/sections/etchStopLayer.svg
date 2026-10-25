@@ -1,12 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 140" role="img">
-  <title>Deposit SiN etch stop: a SiN film under the oxide. Two trenches etched later both stop on it, so they come out the same depth.</title>
+  <title>Deposit SiN etch stop: a SiN film under the oxide. A narrow and a wide trench etched later both stop on it, so they come out the same depth.</title>
   <rect class="mat-si"      x="0"   y="108" width="260" height="32"/>
   <!-- The new film: SiN etch stop. -->
   <rect class="mat-nitride" x="0"   y="94"  width="260" height="14"/>
   <!-- Oxide with two trenches that both land on the SiN. -->
-  <rect class="mat-oxide"   x="0"   y="52"  width="60"  height="42"/>
-  <rect class="mat-oxide"   x="90"  y="52"  width="80"  height="42"/>
-  <rect class="mat-oxide"   x="200" y="52"  width="60"  height="42"/>
+  <!-- One narrow and one wide trench: without the stop, the narrow one would etch slower. -->
+  <rect class="mat-oxide"   x="0"   y="52"  width="70"  height="42"/>
+  <rect class="mat-oxide"   x="84"  y="52"  width="86"  height="42"/>
+  <rect class="mat-oxide"   x="214" y="52"  width="46"  height="42"/>
   <text class="art-label-on-dark" x="130" y="40" text-anchor="middle">same depth</text>
   <text class="art-label" x="6"  y="77">oxide</text>
   <text class="art-label" x="6"  y="105">SiN etch stop</text>

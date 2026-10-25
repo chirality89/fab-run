@@ -225,6 +225,7 @@
 .mat-particle { fill: var(--mat-particle); stroke: var(--view-dark); stroke-width: 1; }  /* edge so it shows on pale oxide */
 .mat-plasma   { fill: none; stroke: var(--mat-plasma); stroke-width: 2; stroke-linecap: round; }
 .mat-junction { fill: none; stroke: var(--mat-junction); stroke-width: 2; stroke-dasharray: 6 4; }
+.mat-junction-before { fill: none; stroke: var(--mat-junction); stroke-width: 1; }  /* where it was, thin solid */
 .mat-damage   { fill: none; stroke: var(--mat-junction); stroke-width: 2; stroke-linecap: round; }
 .mat-void     { fill: none; stroke: var(--mat-void); stroke-width: 2; stroke-dasharray: 4 3; }
 /* A cut-away: etched-out space, the same dark as the window behind it. */

@@ -4,12 +4,15 @@
   <!-- Implanted layer. -->
   <rect class="mat-doped" x="0" y="40" width="260" height="46"/>
   <!-- Damage left after the anneal: a few marks. -->
-  <path class="mat-damage" d="M70 56l8 8M78 56l-8 8M150 66l8 8M158 66l-8 8M214 52l8 8M222 52l-8 8"/>
-  <!-- The junction, a little deeper than as implanted. -->
+  <path class="mat-damage" d="M70 56l8 8M78 56l-8 8M120 60l8 8M128 60l-8 8M214 52l8 8M222 52l-8 8"/>
+  <!-- Where the implant put the junction (thin line), and where it is after
+       the anneal (dashed): only a little deeper. -->
+  <path class="mat-junction-before" d="M0 80h260"/>
   <path class="mat-junction" d="M0 86h260"/>
   <text class="art-label-on-dark" x="6" y="28">seconds at peak</text>
   <text class="art-label" x="6" y="62">doped Si</text>
-  <text class="art-label" x="190" y="104">junction</text>
+  <text class="art-label" x="150" y="76">as implanted</text>
+  <text class="art-label" x="190" y="102">junction</text>
   <text class="art-label" x="6" y="128">Si</text>
   <!-- Scale bar. Thin films are drawn at least 6 px thick, so it is a guide, not a ruler. -->
   <path class="mat-measure" d="M208 16h44M208 12v8M252 12v8"/>

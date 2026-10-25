@@ -9,7 +9,8 @@
   <rect class="mat-resist"  x="0"   y="38"  width="110" height="14"/>
   <rect class="mat-resist"  x="150" y="38"  width="110" height="14"/>
   <!-- The over-etch: once the oxide cleared, the trench kept going into the SiN. -->
-  <rect class="art-hole" x="112" y="94" width="36" height="7"/>
+  <rect class="art-hole" x="110" y="94" width="40" height="10"/>
+  <text class="art-label-on-dark" x="160" y="30">notch into SiN</text>
   <!-- Plasma ions coming straight down into the opening. -->
   <path class="mat-plasma" d="M122 16v8M130 24v8M138 12v8"/>
   <text class="art-label" x="6" y="49">resist</text>

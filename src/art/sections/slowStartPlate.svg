@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 140" role="img">
-  <title>Low-current start step: a narrow via in oxide lined with barrier and seed. Copper is filling it from the bottom up and the opening is still wide, so no void is trapped.</title>
+  <title>Low-current start step: a narrow via in oxide lined with barrier and seed. Copper plates on the walls and field, slightly thicker at the bottom, and the mouth stays open so no void is trapped.</title>
   <rect class="mat-si"      x="0"   y="128" width="260" height="12"/>
   <rect class="mat-oxide"   x="0"   y="42"  width="260" height="86"/>
   <!-- The via: barrier on the field and walls, seed inside it. -->
@@ -8,11 +8,16 @@
   <rect class="mat-barrier" x="100" y="36"  width="60"  height="84"/>
   <rect class="mat-seed"    x="106" y="30"  width="48"  height="84"/>
   <rect class="art-hole"    x="112" y="30"  width="36"  height="78"/>
-  <!-- Copper rising from the bottom; the top is still open. -->
-  <rect class="mat-cu"      x="112" y="78"  width="36"  height="30"/>
-  <text class="art-label-on-dark" x="6" y="22">bottom-up fill</text>
+  <!-- Copper lines the walls and field (conformal), a little thicker at the
+       bottom. The gentle start keeps the mouth from pinching off. -->
+  <rect class="mat-cu"      x="0"   y="24"  width="260" height="6"/>
+  <rect class="mat-cu"      x="112" y="24"  width="6"   height="84"/>
+  <rect class="mat-cu"      x="142" y="24"  width="6"   height="84"/>
+  <rect class="mat-cu"      x="112" y="96"  width="36"  height="12"/>
+  <text class="art-label-on-dark" x="6" y="16">mouth stays open</text>
   <text class="art-label" x="6"  y="88">oxide</text>
   <text class="art-label" x="166" y="88">barrier, seed</text>
+  <text class="art-label-on-dark" x="6" y="138" display="none"></text>
   <!-- Scale bar. Thin films are drawn at least 6 px thick, so it is a guide, not a ruler. -->
   <path class="mat-measure" d="M208 16h44M208 12v8M252 12v8"/>
   <text class="art-label-on-dark" x="252" y="9" text-anchor="end">200 nm</text>
