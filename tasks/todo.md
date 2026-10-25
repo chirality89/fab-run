@@ -90,7 +90,9 @@
   - `el`/`panel` moved to `src/ui/dom.js`, ending the render.js ↔ spcChart.js import circle;
   - rules reported once per side, with named thresholds;
   - "Last lot measured" instead of "Latest lot".
-- playtester: pass. 146/146 tests; 40 idle and random bot runs plus 4 full-deck runs with no errors; 22/22 screens; the chart is readable at both sizes. Balance note for M7: no bot run ships now (idle median about 47%), and the bots don't read SPC.
+- David, 25 Oct 2026: etch drift feeds residue, the Q-time sig says "line resistance", and particles are split into two modes. New pattern `flakes`, fed by deposition drift and realized at both deposition steps; new `fm_chamber_flakes`; new `fm_residue`, since rule 6 needs residue to be diagnosable. Both are drafts that unlock nothing yet. The route check in lotTypes.test.js now counts tool drift as a way a pattern enters. Realizing `flakes` draws scatter numbers, so seeds play slightly differently from before; no expected value changed.
+- physics-reviewer on these: pass after two fixes (no invisible "larger defects" clue; fm_residue added). Asked David: native oxide under the barrier raises via or contact resistance more than line resistance, and this trench-only route has no via. Keep "line resistance", or add a via to the route later?
+- - playtester: pass. 146/146 tests; 40 idle and random bot runs plus 4 full-deck runs with no errors; 22/22 screens; the chart is readable at both sizes. Balance note for M7: no bot run ships now (idle median about 47%), and the bots don't read SPC.
 
 **Result:** every room's tool drifts and wears, starts each run at a seeded health, and costs yield by process capability. Each room shows an SPC chart with three Western Electric rules in words. `npm test` 149/149, `npm run screens` 22/22.
 

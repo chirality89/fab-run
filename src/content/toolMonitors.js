@@ -26,7 +26,7 @@ export const TOOL_MONITORS = {
   dep: {
     draft: true,
     parameter: 'Particle adders', unit: 'per wafer', target: 15, sigma: 4, direction: +1,
-    pattern: 'particles', oneSided: true,
+    pattern: 'flakes', oneSided: true,
     tradeoff: 'Longer between chamber cleans means more uptime and more flakes.',
     physicsNote: 'Film builds up on the chamber walls too; as it thickens it cracks and flakes onto wafers.',
   },
@@ -40,9 +40,9 @@ export const TOOL_MONITORS = {
   etch: {
     draft: true,
     parameter: 'Etch rate', unit: 'nm/min', target: 300, sigma: 8, direction: -1,
-    pattern: 'depth_variation',
-    tradeoff: 'Fewer chamber cleans mean more uptime and a slower, less even etch.',
-    physicsNote: 'Polymer deposits on the chamber walls change the plasma chemistry, so the rate falls between cleans (seasoning drift).',
+    pattern: 'residue',
+    tradeoff: 'Fewer chamber cleans mean more uptime and a slower etch.',
+    physicsNote: 'Polymer deposits on the chamber walls change the plasma chemistry, so the rate falls between cleans (seasoning drift). Under a timed etch, a lower rate leaves film in the bottom of features across the whole wafer.',
   },
   plate: {
     draft: true,
