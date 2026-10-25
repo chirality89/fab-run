@@ -136,3 +136,14 @@ Chrome counts two taps close together in time and place as a double click (`even
 ### Rule to Prevent
 ✅ In screen tests, wait out the double-click window (`DOUBLE_CLICK_WINDOW_MS`) before a tap that must count as a fresh gesture
 ✅ When a tap seems to do nothing, log `event.detail` and the click target before changing game code
+
+## A layout change elsewhere broke an unrelated phone test
+
+### What Happened
+After the procurement offer lost its "(coming next update)" note, the phone etch test "tapping timed over-etch plays it" failed: the card tap did nothing. Only the double-tap test had waited out the double-click window; the other etch tests tapped the card straight after "go straight on".
+
+### Root Cause
+The shorter map buttons moved "go straight on" to about where the etch card appears. The same double-click window as the lesson above, hit by a test that had never needed the wait.
+
+### Rule to Prevent
+✅ A helper that ends on a tap and hands over to a test that taps again waits out the double-click window itself, once, so no test depends on where the last button happened to sit
