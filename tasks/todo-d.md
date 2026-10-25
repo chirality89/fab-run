@@ -146,8 +146,8 @@ All checked against `--view-dark` so they read on the microscope window (3:1 or 
 - ~~ASK DAVID (dummy fill):~~ at textbook level dummy fill mainly cuts density-driven *erosion*; dishing of one wide line depends mostly on its width (slotting is the usual fix). Is "dummy fill reduces dishing" an OK simplification for the card? The art shows a slight dish either way.
 - **Answered 25 Oct: low-current start.** David: keep the art (conformal Cu, mouth open).
 - ~~ASK DAVID (low-current start):~~ confirm the art should show conformal fill with the mouth kept open, not bottom-up fill. That's what the card's own physicsNote says.
-- **Content wording (not Lane D's file):** `measureAll`'s physicsNote says "3 of 25 wafers", but the card is about 25 *sites*. Which is meant?
-- **Phone text size:** at 0.75× the 11 px labels come out about 8 px and body text about 10 px. Readable in the screenshot, but small. Keep 0.75×, or use a larger phone scale? That belongs to the M6 phone layout pass.
+- **Answered 25 Oct: measureAll wording.** David: the note is right. Normal sampling measures 3 of the 25 wafers; the card measures all 25 sites on those sampled wafers, not 25 sites on every wafer. No change.
+- **Answered 25 Oct: phone text size.** David: keep 0.75× for now (labels about 8 px, body about 10 px). Revisit in the M6 phone layout pass if needed.
 
 **Result:** 5 commits on `claude/lane-d-look-feel-64k6zr`: room tint/shade tokens + `tests/tokens.test.js`; the card frame (`src/ui/cards.css`, `src/art/icons/`, `art-preview.html`); 10 practice cross-sections (`src/art/sections/`) + `tests/screens/art-preview.spec.js`; physics-review fixes; code-review fixes. `npm test` 140/140, screen tests 30/30 at 1280×800 and 375×812.
 
