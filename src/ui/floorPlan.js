@@ -1,5 +1,6 @@
 // floorPlan.js — draws the map screen (the cleanroom floor plan) and the
-// placeholder screen after a side stop, from mapView() and stopView() in
+// screens after a side stop (the procurement shop, and a placeholder for
+// the stops not built yet), from mapView(), shopView() and stopView() in
 // view.js.
 //
 // The floor plan lays the route's bays out as a snake, three to a row:
@@ -125,7 +126,8 @@ function drawOffer(offer, actions) {
   const button = el('button', 'stop-button');
   const top = el('span', 'card-top');
   top.append(el('span', 'card-name', offer.name), el('span', 'card-cost', `+${offer.minutes} min`));
-  button.append(top, el('span', 'card-summary', `${offer.what} (coming next update)`));
+  const what = offer.placeholder ? `${offer.what} (coming in a later update)` : offer.what;
+  button.append(top, el('span', 'card-summary', what));
   if (offer.qtimeRisk > 0) {
     button.append(el('span', 'stop-qtime', `Waits in Q-time: +${offer.qtimeRisk.toFixed(3)} oxide risk`));
   }
@@ -166,4 +168,61 @@ export function renderStop(container, view, actions) {
   box.append(actionButton(view.goText, 'go-button', actions.onContinue));
   container.replaceChildren(header, box);
   showFromTop(container);
+}
+
+// One item on sale at the procurement stop: what it is, what it costs, its
+// tradeoff, where it acts next, and a Buy button (greyed out with the
+// reason when it can't be bought).
+function drawShopItem(item, actions) {
+  const box = el('li', item.bought ? 'card shop-item shop-item-bought' : 'card shop-item');
+  const top = el('div', 'card-top');
+  top.append(el('span', 'card-name', item.name), el('span', 'card-cost', `${item.price} cash`));
+  box.append(top, el('span', 'shop-kind', `${item.kindText} · ${item.roomName}`));
+  box.append(el('span', 'card-summary', item.tradeoff));
+  box.append(el('span', 'shop-next', item.nextUseText));
+  if (item.replacesText) box.append(el('span', 'shop-next', item.replacesText));
+  if (item.buyable) {
+    const buy = actionButton(`Buy for ${item.price}`, 'buy-button', () => actions.onBuy(item.id));
+    buy.setAttribute('aria-label', `Buy ${item.name} for ${item.price} cash`);
+    box.append(buy);
+  } else {
+    if (item.bought) box.append(el('span', 'shop-bought', 'Bought'));
+    else box.append(el('span', 'card-reason', `Can't buy: ${item.reason}`));
+  }
+  return box;
+}
+
+// The procurement screen. `actions` holds onBuy(itemId) and onContinue().
+// `keepFocusOn` is the id of the item just bought, if any: the redraw then
+// keeps keyboard focus near it instead of jumping back to the title.
+export function renderShop(container, view, actions, keepFocusOn = null) {
+  const header = el('header', 'room-band map-band');
+  header.append(el('h1', 'room-name', view.name), el('p', 'room-step', view.what));
+  const facts = el('p', 'room-facts');
+  facts.append(el('span', 'seed', `Seed ${view.seed}`), el('span', 'cash shop-cash', `Cash ${view.cash}`));
+  header.append(facts);
+
+  const box = panel('For sale', 'shop-panel');
+  box.append(el('p', 'outcome-text', view.text));
+  const list = el('ul', 'shop-list');
+  list.setAttribute('role', 'list');
+  view.items.forEach((item, index) => {
+    const node = drawShopItem(item, actions);
+    node.dataset.index = String(index);
+    list.append(node);
+  });
+  box.append(list, actionButton(view.goText, 'go-button', actions.onContinue));
+  container.replaceChildren(header, box);
+
+  if (keepFocusOn === null) {
+    showFromTop(container);
+    return;
+  }
+  // After a purchase: focus the next Buy button from the item just bought
+  // on, or else Continue.
+  const position = view.items.findIndex(item => item.id === keepFocusOn);
+  const itemsFromHere = [...container.querySelectorAll('.shop-item')].slice(position);
+  const buyButtons = itemsFromHere.map(node => node.querySelector('.buy-button')).filter(button => button !== null);
+  const target = buyButtons.length > 0 ? buyButtons[0] : container.querySelector('.go-button');
+  target.focus({ preventScroll: true });
 }

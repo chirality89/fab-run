@@ -1,8 +1,82 @@
 # Fab Run — Task Tracker
 
-## Next: M3 item 2 — procurement screen; PM/DOE upgrade; three events with a tradeoff each
+## Current: M3 item 2a — procurement stop: buy equipment and materials with cash
 
-Not planned yet. Start by moving `SIDE_STOP_INFO` (view.js) into `src/content/`.
+(M3 item 2 is split into three boxes in ROADMAP.md: procurement, PM/DOE, events. David, 25 Oct 2026.)
+
+### Task: a procurement side stop that sells equipment and materials
+
+**Content (`src/content/`)**
+- [x] New `src/content/sideStops.js`: the side stops' names, short labels and one-line descriptions, moved out of `view.js` (`SIDE_STOP_INFO`). Data only.
+- [x] `balance.js`:
+  - `SHOP_OFFER_COUNT = 3`, the number of items one procurement stop offers.
+  - `SHOP_SELLS_LOCKED_ITEMS = true`: until the notebook exists (M4), the shop sells every item, not only unlocked ones. M4 turns this off.
+
+**Engine (`src/engine/`)**
+- [x] New `src/engine/shop.js` (pure):
+  - `shopStock(state, corridorIndex)` picks 3 items from equipment and materials, using its own generator: the seed mixed with the corridor number. So the lot's random numbers are untouched, and the same seed and the same purchases give the same stock.
+  - Left out of the stock:
+    - equipment you already own;
+    - the material already in that slot;
+    - items whose room isn't on this lot's route at all (for example the rapid thermal anneal tool, a diffusion room tool, on the Cu line).
+- [x] `run.js`:
+  - Taking the procurement stop in `walkCorridor` opens the shop: `state.shop = { stock, bought }`.
+  - New `buyItem(state, itemId)`:
+    - it pays `cost.cash`;
+    - **equipment** is added to `state.equipment`, and from then on acts on entering its room, as it already does for loadout equipment;
+    - a **material** replaces whatever is in its slot (`slotEntry`).
+  - `buyItem` refuses an item not in stock, one already bought, or one you can't afford (cash may never go below 0 by buying; decision O4).
+  - The shop closes when the lot enters the next room.
+- [x] `tools/bot.js`: the random bot buys random items it can afford at a procurement stop. The idle bot never takes stops, so it never buys.
+
+**Screen (`src/ui/`)**
+- [x] A **procurement screen** after picking the stop:
+  - cash at the top;
+  - 3 item cards: name, kind (equipment or material), room, price, its `tradeoff` text, and where it next acts ("Next used at step 6: Deposition (barrier + seed)", or "Not used again on this route");
+  - a **Buy** button, greyed out with the reason when you can't afford it;
+  - **Continue to step N**.
+- [x] The map's other three stops keep their placeholder.
+- [x] Screen tests: open a procurement stop, buy something, see the cash drop and the item shown as bought, and see it in the room's Slots panel later.
+
+**Tests**
+- [x] `tests/shop.test.js`:
+  - 3 items; none owned, none useless on this route; same seed → same stock; the lot's `rngState` is untouched;
+  - buying pays the price, and refuses when not affordable, not in stock or already bought.
+- [x] **Hand check** (scatter off, nothing played): buy the optical endpoint detector (600) at a procurement stop before etch.
+  - Cash is 1500 − 600 = 900.
+  - At etch, depth variation 0.08 × 0.7 = 0.056. So inner sites lose 0.015 less and outer sites 0.03 less: centre e^(−0.25), inner e^(−0.285), outer e^(−0.398125).
+  - Yield after etch is **0.701607**, against 0.685321 without it.
+  - Endpoint etch becomes legal in the etch room.
+  - The test uses the first seed from 123456 up that offers procurement before etch with the detector in stock.
+- [x] `physics-reviewer` is not needed: no content effect changes. `code-explainer` on the diff; `playtester` before done.
+
+**Size:** content, engine and screen folders together, about 300 lines with tests. This plan is the ask (CLAUDE.md §3). Two commits: engine with tests, then screen.
+
+**Decisions (David, 25 Oct 2026):**
+- Split item 2 into three.
+- The shop sells everything until M4.
+- Equipment and materials only. Consumables get their own later item: they need an inventory and "use in a room".
+- 3 items per stop, picked by the seed.
+
+**NEEDS NEW LOGIC (noted, not built):** consumables (carry and use in a room); shelf life counting down; prices that change between stops.
+
+**Acceptance criteria:**
+- On the page, a procurement stop shows 3 items with prices and tradeoffs. Buying one takes the cash, and the item shows in its room's Slots panel when the lot gets there.
+- The hand check above passes; `npm test` and `npm run screens` pass.
+
+**Progress notes:**
+- 2026-10-25: plan written; waiting for David's OK.
+- 2026-10-25: David OK'd the plan ("Build"). Built in two commits: engine with tests, then the screen.
+- The hand-check test searches from 123456 for a seed with procurement before etch selling the detector, then plays as planned: cash 900, depth variation 0.056, yield after etch 0.701607 against 0.685321, endpoint etch legal. All pass as computed.
+- Seed 123456: the corridor after step 2 offers procurement, selling the pad conditioner, the DUV resist and the thick resist. The view and screen tests use it.
+- The screen also says what a material would replace ("Replaces the i-line positive resist"), since a material swap is otherwise invisible until litho.
+- A phone etch screen test broke because the map buttons got shorter (lessons.md). The walk-to-etch helper now waits out the double-click window.
+- playtester: pass. 131/131 tests; 20 random-bot seeds and 4 full-deck seeds ran with no errors and never went below 0 cash; 22/22 screens, with no overflow and no sideways scroll.
+- code-explainer: one must-fix. The shop could sell items for rooms the lot had already left (a resist after litho). The stock now only includes rooms still ahead, so a late shop may offer fewer than 3 (after CMP, only inline metrology). A new test covers it. Readability splits were also done in shop.js and floorPlan.js.
+- The bot test asserted cash ≥ 0, but O4 lets running costs go below 0: seed 17 (random, full deck) ended at −20 after the pad conditioner charged at CMP. David chose to change the test. It now checks that cash is never below 0 right after a purchase.
+- - view.js is now 384 lines, close to the ~400 split line. The map and shop views could move to their own file in M3 item 2b.
+
+**Result:** a procurement stop opens a shop of up to 3 seeded items (equipment and materials) for rooms still ahead. Buying takes the cash, equipment acts in its room, and a material replaces its slot. `npm test` 132/132, `npm run screens` 22/22.
 
 ## Done: M3 item 1 — map of the Cu line route with side stops
 

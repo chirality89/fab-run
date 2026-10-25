@@ -7,14 +7,16 @@
 //
 // The whole run lives in one variable, `state`. The screen never changes it
 // directly: every button calls an engine function (enterStep, playCard,
-// resolveStep, walkCorridor), stores the new state that comes back, and
+// resolveStep, walkCorridor, buyItem), stores the new state that comes back, and
 // redraws.
 
 import { normalizeSeed } from '../engine/rng.js';
-import { createRun, enterStep, resolveStep, playCard, walkCorridor, starterDeck, defaultLoadout } from '../engine/run.js';
-import { roomView, resultView, mapView, stopView, parseSeed } from './view.js';
+import {
+  createRun, enterStep, resolveStep, playCard, walkCorridor, buyItem, starterDeck, defaultLoadout,
+} from '../engine/run.js';
+import { roomView, resultView, mapView, stopView, shopView, parseSeed } from './view.js';
 import { renderRoom, renderResult, renderError, focusNextAction, showFromTop } from './render.js';
-import { renderMap, renderStop } from './floorPlan.js';
+import { renderMap, renderStop, renderShop } from './floorPlan.js';
 
 const LOT_TYPE_ID = 'cuLine';
 
@@ -80,7 +82,15 @@ function onTakeStop(stopKind) {
   safely(() => {
     const before = state;
     state = walkCorridor(state, stopKind);
-    renderStop(app, stopView(before, state, stopKind), { onContinue: () => safely(enterRoom) });
+    if (state.shop !== null) showShop(null);
+    else renderStop(app, stopView(before, state, stopKind), { onContinue: () => safely(enterRoom) });
+  });
+}
+
+function onBuy(itemId) {
+  safely(() => {
+    state = buyItem(state, itemId);
+    showShop(itemId);
   });
 }
 
@@ -112,6 +122,12 @@ function showRoom() {
 
 function showMap() {
   renderMap(app, mapView(state), { onTakeStop, onGoStraight });
+}
+
+// The procurement screen. `justBought` is the item bought a moment ago, or
+// null when the shop has just opened.
+function showShop(justBought) {
+  renderShop(app, shopView(state), { onBuy, onContinue: () => safely(enterRoom) }, justBought);
 }
 
 function enterRoom() {

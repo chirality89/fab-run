@@ -6,7 +6,8 @@
 //   idle    plays nothing and always goes straight on: the baseline you can
 //           check by hand
 //   random  plays random legal cards until none fits, then resolves the
-//           room; in each corridor picks a random side stop or straight on
+//           room; in each corridor picks a random side stop or straight on;
+//           at a procurement stop, buys each item it can afford on a coin flip
 //
 // The random policy has its OWN seeded generator, started from the run's
 // seed mixed with a fixed constant (BOT_SEED_MIX). So the bot's choices never
@@ -18,8 +19,9 @@ import { pathToFileURL } from 'node:url';
 import { normalizeSeed, pick } from '../src/engine/rng.js';
 import { lotYield } from '../src/engine/lot.js';
 import {
-  createRun, enterStep, legalCards, playCard, resolveStep, walkCorridor, starterDeck, fullPool,
+  createRun, enterStep, legalCards, playCard, resolveStep, walkCorridor, buyItem, starterDeck, fullPool,
 } from '../src/engine/run.js';
+import { whyCannotBuy } from '../src/engine/shop.js';
 
 const BOT_SEED_MIX = 0x9E3779B9;   // any fixed number works; this one is a common "mixing" constant
 const POLICIES = ['idle', 'random'];
@@ -56,6 +58,28 @@ function chooseSideStop(state, policy, botRng) {
   return { stopKind: choice.value, botRng: choice.rngState };
 }
 
+// At an open shop, goes through the stock in order and buys each item it can
+// afford on a coin flip. Returns the state, the bot's generator number, the
+// ids bought, and the least cash left right after any purchase (Infinity
+// if it bought nothing).
+function shop(state, policy, botRng) {
+  let current = state;
+  let rng = botRng;
+  const bought = [];
+  let lowestCash = Infinity;   // the least cash left right after a purchase (none yet)
+  if (policy === 'idle' || current.shop === null) return { state: current, botRng: rng, bought, lowestCash };
+  for (const itemId of current.shop.stock) {
+    const coin = pick(rng, [true, false]);
+    rng = coin.rngState;
+    if (coin.value && whyCannotBuy(current, itemId) === null) {
+      current = buyItem(current, itemId);
+      bought.push(itemId);
+      lowestCash = Math.min(lowestCash, current.cash);
+    }
+  }
+  return { state: current, botRng: rng, bought, lowestCash };
+}
+
 // Plays a run to the end. options.deck is 'starter' (default), 'full' or a
 // list of card ids; other options go straight to createRun.
 export function playRun(seed, policy = 'idle', options = {}) {
@@ -67,6 +91,8 @@ export function playRun(seed, policy = 'idle', options = {}) {
   let botRng = botSeed(seed);
   const cardsPlayed = [];
   const sideStops = [];
+  const itemsBought = [];
+  let lowestCashAfterBuying = state.cash;   // starting cash, until something is bought
   while (state.status === 'running') {
     state = enterStep(state);
     const room = playRoom(state, policy, botRng);
@@ -78,12 +104,17 @@ export function playRun(seed, policy = 'idle', options = {}) {
       botRng = corridor.botRng;
       if (corridor.stopKind !== null) sideStops.push(corridor.stopKind);
       state = walkCorridor(state, corridor.stopKind);
+      const shopping = shop(state, policy, botRng);
+      botRng = shopping.botRng;
+      itemsBought.push(...shopping.bought);
+      lowestCashAfterBuying = Math.min(lowestCashAfterBuying, shopping.lowestCash);
+      state = shopping.state;
     }
   }
 
   const summary = {
     seed, policy, status: state.status, yield: lotYield(state.lot), cash: state.cash,
-    minutesUsed: state.minutesUsed, cycleTime: state.cycleTime, cardsPlayed, sideStops,
+    minutesUsed: state.minutesUsed, cycleTime: state.cycleTime, cardsPlayed, sideStops, itemsBought, lowestCashAfterBuying,
   };
   return { state, summary };
 }
@@ -105,6 +136,7 @@ function printSummary(summary) {
   console.log(`Cycle time:    ${summary.cycleTime} min`);
   console.log(`Cards played:  ${summary.cardsPlayed.length} (${summary.cardsPlayed.join(', ') || 'none'})`);
   console.log(`Side stops:    ${summary.sideStops.length} (${summary.sideStops.join(', ') || 'none'})`);
+  console.log(`Items bought:  ${summary.itemsBought.length} (${summary.itemsBought.join(', ') || 'none'})`);
 }
 
 // Only runs when started from the command line, not when a test imports it.

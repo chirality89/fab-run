@@ -312,3 +312,12 @@
   .tool-panel  { grid-area: tool; }
   .hand-panel  { grid-area: hand; }
 }
+
+/* --- Procurement stop: items for sale ------------------------------------- */
+.shop-list { display: grid; gap: 10px; margin: 0 0 12px; padding: 0; list-style: none; }
+.shop-item { border-color: var(--line); }
+.shop-item-bought { border: 2px solid var(--ok); }   /* bought: green edge AND the word "Bought" */
+.shop-kind { display: block; margin-top: 2px; font-size: 14px; font-weight: 600; color: var(--muted); }
+.shop-next { display: block; margin-top: 4px; font-size: 15px; }
+.shop-bought { display: block; margin-top: 8px; font-weight: 600; color: var(--ok); }
+.buy-button { margin-top: 10px; }

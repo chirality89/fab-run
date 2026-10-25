@@ -20,7 +20,7 @@ function numbersIn(value, path = 'state', found = []) {
   return found;
 }
 
-test('seeds 1–50 × {idle, random} × {starter, full}: no exception, all numbers finite, yield 0..1, cash ≥ 0', () => {
+test('seeds 1–50 × {idle, random} × {starter, full}: no exception, all numbers finite, yield 0..1, buying never below 0 cash', () => {
   for (const seed of SEEDS) {
     for (const policy of POLICIES) {
       for (const deck of DECKS) {
@@ -30,7 +30,9 @@ test('seeds 1–50 × {idle, random} × {starter, full}: no exception, all numbe
           assert.ok(Number.isFinite(value), `${label}: ${path} is ${value}`);
         }
         assert.ok(summary.yield >= 0 && summary.yield <= 1, `${label}: yield ${summary.yield}`);
-        assert.ok(summary.cash >= 0, `${label}: cash ${summary.cash}`);
+        // Buying may never take cash below 0. Running costs (the pad
+        // conditioner's 20 per CMP) still may, as decision O4 allows.
+        assert.ok(summary.lowestCashAfterBuying >= 0, `${label}: cash ${summary.lowestCashAfterBuying} after buying`);
         assert.notEqual(state.status, 'running', `${label}: run did not finish`);
       }
     }

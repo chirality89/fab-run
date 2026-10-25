@@ -136,3 +136,38 @@ Chrome counts two taps close together in time and place as a double click (`even
 ### Rule to Prevent
 ✅ In screen tests, wait out the double-click window (`DOUBLE_CLICK_WINDOW_MS`) before a tap that must count as a fresh gesture
 ✅ When a tap seems to do nothing, log `event.detail` and the click target before changing game code
+
+## A layout change elsewhere broke an unrelated phone test
+
+### What Happened
+After the procurement offer lost its "(coming next update)" note, the phone etch test "tapping timed over-etch plays it" failed: the card tap did nothing. Only the double-tap test had waited out the double-click window; the other etch tests tapped the card straight after "go straight on".
+
+### Root Cause
+The shorter map buttons moved "go straight on" to about where the etch card appears. The same double-click window as the lesson above, hit by a test that had never needed the wait.
+
+### Rule to Prevent
+✅ A helper that ends on a tap and hands over to a test that taps again waits out the double-click window itself, once, so no test depends on where the last button happened to sit
+
+## The shop sold items for rooms the lot had already left
+
+### What Happened
+code-explainer found that a shop after litho could offer a resist, which could never act again. The plan only said "rooms not on the route at all", and I built exactly that.
+
+### Root Cause
+"On the route" was checked against the whole route, not the part still ahead. The screen's "Not used again on this route" line hid the gap instead of showing it as a bug.
+
+### Rule to Prevent
+✅ Anything offered to the player must be able to matter from where the lot stands now. Check against the route still ahead, not the whole route.
+✅ When a screen needs a "this does nothing" message, ask first whether the thing should be offered at all
+
+## A bot test said "cash ≥ 0", but decision O4 allows running costs below 0
+
+### What Happened
+Once the bot could buy the pad conditioner, seed 17 (random, full deck) ended at −20 cash: it spent down to 0, then CMP charged 20 for pads. The bot test failed.
+
+### Root Cause
+The test's check was stricter than the agreed rule (O4: buying is blocked below 0, running costs may still go below). Until buying existed, nothing could reach that case.
+
+### Rule to Prevent
+✅ A test's limits come from the written decision, not from what the engine happens to do today. Read the decision before writing the limit.
+✅ When a check fails, ask David which is right, the check or the rule. Never loosen it silently (David chose to change the test, 25 Oct 2026).

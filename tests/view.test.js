@@ -5,9 +5,11 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createRun, enterStep, resolveStep, playCard, walkCorridor, fullPool, whyIllegal } from '../src/engine/run.js';
+import {
+  createRun, enterStep, resolveStep, playCard, walkCorridor, buyItem, fullPool, whyIllegal,
+} from '../src/engine/run.js';
 import { lotYield } from '../src/engine/lot.js';
-import { roomView, resultView, mapView, stopView, siteBand, yieldBand, parseSeed } from '../src/ui/view.js';
+import { roomView, resultView, mapView, stopView, shopView, siteBand, yieldBand, parseSeed } from '../src/ui/view.js';
 
 const SEED = 123456;
 const TOLERANCE = 1e-6;
@@ -221,4 +223,54 @@ test('stopView: names the stop and its minutes, and the step that comes next', (
 
 test('mapView refuses to draw while the lot is in a room', () => {
   assert.throws(() => mapView(enterStep(createRun({ seed: SEED }))), /in a room/);
+});
+
+// --- the procurement stop (M3 item 2a) -------------------------------------
+// Seed 123456: the corridor after step 2 offers procurement, and its shop
+// sells the pad conditioner, the DUV resist and the thick resist.
+
+function shopAfterStep2() {
+  const afterStep1 = walkCorridor(resolveStep(enterStep(createRun({ seed: SEED }))), null);
+  return walkCorridor(resolveStep(enterStep(afterStep1)), 'procurement');
+}
+
+test('shopView: 3 items with price, kind, room, tradeoff and where each acts next', () => {
+  const view = shopView(shopAfterStep2());
+  assert.equal(view.cash, 1500);
+  assert.equal(view.goText, 'Continue to step 3: Litho (trench)');
+  assert.deepEqual(view.items.map(item => item.id), ['padConditioner', 'resistCAR', 'resistThick'], `seed ${SEED}`);
+  const [pad, car] = view.items;
+  assert.equal(pad.kindText, 'Equipment');
+  assert.equal(pad.roomName, 'CMP');
+  assert.equal(pad.price, 350);
+  assert.equal(pad.nextUseText, 'Next used at step 8: CMP');
+  assert.equal(pad.replacesText, null);
+  assert.equal(car.kindText, 'Material, resist slot');
+  assert.equal(car.nextUseText, 'Next used at step 3: Litho (trench)');
+  assert.equal(car.replacesText, 'Replaces the i-line positive resist');
+  assert.ok(view.items.every(item => item.buyable && item.reason === null && item.tradeoff));
+});
+
+test('shopView after buying: cash drops, the item says Bought, the other resist replaces it', () => {
+  const view = shopView(buyItem(shopAfterStep2(), 'resistCAR'));
+  assert.equal(view.cash, 1360);
+  const car = view.items.find(item => item.id === 'resistCAR');
+  assert.equal(car.bought, true);
+  assert.equal(car.buyable, false);
+  assert.equal(car.reason, 'Bought');
+  const thick = view.items.find(item => item.id === 'resistThick');
+  assert.equal(thick.replacesText, 'Replaces the Chemically amplified DUV resist');
+});
+
+test('shopView: an item you cannot afford says so', () => {
+  const view = shopView({ ...shopAfterStep2(), cash: 100 });
+  const pad = view.items.find(item => item.id === 'padConditioner');
+  assert.equal(pad.buyable, false);
+  assert.equal(pad.reason, 'Not enough cash');
+});
+
+test('a bought item shows in its room\'s Slots panel', () => {
+  let state = buyItem(shopAfterStep2(), 'resistCAR');
+  state = enterStep(state);   // step 3, litho
+  assert.deepEqual(roomView(state).slots.map(item => item.id), ['resistCAR']);
 });
