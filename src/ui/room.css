@@ -356,3 +356,33 @@
 /* --- Events (M3 item 2e) ---------------------------------------------------- */
 .event-button { margin-top: 10px; }
 .event-result { margin-top: 4px; padding: 8px 10px; border-left: 4px solid var(--blue); background: var(--bg); }
+
+/* --- Ship report and scrap (M3 item 3) -------------------------------------- */
+.ship-tiles { display: grid; grid-template-columns: 1fr; gap: 10px; margin: 12px 0; }
+@media (min-width: 900px) {
+  .ship-tiles { grid-template-columns: repeat(3, 1fr); }   /* the three numbers side by side */
+}
+.ship-tile { padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+.ship-tile-label  { margin: 0; font-size: 14px; color: var(--muted); }
+.ship-tile-value  { margin: 2px 0; font: 600 30px/1.1 var(--cond); }
+.ship-tile-detail { margin: 0; font-size: 14px; color: var(--muted); }
+.verdict-shipped  { border-left: 6px solid var(--ok); }
+.verdict-rejected { border-left: 6px dashed var(--warn); }   /* dashed, so not told by colour alone */
+.verdict-scrapped { border-left: 6px double var(--bad); }
+.step-table { width: 100%; border-collapse: collapse; font-size: 15px; }
+.step-table th, .step-table td { padding: 6px 4px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+.step-table th:nth-child(n+3), .step-table td:nth-child(n+3) { text-align: right; white-space: nowrap; }
+.room-chip { display: inline-block; padding: 1px 6px; border-radius: 3px; background: var(--room-color); color: var(--on-fill); font-weight: 600; }
+.scrap-box { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--line); }
+.scrap-question { margin: 0 0 8px; font-weight: 600; }
+.scrap-confirm-button { background: var(--die-fail); color: var(--on-die-fail); }
+
+/* --- Diagnose panel and the route's SPC (M4 item 1) ------------------------- */
+.diagnose-panel .stop-list { margin-top: 8px; }
+.chip-known { background: var(--ok); border-color: var(--ok); color: var(--surface); font-weight: 600; }
+.route-spc { display: grid; grid-template-columns: 1fr; gap: 16px; }
+@media (min-width: 900px) {
+  .route-spc { grid-template-columns: repeat(3, 1fr); }
+}
+.route-spc-item .spc-title { margin: 6px 0 2px; }
+.diagnose-text { margin: 0 0 8px; font-size: 17px; }

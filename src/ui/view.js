@@ -19,7 +19,7 @@ import { cardInRun } from '../engine/doe.js';
 import { spcView } from './spcView.js';
 
 // A fraction (0..1) as a percent with one decimal, e.g. 0.913931 → 91.4.
-function toPercent(fraction) {
+export function toPercent(fraction) {
   return Math.round(fraction * 1000) / 10;
 }
 
@@ -47,7 +47,7 @@ export function siteBand(value) {
 }
 
 // One wafer map tile.
-function siteView(value) {
+export function siteView(value) {
   return { value, percent: sitePercent(value), band: siteBand(value) };
 }
 
@@ -63,7 +63,7 @@ export function yieldBand(fraction) {
 }
 
 // The legend under the wafer map, built from the balance numbers.
-function mapKeyText() {
+export function mapKeyText() {
   return `Each site: % of the 25 wafers still good there. Pass ${SITE_GOOD_PERCENT}%+, `
     + `warning ${SPEC_PERCENT}–${SITE_GOOD_PERCENT - 1}%, fail under ${SPEC_PERCENT}%.`;
 }

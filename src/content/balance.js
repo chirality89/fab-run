@@ -116,3 +116,20 @@ export const DOE_CASH_COST = 100;
 // from MIN to MAX, both included, or fewer if fewer are eligible.
 export const DOE_OFFER_MIN = 2;
 export const DOE_OFFER_MAX = 3;
+
+// --- Ship report (M3 item 3). Proposed by Claude, 25 Oct 2026; David to
+// confirm (tasks/todo.md Q1). ---
+
+// What a lot costs before any choice you make: 25 wafers plus routine
+// processing on every step. The ship report adds the cash spent during the
+// run to this and divides by the good die. Placeholder until M7.
+export const LOT_BASE_COST = 2000;
+
+// --- Diagnosis (M4 item 1). Agreed with David, 25 Oct 2026. ---
+
+// A failure mode counts as a right diagnosis when its pattern cost the lot
+// at least this many yield points (0..100) this run.
+export const DIAGNOSE_MIN_POINTS = 3;
+
+// How many failure modes the diagnose panel offers to choose from.
+export const DIAGNOSE_CANDIDATES = 4;

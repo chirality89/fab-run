@@ -206,6 +206,12 @@ That makes 24 + 5 + ~5 + ~6 = **about 40 items**, plus new failure modes. Every 
   - Ruled: the card becomes 'Larger-tilt implant' (two rotations); its DOE version tunes the twist against planar channeling (four rotations). Effects unchanged.
 - 2026-10-25: item 1 rebased on main (events), 178/178, screens 32/32, bot seeds 1/17/123456 clean. PR #16 opened.
 - David, item 2: NMOS is 13 steps (clean, pad oxide + SiN, litho active, trench etch, fill + CMP stop on SiN, SiN strip + pre-gate clean (Q-time), gate oxidation, poly dep, litho gate, gate etch, S/D implant, anneal, test). Contacts and metal 1 are left out. Start after #16 merges. Then update the 'NMOS step N' comments in content.js to the 13-step numbers.
+- 2026-10-25 23:50: main moved (#17 ship report, #18 diagnose). I merged main into lane-c (a merge, not a rebase: main's new failure-mode names conflicted in many commits).
+  - Lane C's 6 new failure modes got names.
+  - The 4 NMOS failure modes got `when: { lot: 'siliconFrontEnd' }`, because the diagnose screen counts every failure mode on a big-loss pattern as right. Without it, fm_gate_punch and fm_gate_native_oxide would be right answers on Cu runs and unlock NMOS cards.
+  - Checked over 400 finished Cu runs: 0 NMOS right answers.
+  - 197/197; screens 40/40; bot clean.
+  - For David: fm_dose_offset has no `when`, so it is right in 314/400 Cu runs (cd_error is on every lot). Main gave fm_ped_ttop a cause `when` for the same reason. Should dose offset need a cause too (e.g. litho drift)?
 
 ### Held back: ceriaSlurry (add back when the shop checks an item's `when`)
 Also needs: an `fm_sti_dishing` failure mode (field-oxide step height, thinning in wide isolation areas, edge leakage at the active areas) to unlock it; the `dishing` pattern text made not metal-only; and NMOS step 6 adding dishing and particles.
