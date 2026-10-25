@@ -23,7 +23,7 @@ Current milestone: **M3 — The run**
 - [x] Playwright set up; screenshots at 1280×800 and 375×812; checked by eye
 
 ## M3 — The run (needs O3)
-- [ ] Map of the Cu line route with side-stop branches (metrology, PM/DOE, procurement, event)
+- [x] Map of the Cu line route with side-stop branches (metrology, PM/DOE, procurement, event)
 - [ ] Procurement screen; PM/DOE upgrade; three events with a tradeoff each
 - [ ] Ship screen: yield against spec, cost per good die, cycle time; scrap and reject end states
 - [ ] Save and resume a run (`SAVE_KEY`, storage-blocked safe)

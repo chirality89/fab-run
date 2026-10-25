@@ -124,3 +124,15 @@ On the phone the card sits below the bottom of the screen. A raw `page.touchscre
 ✅ Before a raw tap or click at coordinates, call `scrollIntoViewIfNeeded()` on the target and measure it after
 ✅ When a guard test passes, switch the guard off once and confirm the test then fails
 
+
+## A screen test's tap was eaten as the second click of a double click
+
+### What Happened
+After the screen tests started walking the route to reach etch, the phone double-tap test failed: the card was never played. The test had tapped "go straight on" a moment before, at about the same spot.
+
+### Root Cause
+Chrome counts two taps close together in time and place as a double click (`event.detail` 2), even across a screen change. The double-tap guard (`onSingleClick`) correctly ignored the second one; the test was simply faster than a person.
+
+### Rule to Prevent
+✅ In screen tests, wait out the double-click window (`DOUBLE_CLICK_WINDOW_MS`) before a tap that must count as a fresh gesture
+✅ When a tap seems to do nothing, log `event.detail` and the click target before changing game code

@@ -1,13 +1,14 @@
 // run.js — one run: one lot walking its route from the first room to ship.
 //
-// This is the first, minimal version (M1 item 6): walk the route, deal a
-// hand in each room, play cards, resolve the room, ship. No map, side stops,
-// procurement or saves yet (those come in M3).
+// Walk the route, deal a hand in each room, play cards, resolve the room,
+// walk the corridor to the next room, ship. What side stops do, procurement
+// and saves come later in M3.
 //
 // A run goes like this, one step of the route at a time:
-//   enterStep   → the lot arrives in the step's room
-//   playCard    → zero or more times, while time and cash allow
-//   resolveStep → the room's risks bite; scrap, move on, or ship
+//   enterStep    → the lot arrives in the step's room
+//   playCard     → zero or more times, while time and cash allow
+//   resolveStep  → the room's risks bite; scrap, move on, or ship
+//   walkCorridor → between two rooms: take one side stop, or go straight on
 //
 // Order inside enterStep (lotTypes.js): add the step's risks, set the room's
 // time budget, apply the equipment and materials for this room, then deal.
@@ -20,11 +21,12 @@ import { PRACTICES, EQUIPMENT, MATERIALS, ROOMS, STARTER_IDS } from '../content/
 import { LOT_TYPES } from '../content/lotTypes.js';
 import {
   STARTING_CASH, HAND_SIZE, SCRAP_LINE, CUSTOMER_SPEC, SCATTER_STRENGTH, TIME_BUDGETS,
-  STARTING_TOOL_HEALTH,
+  STARTING_TOOL_HEALTH, SIDE_STOP_MINUTES, QTIME_RISK_PER_MINUTE,
 } from '../content/balance.js';
 import { normalizeSeed, shuffle } from './rng.js';
 import { createLot, addRisk, realizeRisks, rollScatter, lotYield } from './lot.js';
 import { conditionMet, applyEffects } from './resolve.js';
+import { buildMap } from './map.js';
 
 // Looks up a content item by id, or throws naming it.
 function findItem(list, id, kind) {
@@ -96,6 +98,8 @@ export function createRun({
     lot,
     cash: STARTING_CASH,
     room: null,             // { id, timeLeft, budget, revealed } while in a room
+    map: buildMap(seed, lotType.route),   // the corridors (map.js), known from the start
+    corridor: null,         // index of the corridor the lot stands in, or null
     tools,                  // tool health stays 100 for now (NEEDS NEW LOGIC)
     equipment: [...loadout.equipment],
     slots: { ...loadout.slots },
@@ -145,6 +149,7 @@ function itemsForRoom(state, roomId) {
 export function enterStep(state) {
   checkRunning(state, 'enterStep');
   checkInRoom(state, 'enterStep', false);
+  if (state.corridor !== null) throw new Error('enterStep: the lot is still in a corridor (call walkCorridor first)');
   const step = currentStep(state);
 
   // 1. The step's own risks enter the lot.
@@ -233,5 +238,30 @@ export function resolveStep(state) {
     next = { ...next, stepIndex: state.stepIndex, status };
     return addLog(next, `  yield ${percent}: ${status}`);
   }
-  return addLog(next, `  yield ${percent}`);
+  // Still running: the lot steps out into the corridor after this room.
+  return addLog({ ...next, corridor: state.stepIndex }, `  yield ${percent}`);
+}
+
+// Between two rooms: take one of the corridor's side stops (`stopKind`, one
+// of its offers) or go straight on (`stopKind` = null). A stop costs cycle
+// time (SIDE_STOP_MINUTES). In a Q-time corridor, the wait also grows the
+// Q-time pattern: QTIME_RISK_PER_MINUTE × the minutes. What a stop gives
+// you comes in M3 item 2; for now it only costs time.
+export function walkCorridor(state, stopKind) {
+  checkRunning(state, 'walkCorridor');
+  if (state.corridor === null) throw new Error('walkCorridor: the lot is not in a corridor');
+  const corridor = state.map[state.corridor];
+  if (stopKind !== null && !corridor.offers.includes(stopKind)) {
+    throw new Error(`walkCorridor: ${stopKind} is not offered here (offers: ${corridor.offers.join(', ')})`);
+  }
+
+  const minutes = stopKind === null ? 0 : SIDE_STOP_MINUTES[stopKind];
+  const qtimePattern = LOT_TYPES[state.lotTypeId].route[corridor.afterStep].qtime;
+  let lot = state.lot;
+  if (qtimePattern && minutes > 0) lot = addRisk(lot, qtimePattern, QTIME_RISK_PER_MINUTE * minutes);
+
+  const map = state.map.map((entry, index) =>
+    index === state.corridor ? { ...entry, walked: true, taken: stopKind } : entry);
+  const next = { ...state, lot, map, corridor: null, cycleTime: state.cycleTime + minutes };
+  return addLog(next, stopKind === null ? '  corridor: straight on' : `  corridor: ${stopKind} (${minutes} min)`);
 }

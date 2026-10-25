@@ -7,7 +7,9 @@
 
 import { PRACTICES, EQUIPMENT, MATERIALS, ROOMS } from '../content/content.js';
 import { LOT_TYPES } from '../content/lotTypes.js';
-import { SCRAP_LINE, CUSTOMER_SPEC, SITE_GOOD_LINE } from '../content/balance.js';
+import {
+  SCRAP_LINE, CUSTOMER_SPEC, SITE_GOOD_LINE, SIDE_STOP_MINUTES, QTIME_RISK_PER_MINUTE,
+} from '../content/balance.js';
 import { normalizeSeed } from '../engine/rng.js';
 import { lotYield, realizeRisks } from '../engine/lot.js';
 import { whyIllegal } from '../engine/run.js';
@@ -191,5 +193,127 @@ export function resultView(before, after) {
     mapKeyText: mapKeyText(),
     status: after.status,
     outcomeText: outcomeText(after, route),
+  };
+}
+
+// --- the floor-plan map (M3 item 1) ----------------------------------------
+
+// What each kind of side stop is called and does (DESIGN.md §4). `short` is
+// the label in the corridor on the floor plan. The stops' contents come in
+// M3 item 2; until then a stop only costs its minutes.
+export const SIDE_STOP_INFO = {
+  metrology:   { name: 'Metrology',   short: 'MET', what: 'Measure: reveals hidden values' },
+  pm:          { name: 'PM / DOE',    short: 'PM',  what: 'Restore a tool, or upgrade one practice' },
+  procurement: { name: 'Procurement', short: 'BUY', what: 'Spend cash on equipment and materials' },
+  event:       { name: 'Event',       short: 'EVT', what: 'A choice with a tradeoff' },
+};
+
+// The legend under the floor plan, built from SIDE_STOP_INFO.
+function stopKeyText() {
+  return Object.values(SIDE_STOP_INFO).map(info => `${info.short} ${info.name}`).join(' · ');
+}
+
+// Where the lot is on the map. Between rooms it stands in a corridor; at the
+// very start it stands at the door, before step 1.
+//   'start'    before the first room
+//   'corridor' in state.corridor
+function mapPosition(state) {
+  if (state.room !== null) throw new Error('mapView: the lot is in a room, not on the map');
+  if (state.status !== 'running') throw new Error(`mapView: the run is over (${state.status})`);
+  return state.corridor === null ? 'start' : 'corridor';
+}
+
+// Each bay's state on the floor plan, from the index of the next room.
+//   done   the lot has been through it
+//   next   the room the lot goes to next
+//   ahead  later on the route
+function bayStatus(index, nextIndex) {
+  if (index < nextIndex) return 'done';
+  if (index === nextIndex) return 'next';
+  return 'ahead';
+}
+
+// One offered side stop, as a button on the map.
+function offerView(kind, qtimePattern) {
+  const minutes = SIDE_STOP_MINUTES[kind];
+  const info = SIDE_STOP_INFO[kind];
+  return {
+    kind,
+    name: info.name,
+    what: info.what,
+    minutes,
+    // In a Q-time corridor, the stop's wait grows the pattern (run.js walkCorridor).
+    qtimeRisk: qtimePattern ? QTIME_RISK_PER_MINUTE * minutes : 0,
+  };
+}
+
+// The pattern a corridor's wait grows, or null if it isn't a Q-time
+// corridor. The route step before the corridor says so with `qtime`.
+function qtimeOfCorridor(route, corridor) {
+  if (corridor === null) return null;
+  return route[corridor.afterStep].qtime || null;
+}
+
+// Everything the map screen shows. Call it only between rooms.
+export function mapView(state) {
+  const position = mapPosition(state);
+  const route = LOT_TYPES[state.lotTypeId].route;
+  const nextIndex = position === 'start' ? 0 : state.map[state.corridor].afterStep + 1;
+  const nextStep = route[nextIndex];
+  const here = position === 'corridor' ? state.map[state.corridor] : null;
+  const qtimePattern = qtimeOfCorridor(route, here);
+  const yieldFraction = lotYield(state.lot);
+
+  return {
+    seed: state.seed,
+    cash: state.cash,
+    cycleTime: state.cycleTime,
+    yieldFraction,
+    yieldPercent: toPercent(yieldFraction),
+    yieldBand: yieldBand(yieldFraction),
+    position,
+    bays: route.map((step, index) => ({
+      number: index + 1,
+      label: step.label,
+      roomId: step.room,
+      roomName: ROOMS[step.room].name,
+      status: bayStatus(index, nextIndex),
+    })),
+    corridors: state.map.map((corridor, index) => ({
+      afterStep: corridor.afterStep,
+      offers: corridor.offers.map(kind => ({ kind, short: SIDE_STOP_INFO[kind].short })),
+      walked: corridor.walked,
+      taken: corridor.taken,
+      here: index === state.corridor,
+      qtime: Boolean(route[corridor.afterStep].qtime),   // a Q-time window (marked on the plan)
+    })),
+    stopKeyText: stopKeyText(),
+    offers: here ? here.offers.map(kind => offerView(kind, qtimePattern)) : [],
+    qtimeText: qtimePattern
+      ? 'Q-time window: native oxide keeps growing until the barrier goes on. Every minute the lot waits at a side stop here adds oxide risk.'
+      : null,
+    whereText: position === 'start'
+      ? 'The lot is at the door, ready for step 1.'
+      : `The lot is in the corridor after step ${here.afterStep + 1}: ${route[here.afterStep].label}.`,
+    goText: position === 'start'
+      ? `Enter step 1: ${nextStep.label}`
+      : `Go straight to step ${nextIndex + 1}: ${nextStep.label}`,
+  };
+}
+
+// The placeholder screen after taking a side stop (its contents come in M3
+// item 2). `before` is the state in the corridor, `after` what walkCorridor
+// returned.
+export function stopView(before, after, stopKind) {
+  const info = SIDE_STOP_INFO[stopKind];
+  const route = LOT_TYPES[after.lotTypeId].route;
+  const nextIndex = before.map[before.corridor].afterStep + 1;
+  return {
+    seed: after.seed,
+    name: info.name,
+    what: info.what,
+    minutes: after.cycleTime - before.cycleTime,
+    text: `${info.name} cost ${after.cycleTime - before.cycleTime} min of cycle time. What this stop does comes in the next update.`,
+    goText: `Continue to step ${nextIndex + 1}: ${route[nextIndex].label}`,
   };
 }

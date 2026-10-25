@@ -5,9 +5,9 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createRun, enterStep, resolveStep, playCard, fullPool, whyIllegal } from '../src/engine/run.js';
+import { createRun, enterStep, resolveStep, playCard, walkCorridor, fullPool, whyIllegal } from '../src/engine/run.js';
 import { lotYield } from '../src/engine/lot.js';
-import { roomView, resultView, siteBand, yieldBand, parseSeed } from '../src/ui/view.js';
+import { roomView, resultView, mapView, stopView, siteBand, yieldBand, parseSeed } from '../src/ui/view.js';
 
 const SEED = 123456;
 const TOLERANCE = 1e-6;
@@ -15,10 +15,17 @@ const ETCH = 3;   // 0-based step index of etch on the cuLine route
 const close = (actual, expected, label) =>
   assert.ok(Math.abs(actual - expected) < TOLERANCE, `${label}: got ${actual}, expected ${expected} (seed ${SEED})`);
 
+// Runs a room doing nothing, then goes straight on through the corridor
+// after it (if the run is still going).
+function idleRoom(state) {
+  const after = resolveStep(enterStep(state));
+  return after.corridor === null ? after : walkCorridor(after, null);
+}
+
 // Seed 123456, scatter off, nothing played, until the lot is IN etch.
 function idleToEtch(changes = {}) {
   let state = createRun({ seed: SEED, scatterStrength: 0, ...changes });
-  while (state.stepIndex < ETCH) state = resolveStep(enterStep(state));
+  while (state.stepIndex < ETCH) state = idleRoom(state);
   return enterStep(state);
 }
 
@@ -164,4 +171,54 @@ test('resultView names the scrap when the lot dies', () => {
   const scrapped = { ...resolveStep(before), status: 'scrapped' };
   assert.equal(resultView(before, scrapped).outcomeText,
     'Lot scrapped: yield fell below the scrap line (40%).');
+});
+
+// --- M3 item 1: the floor-plan map ----------------------------------------
+
+test('map at the start: lot at the door, bay 1 next, no side stops', () => {
+  const view = mapView(createRun({ seed: SEED, scatterStrength: 0 }));
+  assert.equal(view.position, 'start');
+  assert.equal(view.bays.length, 9);
+  assert.deepEqual(view.bays.map(bay => bay.status), ['next', ...Array(8).fill('ahead')]);
+  assert.equal(view.corridors.length, 8);
+  assert.deepEqual(view.offers, []);
+  assert.equal(view.qtimeText, null);
+  assert.equal(view.goText, 'Enter step 1: Wet clean');
+  assert.equal(view.seed, SEED);
+});
+
+test('map in the corridor after step 1: its offers, bay 1 done, bay 2 next', () => {
+  const inCorridor = resolveStep(enterStep(createRun({ seed: SEED, scatterStrength: 0 })));
+  const view = mapView(inCorridor);
+  assert.equal(view.position, 'corridor');
+  assert.deepEqual(view.offers.map(offer => offer.kind), inCorridor.map[0].offers, `seed ${SEED}`);
+  assert.deepEqual(view.bays.slice(0, 3).map(bay => bay.status), ['done', 'next', 'ahead']);
+  assert.equal(view.corridors[0].here, true);
+  assert.equal(view.goText, 'Go straight to step 2: Deposition (SiN + oxide)');
+  for (const offer of view.offers) assert.equal(offer.qtimeRisk, 0, 'not a Q-time corridor');
+});
+
+test('map in the Q-time corridor: warning shown, each stop shows its oxide risk', () => {
+  let state = createRun({ seed: SEED, scatterStrength: 0 });
+  while (state.stepIndex < 4) state = idleRoom(state);
+  const view = mapView(resolveStep(enterStep(state)));
+  assert.match(view.qtimeText, /Q-time window/);
+  assert.equal(view.corridors[4].qtime, true);
+  for (const offer of view.offers) {
+    close(offer.qtimeRisk, 0.001 * offer.minutes, `${offer.kind} risk (seed ${SEED})`);
+  }
+});
+
+test('stopView: names the stop and its minutes, and the step that comes next', () => {
+  const inCorridor = resolveStep(enterStep(createRun({ seed: SEED, scatterStrength: 0 })));
+  const kind = inCorridor.map[0].offers[0];
+  const view = stopView(inCorridor, walkCorridor(inCorridor, kind), kind);
+  const minutes = { metrology: 20, pm: 40, procurement: 10, event: 10 }[kind];
+  assert.equal(view.minutes, minutes, `${kind}, seed ${SEED}`);
+  assert.match(view.text, new RegExp(`cost ${minutes} min`));
+  assert.equal(view.goText, 'Continue to step 2: Deposition (SiN + oxide)');
+});
+
+test('mapView refuses to draw while the lot is in a room', () => {
+  assert.throws(() => mapView(enterStep(createRun({ seed: SEED }))), /in a room/);
 });
