@@ -11,18 +11,18 @@ The game screens do not change in this lane. The new card frame lives only on `a
 ## Item 1: M6 "Card art setup" — per-room tint and shade tokens
 
 ### Task: add `--room-<name>-tint`, `-shade1`, `-shade2` for all 9 rooms, contrast checked
-- [ ] Add 27 tokens to `tokens.css` (values below), with a comment saying what each step is for
-- [ ] Add night-shift tints (shades stay the same: they are art faces, not page ground)
-- [ ] Put the contrast numbers in the `tokens.css` comment (the table also lives here; `docs/` isn't in my list, so `art-direction.md` is not updated)
-- [ ] Contrast test (see question Q2)
-- [ ] Skip the content `art` field (per David, later)
+- [x] Add 27 tokens to `tokens.css` (values below), with a comment saying what each step is for
+- [x] Add night-shift tints (shades stay the same: they are art faces, not page ground)
+- [x] Put the contrast numbers in the `tokens.css` comment (the table also lives here; `docs/` isn't in my list, so `art-direction.md` is not updated)
+- [x] Contrast test (see question Q2)
+- [x] Skip the content `art` field (per David, later)
 
 ### What each step is for
 - **tint**: pale backdrop wall behind art and behind `--ink` text. Must give `--ink` 4.5:1 or better (they all give 13:1 or better).
-- **shade1**: first darker face (diorama side face, tool body). Allowed behind `--ink` text, so it must give 4.5:1 or better (lowest is etch, 5.0:1).
+- **shade1**: first darker face (diorama side face, tool body). Allowed behind `--ink` text, so it must give 4.5:1 or better (lowest is etch, 4.9:1 after the fix below).
 - **shade2**: second darker face. **Art only, never behind text** (some fall to 3.5:1 with ink and under 4.5:1 with white, so no text color is safe on all of them). Said in the token comment.
 - shade1 is at least 1.35:1 darker than the base, shade2 at least 1.35:1 darker than shade1, so flat faces read as different without any gradient.
-- Tint to base is only 1.15:1 or more: dep's base is so pale that even white is 1.27:1 above it (dep tint 1.19:1). So a tool drawn on its tint always gets an ink outline. (Found by the new test, 25 Oct.)
+- Tint to base is only 1.15:1 or more: dep's base is so pale that even white is 1.28:1 above it (dep tint 1.19:1). So a tool drawn on its tint always gets an ink outline. (Found by the new test, 25 Oct.)
 
 ### Proposed values (computed by mixing the room color with white or `--ink`; numbers copied from the script output)
 
@@ -49,25 +49,25 @@ Watch: dep tint #F5F7FA is almost the page `--bg` #F3F6F9. That is fine for a ba
 ## Item 2: M6 "Shared card frame"
 
 ### Task: one card frame in `cards.css`, shown on `art-preview.html` with real cards from `content.js`
-- [ ] `cards.css`: the frame, 260 × 380 at 1×, scaled to 0.75× (195 × 285) under 400 px wide
-- [ ] Room band: room fill, ink text, room icon + room name (icon so color never works alone)
-- [ ] 9 small room icons as SVG in `src/art/icons/` (flat line icons, ink colored): clean (drop), litho (lens), etch (plasma bolt), dep (stacked layers), diff (furnace tube), implant (beam arrow), plate (bath), cmp (pad disc), metro (gauge)
-- [ ] Cost chip: ink pill, mono. Minutes for practices, cash for items (both if a card has both)
-- [ ] Art window 260 × 140; window style tells the kind:
+- [x] `cards.css`: the frame, 260 × 380 at 1×, scaled to 0.75× (195 × 285) under 400 px wide
+- [x] Room band: room fill, ink text, room icon + room name (icon so color never works alone)
+- [x] 9 small room icons as SVG in `src/art/icons/` (flat line icons, ink colored): clean (drop), litho (lens), etch (plasma bolt), dep (stacked layers), diff (furnace tube), implant (beam arrow), plate (bath), cmp (pad disc), metro (gauge)
+- [x] Cost chip: ink pill, mono. Minutes for practices, cash for items (both if a card has both)
+- [x] Art window 260 × 140; window style tells the kind:
   - practice: dark microscope window (`--view-dark`) with the cross-section
   - equipment: room-tint bay window with four bolt dots in the corners
   - material: bay window plus shelf-life ticks along the bottom edge
   - consumable: smaller window (about 260 × 100) plus a "single use" tag
   - Item art itself is a later roadmap item, so item windows show the plain room-tint backdrop for now
-- [ ] Kind and rarity: mono label, 11 px; rarity as 1–3 diamonds drawn with CSS (rotated squares, no glyph font needed) plus a hidden text label ("Rarity: advanced") for screen readers
-- [ ] Name: Barlow Condensed 600, 23 px, two lines at most
-- [ ] Effect: Barlow 13 px, plain words built from the effects list: "Residue ×0.3", "Underlayer attack ×1.5", "×0.5 with an etch stop", "Shows all 25 sites"
-- [ ] Tradeoff: always printed, under a hairline
-- [ ] Consumables have no room: band uses `--surface` with a line border and the label "Any room"
-- [ ] Unplayable look (dashed edge) and focus ring in `cards.css` too, so the hand can switch over later without new CSS
-- [ ] Night shift: frame uses `--surface`, `--ink`, `--line`; bay windows use the night tints
-- [ ] `art-preview.html`: a standalone page (not linked from the game) that imports `content.js` read-only and draws every practice, equipment, material and consumable in the new frame, plus a light/night toggle. A small script inside the page turns content entries into card HTML. Opened at `http://localhost:8000/art-preview.html`
-- [ ] Screenshots at 1280 × 800 and 375 × 812 (see Q2), checked by eye, sizes checked
+- [x] Kind and rarity: mono label, 11 px; rarity as 1–3 diamonds drawn with CSS (rotated squares, no glyph font needed) plus a hidden text label ("Rarity: advanced") for screen readers
+- [x] Name: Barlow Condensed 600, 23 px, two lines at most
+- [x] Effect: Barlow 13 px, plain words built from the effects list: "Residue ×0.3", "Underlayer attack ×1.5", "×0.5 with an etch stop", "Shows all 25 sites"
+- [x] Tradeoff: always printed, under a hairline
+- [x] Consumables have no room: band uses `--surface` with a line border and the label "Any room"
+- [x] Unplayable look (dashed edge) and focus ring in `cards.css` too, so the hand can switch over later without new CSS
+- [x] Night shift: frame uses `--surface`, `--ink`, `--line`; bay windows use the night tints
+- [x] `art-preview.html`: a standalone page (not linked from the game) that imports `content.js` read-only and draws every practice, equipment, material and consumable in the new frame, plus a light/night toggle. A small script inside the page turns content entries into card HTML. Opened at `http://localhost:8000/art-preview.html`
+- [x] Screenshots at 1280 × 800 and 375 × 812 (see Q2), checked by eye, sizes checked
 
 **Acceptance criteria:** all 23 cards draw on `art-preview.html` at both sizes with no horizontal scroll at 375 px; every label readable (4.5:1); band, cost, window, kind, rarity, name, effect, tradeoff all present; kind is readable from the window alone; rarity from diamond count alone; no colors in `cards.css` except `var(--…)` tokens; no console errors.
 
@@ -76,11 +76,11 @@ Watch: dep tint #F5F7FA is almost the page `--bg` #F3F6F9. That is fine for a ba
 ## Item 3: M6 "Practice art" — microscope cross-sections
 
 ### Task: one SVG cross-section per practice (10), drawn from `--mat-*` tokens; physics-reviewer pass
-- [ ] One file per practice in `src/art/sections/<practiceId>.svg`, viewBox 260 × 140
-- [ ] **How the tokens reach the SVG:** shapes carry a class (`class="mat-si"`), not a color. `cards.css` maps each class to its token (`.mat-si { fill: var(--mat-si) }`). The preview page fetches the SVG text and puts it inside the card, so the page's CSS colors it. (A plain `<img>` can't see the page's CSS, so the colors would be lost.) No hex values in the SVG files.
-- [ ] Drawing rules (art direction): flat fills, crisp 1 px edges, films at least 6 px thick, void = red dashed outline only, no labels inside the art (too small at 0.75×); each SVG has a `<title>` describing it in words
-- [ ] Legend strip on the preview page (material swatch + name) so the colors can be checked
-- [ ] Run `physics-reviewer` on all 10; fix what it finds; ASK DAVID items come back to you
+- [x] One file per practice in `src/art/sections/<practiceId>.svg`, viewBox 260 × 140
+- [x] **How the tokens reach the SVG:** shapes carry a class (`class="mat-si"`), not a color. `cards.css` maps each class to its token (`.mat-si { fill: var(--mat-si) }`). The preview page fetches the SVG text and puts it inside the card, so the page's CSS colors it. (A plain `<img>` can't see the page's CSS, so the colors would be lost.) No hex values in the SVG files.
+- [x] Drawing rules (art direction): flat fills, crisp 1 px edges, films at least 6 px thick, void = red dashed outline only, small labels and a scale bar inside the art (changed by David's style sheet, see his answers); each SVG has a `<title>` describing it in words
+- [x] Legend strip on the preview page (material swatch + name) so the colors can be checked
+- [x] Run `physics-reviewer` on all 10; fix what it finds; ASK DAVID items come back to you
 
 ### Proposed picture for each practice (please correct any that are wrong)
 
@@ -136,9 +136,20 @@ All checked against `--view-dark` so they read on the microscope window (3:1 or 
 
 **Progress notes:**
 - 25 Oct 2026: read CLAUDE.md, PROJECT.md, lessons, art-direction, card-art-plan, content.js. Checked remote branches: `lane-b` (saves plan) and `ccr-c4267d03` (Pages) don't touch Lane D files. Contrast numbers computed with a scratch script.
+- 25 Oct: item 1. The new contrast test failed twice on the first run, both real: etch shade1 was 1.345:1 from its base (my script printed it rounded as 1.35), so it moved from 18% to 19% toward ink (#5F90D1 → #5E8ECF, ink 4.9:1). And no tint can sit 1.35:1 above dep's nearly white base, so tint-to-base is 1.15:1 with an ink outline on tools. Proved the test fails on a bad color before trusting it.
+- 25 Oct: item 2. Class names start with `frame-` so they never clash with `.card` in `room.css`. The screen test found the cards being squeezed narrower in a one-row hand (text overflowed); fixed with `flex: none`. Bolt dots were misplaced (CSS counted the ceiling and floor strips as bolts); bolts are now `<i>`.
+- 25 Oct: item 3. 10 cross-sections written. physics-reviewer found 7 issues; all fixed except the ASK DAVID points below: rework now strips every line; low-current start shows conformal Cu with the mouth open (bottom-up fill is the additive bath's job, as its physicsNote says); dummy-fill trenches all land on SiN at the same depth and the wide line keeps a slight dish (×0.4, not ×0); N2 storage compares an air wait with a purge; spike anneal shows the as-implanted junction line; the etch stop compares a narrow and a wide trench; over-etch and endpoint got bigger, labelled differences.
+- 25 Oct: code-explainer review: fixed cost chip `flex: none`, screenshot test now uses the real theme button, simpler `block()` in the test, color check also catches `rgb()`/`hsl()`, "art missing" note instead of a blank window, phone-hand cards named, no pointless `tabIndex`. Left for later: the card-text helpers in `art-preview.html` should move to `src/ui/view.js` with tests when the hand uses the frame (not a Lane D file).
 
-**Result:** (not started)
+**Open questions for David**
+- **ASK DAVID (dummy fill):** at textbook level dummy fill mainly cuts density-driven *erosion*; dishing of one wide line depends mostly on its width (slotting is the usual fix). Is "dummy fill reduces dishing" an OK simplification for the card? The art shows a slight dish either way.
+- **ASK DAVID (low-current start):** confirm the art should show conformal fill with the mouth kept open, not bottom-up fill. That's what the card's own physicsNote says.
+- **Content wording (not Lane D's file):** `measureAll`'s physicsNote says "3 of 25 wafers", but the card is about 25 *sites*. Which is meant?
+- **Phone text size:** at 0.75× the 11 px labels come out about 8 px and body text about 10 px. Readable in the screenshot, but small. Keep 0.75×, or use a larger phone scale? That belongs to the M6 phone layout pass.
+
+**Result:** 5 commits on `claude/lane-d-look-feel-64k6zr`: room tint/shade tokens + `tests/tokens.test.js`; the card frame (`src/ui/cards.css`, `src/art/icons/`, `art-preview.html`); 10 practice cross-sections (`src/art/sections/`) + `tests/screens/art-preview.spec.js`; physics-review fixes; code-review fixes. `npm test` 140/140, screen tests 30/30 at 1280×800 and 375×812.
 
 ## For David to copy over (Lane D can't edit these files)
-- ROADMAP ticks: none yet
-- Lessons: none yet
+- ROADMAP M6 ticks: "Card art setup" (tokens part; the content `art` field is still open), "Shared card frame", "Practice art".
+- Lesson, **Rounded numbers hid a failing contrast step**: my contrast script printed 1.345 as "1.35", so etch shade1 looked like it met the 1.35:1 rule and didn't. Root cause: judged a limit from a rounded printout. Rule: ✅ compare raw ratios against limits in code (the test does), print rounded only for people. ✅ Never copy a "passes" judgement from rounded output.
+- Lesson, **Cards shrank in a one-row hand**: a fixed-width card in a `nowrap` flex row was squeezed below 260 px and its text overflowed. Root cause: flex items shrink by default. Rule: ✅ fixed-size UI pieces get `flex: none`. ✅ The art-preview screen test checks no card text overflows.

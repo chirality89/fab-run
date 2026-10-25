@@ -4,7 +4,7 @@
    are 4.5:1 or better on both --bg and --surface. Room fills are BACKGROUNDS
    behind --ink text, never text colors themselves.
    Night shift: the room tints turn dark (78% toward the night --surface) so
-   night --ink text on them stays 7.4:1 or better. Shades stay the same:
+   night --ink text on them stays about 7.4:1 or better. Shades stay the same:
    they are tool faces, not page ground. */
 
 :root {

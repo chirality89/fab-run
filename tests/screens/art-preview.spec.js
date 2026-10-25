@@ -73,8 +73,12 @@ test('the page never scrolls sideways and the theme button is big enough to tap'
 
 test('screenshots in light and night shift', async ({ page }) => {
   await openPreview(page);
-  await page.evaluate(() => { document.documentElement.dataset.theme = 'light'; });
+  // Use the page's own button: system → light → night.
+  const themeButton = page.locator('#theme');
+  await themeButton.click();
+  await expect(themeButton).toHaveText('Theme: light');
   await screenshot(page, 'art-preview-light');
-  await page.evaluate(() => { document.documentElement.dataset.theme = 'dark'; });
+  await themeButton.click();
+  await expect(themeButton).toHaveText('Theme: night');
   await screenshot(page, 'art-preview-night');
 });

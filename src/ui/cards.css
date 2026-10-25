@@ -75,6 +75,7 @@
 /* 2. Cost chip: dark pill, light mono text. These two stay the same in
    night shift because the pill sits on the (always light) room band. */
 .frame-cost {
+  flex: none;            /* the cost never wraps or gets squeezed */
   padding: 4px 10px;
   border-radius: 999px;
   background: var(--on-fill);

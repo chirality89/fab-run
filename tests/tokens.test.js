@@ -15,13 +15,17 @@ const CSS = readFileSync(new URL('../src/theme/tokens.css', import.meta.url), 'u
 const ROOMS = ['clean', 'litho', 'etch', 'dep', 'diff', 'implant', 'plate', 'cmp', 'metro'];
 
 // Returns the text between the "{" after `start` and its matching "}".
+// It counts braces so a block inside a block (the night-shift one sits
+// inside @media) is returned whole.
 function block(start) {
   const at = CSS.indexOf(start);
   assert.notEqual(at, -1, `tokens.css has no block starting "${start}"`);
+  const open = CSS.indexOf('{', at);
   let depth = 0;
-  for (let i = CSS.indexOf('{', at); i < CSS.length; i++) {
-    if (CSS[i] === '{') depth++;
-    if (CSS[i] === '}' && --depth === 0) return CSS.slice(CSS.indexOf('{', at) + 1, i);
+  for (let i = open; i < CSS.length; i++) {
+    if (CSS[i] === '{') depth = depth + 1;
+    if (CSS[i] === '}') depth = depth - 1;
+    if (depth === 0) return CSS.slice(open + 1, i);
   }
   throw new Error(`block "${start}" never closes`);
 }
@@ -39,8 +43,10 @@ const SYSTEM_NIGHT = { ...LIGHT, ...colors(block(':root:not([data-theme="light"]
 
 // Relative luminance and contrast ratio, as defined in WCAG 2.
 function luminance(hex) {
-  const channels = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16) / 255);
-  const linear = channels.map(c => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
+  // "#RRGGBB": red is characters 1–2, green 3–4, blue 5–6. Each becomes 0 to 1.
+  const channels = [1, 3, 5].map(start => parseInt(hex.slice(start, start + 2), 16) / 255);
+  // Screens don't show brightness in a straight line; this undoes that curve.
+  const linear = channels.map(value => (value <= 0.03928 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4));
   return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2];
 }
 function contrast(hexA, hexB) {
@@ -89,7 +95,7 @@ test('the art steps differ enough to read as separate flat faces', () => {
   for (const room of ROOMS) {
     const base = `--room-${room}`;
     // Tint to base can't reach MIN_STEP for dep: its base is so pale that
-    // even pure white is only 1.27:1 above it. Tools on a tint always get an
+    // even pure white is only 1.28:1 above it. Tools on a tint always get an
     // ink outline (card-art-plan style), so 1.15:1 is enough here.
     assertContrast(LIGHT, `${base}-tint`, base, 1.15);
     assertContrast(LIGHT, base, `${base}-shade1`, MIN_STEP);
@@ -124,11 +130,13 @@ const ART_FILES = ['icons', 'sections'].flatMap(folder =>
   readdirSync(new URL(`../src/art/${folder}/`, import.meta.url)).map(name => `src/art/${folder}/${name}`));
 const CARDS_CSS = read('src/ui/cards.css');
 
-// A hex color like #1F5FBF or #fff. Comments are skipped first, so a note
-// that mentions a color can't trip the check (tasks/lessons.md).
+// A written-in color: hex like #1F5FBF, or rgb(...) / hsl(...). Comments are
+// skipped first, so a note that mentions a color can't trip the check
+// (tasks/lessons.md). Named colors (red, white) are not searched for: words
+// like "white" appear in ordinary text and the check would cry wolf.
 function hexColorsIn(text) {
   const noComments = text.replace(/\/\*[\s\S]*?\*\//g, '').replace(/<!--[\s\S]*?-->/g, '');
-  return noComments.match(/#[0-9A-Fa-f]{3,8}\b/g) || [];
+  return noComments.match(/#[0-9A-Fa-f]{3,8}\b|\b(?:rgba?|hsla?)\(/g) || [];
 }
 
 test('cards.css, art-preview.html and the art files have no hard-coded colors', () => {
@@ -137,6 +145,7 @@ test('cards.css, art-preview.html and the art files have no hard-coded colors', 
   }
   // Prove the check can fail (tasks/lessons.md).
   assert.deepEqual(hexColorsIn('a { fill: #8E989D; } /* #FFFFFF */'), ['#8E989D']);
+  assert.deepEqual(hexColorsIn('b { color: rgb(0, 0, 0); }'), ['rgb(']);
 });
 
 test('every practice has a cross-section, and every class it uses has a CSS rule', () => {

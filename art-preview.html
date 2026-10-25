@@ -160,10 +160,12 @@ function kindText(item) {
 
 // SVG files are fetched as text and put straight into the page, so the
 // page's CSS (tokens.css, cards.css) colors them. An <img> could not.
+// A missing file shows "art missing" in the window instead of a blank.
 const svgCache = new Map();
+const MISSING_ART = '<svg viewBox="0 0 260 140"><text class="art-label-on-dark" x="130" y="74" text-anchor="middle">art missing</text></svg>';
 async function loadSvg(path) {
   if (!svgCache.has(path)) {
-    svgCache.set(path, fetch(path).then(reply => (reply.ok ? reply.text() : '')).catch(() => ''));
+    svgCache.set(path, fetch(path).then(reply => (reply.ok ? reply.text() : MISSING_ART)).catch(() => MISSING_ART));
   }
   return svgCache.get(path);
 }
@@ -181,7 +183,6 @@ async function buildCard(item, { small = false } = {}) {
   const room = item.room || 'any';
   const card = element('article', `frame frame-${item.kind}${small ? ' frame-small' : ''}`);
   card.dataset.room = room;
-  card.tabIndex = 0;
   card.setAttribute('aria-label', item.name);
 
   // 1–2. Room band and cost chip.
@@ -285,7 +286,9 @@ await fill('practices', PRACTICES);
 await fill('equipment', EQUIPMENT);
 await fill('materials', MATERIALS);
 await fill('consumables', CONSUMABLES);
-await fill('hand', [PRACTICES[0], PRACTICES[2], PRACTICES[1]], { small: true });
+// A sample hand: three starter practices from three rooms (etch, litho, metro).
+const handIds = ['timedOveretch', 'reworkLitho', 'measureAll'];
+await fill('hand', handIds.map(id => PRACTICES.find(practice => practice.id === id)), { small: true });
 document.body.dataset.ready = 'true';   // the screen test waits for this
 </script>
 </body>
