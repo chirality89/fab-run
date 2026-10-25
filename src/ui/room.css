@@ -27,6 +27,7 @@
 .room-cmp     { --room-color: var(--room-cmp); }
 .room-metro   { --room-color: var(--room-metro); }
 
+.room-name:focus { outline: none; }   /* focused only to announce a new screen */
 .room-name { font-size: 34px; line-height: 1.05; letter-spacing: 0.03em; text-transform: uppercase; }
 .room-step { margin: 2px 0 6px; font-weight: 500; }
 .room-facts { margin: 0; display: flex; flex-wrap: wrap; gap: 4px 20px; }
@@ -177,13 +178,107 @@
   cursor: pointer;
 }
 .run-button { width: 100%; }
-.new-seed-button { background: var(--surface); color: var(--blue); }
+.secondary-button { background: var(--surface); color: var(--blue); }   /* outline, not filled */
 .result-buttons { display: flex; flex-wrap: wrap; gap: 10px; }
 .outcome-text { margin: 0 0 12px; font-weight: 500; }
 
 /* Keyboard focus: a clear ring on every button (not shown for mouse taps) */
 .card-button:focus-visible,
 .action-button:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+
+/* --- Map screen: the floor plan, corridors and side stops ---------------- */
+.map-band { --room-color: var(--blue); color: var(--on-blue); }
+
+/* Bays on a 5 × 5 grid: bays in the odd lines, corridors in the even ones */
+.floor-plan {
+  display: grid;
+  grid-template-columns: 1fr minmax(36px, auto) 1fr minmax(36px, auto) 1fr;
+  grid-template-rows: auto minmax(32px, auto) auto minmax(32px, auto) auto;
+  max-width: 520px;
+  margin: 0 auto;
+}
+.bay {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-height: 76px;
+  padding: 6px 8px;
+  border: 2px solid var(--line);
+  border-radius: var(--radius-small);
+  background: var(--room-color);
+  color: var(--on-fill);
+}
+.bay-number { font: 600 22px/1 var(--cond); }
+.bay-name { font-size: 13px; line-height: 1.2; font-weight: 500; }
+.bay-status { margin-top: auto; font: 600 12px/1 var(--mono); text-transform: uppercase; }
+.bay-done { border-style: solid; border-color: var(--ink); opacity: 0.75; }        /* faded, with "Done" */
+.bay-next { border: 3px dashed var(--ink); }                                       /* dashed, with "Next" */
+
+/* Corridors: a strip of short labels between two bays */
+.corridor {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  align-content: center;
+  gap: 3px;
+  padding: 3px;
+  background: var(--bg);
+}
+.corridor-across { flex-direction: column; flex-wrap: nowrap; }
+.corridor-here { outline: 3px solid var(--ink); outline-offset: -3px; border-radius: var(--radius-small); }
+.corridor-walked .chip { opacity: 0.6; }
+.corridor-walked .chip-taken { opacity: 1; }
+.chip {
+  padding: 2px 4px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: var(--surface);
+  color: var(--ink);
+  font: 500 11px/1.1 var(--mono);
+}
+.chip-taken { background: var(--ink); border-color: var(--ink); color: var(--surface); }
+.chip-lot   { background: var(--blue); border-color: var(--blue); color: var(--on-blue); font-weight: 600; }
+.chip-qtime { background: var(--die-warn); border: 2px dotted var(--die-warn-edge); color: var(--on-fill); }
+
+/* Choices: side-stop buttons, then "go straight on" */
+.choice-heading { margin: 12px 0 6px; font-size: 16px; }
+.stop-list { display: grid; gap: 8px; }
+.stop-button {
+  display: block;
+  width: 100%;
+  min-height: var(--touch);
+  padding: 10px 12px;
+  border: 2px solid var(--blue);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.stop-button:hover { border-width: 3px; padding: 9px 11px; }
+.stop-qtime { display: block; margin-top: 4px; font-size: 14px; font-weight: 600; }
+.qtime-warning {
+  margin: 0 0 8px;
+  padding: 8px 10px;
+  border: 2px dotted var(--die-warn-edge);
+  border-radius: var(--radius-small);
+  background: var(--die-warn);
+  color: var(--on-fill);
+  font-weight: 500;
+}
+.go-button { width: 100%; margin-top: 4px; }
+.stop-button:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+
+@media (min-width: 900px) {
+  .map-body {
+    display: grid;
+    grid-template-columns: minmax(320px, 420px) 1fr;
+    column-gap: 12px;
+    align-items: start;
+  }
+}
 
 /* --- Plain message (e.g. lot scrapped before this room) ------------------ */
 .message-text { margin: 0; font-weight: 500; }

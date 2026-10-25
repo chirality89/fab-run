@@ -12,6 +12,7 @@ import { test, expect } from '@playwright/test';
 
 const SEED = 123456;
 const PAGE = `/?seed=${SEED}`;
+const DOUBLE_CLICK_WINDOW_MS = 600;   // a little more than Chrome's 500 ms
 
 // Taps on a phone, clicks on a desktop, so each size is used the way a
 // person would use it.
@@ -48,14 +49,29 @@ async function expectNoSidewaysScroll(page) {
   expect(scrollWidth, `page width (seed ${SEED})`).toBe(page.viewportSize().width);
 }
 
+const goButton = page => page.locator('.go-button');
+const continueButton = page => page.getByRole('button', { name: 'Continue to the corridor' });
+
+// From the start of the run, walks the lot into the etch room (step 4):
+// enter step 1, then run each of steps 1–3 doing nothing and go straight on.
+async function walkToEtch(page) {
+  await page.goto(PAGE);
+  await press(page, goButton(page));                 // Enter step 1
+  for (let step = 1; step <= 3; step++) {
+    await press(page, page.locator('.run-button'));  // Run the room
+    await press(page, continueButton(page));
+    await press(page, goButton(page));               // straight on
+  }
+  await expect(page.locator('.room-name')).toHaveText('Etch');
+}
+
 const card = page => page.locator('.card-button', { hasText: 'Timed over-etch' });
 const timeText = page => page.locator('.time-panel .meter-text');
 const runButton = page => page.getByRole('button', { name: 'Run etch' });
 
-test('etch room loads with the seed shown and the card playable', async ({ page }) => {
+test('the etch room shows the seed and a playable card', async ({ page }) => {
   const errors = watchForErrors(page);
-  await page.goto(PAGE);
-  await expect(page.locator('.room-name')).toHaveText('Etch');
+  await walkToEtch(page);
   await expect(page.locator('.seed')).toHaveText(`Seed ${SEED}`);
   await expect(timeText(page)).toHaveText('8 of 8 min left');
   await expect(card(page)).toBeVisible();
@@ -67,7 +83,7 @@ test('etch room loads with the seed shown and the card playable', async ({ page 
 
 test('tapping timed over-etch plays it: 4 of 8 min left, hand empty', async ({ page }) => {
   const errors = watchForErrors(page);
-  await page.goto(PAGE);
+  await walkToEtch(page);
   await press(page, card(page));
   await expect(timeText(page)).toHaveText('4 of 8 min left');
   await expect(page.locator('.card-button')).toHaveCount(0);
@@ -80,7 +96,7 @@ test('tapping timed over-etch plays it: 4 of 8 min left, hand empty', async ({ p
 
 test('Run etch shows the result; Replay brings back the same start', async ({ page }) => {
   const errors = watchForErrors(page);
-  await page.goto(PAGE);
+  await walkToEtch(page);
   const firstLoss = await page.locator('.expected-loss').textContent();
 
   await press(page, card(page));
@@ -92,14 +108,15 @@ test('Run etch shows the result; Replay brings back the same start', async ({ pa
   await screenshot(page, '3-result');
 
   await press(page, page.getByRole('button', { name: 'Replay this seed' }));
-  await expect(timeText(page)).toHaveText('8 of 8 min left');
-  await expect(page.locator('.expected-loss')).toHaveText(firstLoss);
+  await expect(page.locator('.room-name')).toHaveText('Floor plan');   // a replay starts at the door
   expect(page.url()).toContain(`seed=${SEED}`);
+  await walkToEtch(page);
+  await expect(page.locator('.expected-loss')).toHaveText(firstLoss);
   expect(errors, `console errors (seed ${SEED})`).toEqual([]);
 });
 
 test('a fast double tap plays the card once and does not run etch', async ({ page }) => {
-  await page.goto(PAGE);
+  await walkToEtch(page);
   // Aim at the bottom of the card: after the first tap the screen redraws
   // and, at desktop size, the Run etch button slides up into that spot.
   // (Checked: with the double-click guard in render.js switched off, the
@@ -109,6 +126,12 @@ test('a fast double tap plays the card once and does not run etch', async ({ pag
   // a raw tap at a spot off the screen hits nothing.
   await card(page).scrollIntoViewIfNeeded();
   const box = await card(page).boundingBox();
+  // walkToEtch's last tap ("go straight on") was a moment ago, near this
+  // spot on a phone. Within the browser's double-click window that tap and
+  // the next one count as a double click, and the guard ignores the second,
+  // as it should. Wait the window out so this starts as a fresh gesture,
+  // the way a person would after the screen changes.
+  await page.waitForTimeout(DOUBLE_CLICK_WINDOW_MS);
   const x = box.x + box.width / 2;
   const y = box.y + box.height - 4;
   if (test.info().project.use.hasTouch) {

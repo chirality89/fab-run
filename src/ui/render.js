@@ -7,7 +7,7 @@
 // turn into page code.
 
 // Makes an element with a class and, optionally, some text.
-function el(tag, className, text) {
+export function el(tag, className, text) {
   const node = document.createElement(tag);
   if (className) node.className = className;
   if (text !== undefined) node.textContent = text;
@@ -20,7 +20,7 @@ function el(tag, className, text) {
 // double tap would land on whatever slid into that spot (often Run etch).
 // event.detail counts the clicks in a row: 1, then 2 for a double click
 // (0 for a key press).
-function onSingleClick(button, handler) {
+export function onSingleClick(button, handler) {
   button.type = 'button';
   button.addEventListener('click', event => {
     if (event.detail > 1) return;
@@ -29,7 +29,7 @@ function onSingleClick(button, handler) {
 }
 
 // A small heading for each panel.
-function panel(title, className) {
+export function panel(title, className) {
   const box = el('section', `panel ${className}`);
   box.append(el('h2', 'panel-title', title));
   return box;
@@ -206,7 +206,7 @@ function drawResultYield(view) {
 }
 
 // A plain button that calls `onClick`.
-function actionButton(text, className, onClick) {
+export function actionButton(text, className, onClick) {
   const button = el('button', `action-button ${className}`, text);
   onSingleClick(button, onClick);
   return button;
@@ -214,21 +214,37 @@ function actionButton(text, className, onClick) {
 
 // The screen after a room is run: what it cost, the new wafer map, what
 // happens next, and two ways to play again.
-// `actions` holds onReplay() and onNewSeed().
+// `actions` holds onContinue() (shown only while the run goes on),
+// onReplay() and onNewSeed().
 export function renderResult(container, view, actions) {
   const outcome = panel('Result', 'result-panel');
   outcome.setAttribute('role', 'status');
   outcome.append(el('p', 'outcome-text', view.outcomeText));
   const buttons = el('div', 'result-buttons');
+  if (view.status === 'running') {
+    buttons.append(actionButton('Continue to the corridor', 'continue-button', actions.onContinue));
+  }
   buttons.append(
-    actionButton('Replay this seed', 'replay-button', actions.onReplay),
-    actionButton('New seed', 'new-seed-button', actions.onNewSeed),
+    // While the run goes on, Continue is the main button and Replay is plain.
+    actionButton('Replay this seed', view.status === 'running' ? 'replay-button secondary-button' : 'replay-button', actions.onReplay),
+    actionButton('New seed', 'new-seed-button secondary-button', actions.onNewSeed),
   );
   outcome.append(buttons);
   container.replaceChildren(drawHeader(view), drawResultYield(view), outcome, drawWaferMap(view));
-  // Focus Replay for keyboard players, but show the result from the top.
+  showFromTop(container);
+}
+
+// After a new screen is drawn: scroll back to the top and put keyboard
+// focus on the screen's title, so a screen reader announces the new screen
+// and Tab goes on to the first button. (Focusing a button instead drew a
+// focus ring that looked like a choice already made.) tabIndex -1 lets the
+// title take focus without becoming a Tab stop itself.
+export function showFromTop(container) {
   window.scrollTo(0, 0);
-  container.querySelector('.replay-button').focus({ preventScroll: true });
+  const title = container.querySelector('h1');
+  if (!title) return;
+  title.tabIndex = -1;
+  title.focus({ preventScroll: true });
 }
 
 // A plain message instead of a room, e.g. when the lot was scrapped before
