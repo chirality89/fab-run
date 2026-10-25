@@ -9,6 +9,7 @@ import {
   createRun, enterStep, resolveStep, playCard, walkCorridor, buyItem, fullPool, whyIllegal,
 } from '../src/engine/run.js';
 import { lotYield } from '../src/engine/lot.js';
+import { seedSellingTestItems } from './shopSeed.js';
 import { roomView, resultView, mapView, stopView, shopView, siteBand, yieldBand, parseSeed } from '../src/ui/view.js';
 
 const SEED = 123456;
@@ -226,11 +227,13 @@ test('mapView refuses to draw while the lot is in a room', () => {
 });
 
 // --- the procurement stop (M3 item 2a) -------------------------------------
-// Seed 123456: the corridor after step 2 offers procurement, and its shop
-// sells the pad conditioner, the DUV resist and the thick resist.
+// SHOP_SEED: the first seed from 123456 up whose corridor after step 2
+// offers procurement and sells the pad conditioner, the DUV resist and the
+// thick resist (tests/shopSeed.js). Searched, so new content can't break it.
+const SHOP_SEED = seedSellingTestItems();
 
 function shopAfterStep2() {
-  const afterStep1 = walkCorridor(resolveStep(enterStep(createRun({ seed: SEED }))), null);
+  const afterStep1 = walkCorridor(resolveStep(enterStep(createRun({ seed: SHOP_SEED }))), null);
   return walkCorridor(resolveStep(enterStep(afterStep1)), 'procurement');
 }
 
@@ -238,7 +241,7 @@ test('shopView: 3 items with price, kind, room, tradeoff and where each acts nex
   const view = shopView(shopAfterStep2());
   assert.equal(view.cash, 1500);
   assert.equal(view.goText, 'Continue to step 3: Litho (trench)');
-  assert.deepEqual(view.items.map(item => item.id), ['padConditioner', 'resistCAR', 'resistThick'], `seed ${SEED}`);
+  assert.deepEqual(view.items.map(item => item.id), ['padConditioner', 'resistCAR', 'resistThick'], `seed ${SHOP_SEED}`);
   const [pad, car] = view.items;
   assert.equal(pad.kindText, 'Equipment');
   assert.equal(pad.roomName, 'CMP');

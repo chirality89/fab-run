@@ -1,14 +1,16 @@
 // shop.spec.js — screen tests for the procurement stop, in a real browser.
 // Run with: npm run screens   (needs npm install once; see CLAUDE.md §11)
 //
-// Runs at desktop and phone size (playwright.config.js), seed 123456. For
-// this seed the corridor after step 2 offers procurement, and its shop sells
-// the pad conditioner, the DUV resist and the thick resist.
+// Runs at desktop and phone size (playwright.config.js), on the first seed
+// from 123456 up whose corridor after step 2 offers procurement and sells the
+// pad conditioner, the DUV resist and the thick resist (tests/shopSeed.js).
+// Searched, so new equipment or materials in content.js can't break it.
 // Screenshots go to screenshots/desktop/ and screenshots/phone/.
 
 import { test, expect } from '@playwright/test';
+import { seedSellingTestItems } from '../shopSeed.js';
 
-const SEED = 123456;
+const SEED = seedSellingTestItems();
 const PAGE = `/?seed=${SEED}`;
 
 async function press(page, locator) {
