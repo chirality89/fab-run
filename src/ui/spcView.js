@@ -20,6 +20,11 @@ function specText(monitor, toUnits, format) {
   return `${format(toUnits(-SPEC_LIMIT_SIGMA))}–${format(toUnits(SPEC_LIMIT_SIGMA))}`;
 }
 
+// "1 lot" or "12 lots".
+function lotsText(count) {
+  return count === 1 ? '1 lot' : `${count} lots`;
+}
+
 // One tripped rule, in words.
 function ruleText(tripped) {
   const side = tripped.side;
@@ -33,17 +38,27 @@ function ruleText(tripped) {
 export function spcView(state, roomId) {
   const monitor = TOOL_MONITORS[roomId];
   if (!monitor) return null;
-  const zs = state.tools[roomId].spc.slice(-SPC_HISTORY);   // the latest points
+  const tool = state.tools[roomId];
+  const zs = tool.spc.slice(-SPC_HISTORY);   // the latest points
+  // A PM mark sits just before point `index` (index = zs.length: after the
+  // last point, i.e. the PM came after the latest lot).
+  const firstShown = tool.spc.length - zs.length;
+  const pmMarks = tool.pmAt.map(at => at - firstShown).filter(index => index >= 0 && index <= zs.length);
   const toUnits = z => monitor.target + z * monitor.sigma;
   const decimals = decimalsFor(monitor);
   const format = value => value.toFixed(decimals);
-  const tripped = spcRules(zs);
+  // After a PM the tool is a new process: the rules only look at the lots
+  // measured since the last PM, as an engineer restarts the chart.
+  const lastPm = pmMarks.length > 0 ? pmMarks[pmMarks.length - 1] : 0;
+  const sincePm = zs.slice(lastPm);
+  const tripped = spcRules(sincePm);
   const name = monitor.parameter.toLowerCase();
 
   return {
     parameter: monitor.parameter,
     unit: monitor.unit,
     zs,
+    pmMarks,
     controlSigma: CONTROL_LIMIT_SIGMA,
     specSigma: SPEC_LIMIT_SIGMA,
     // One-sided spec (particles, seams): only the upper spec line is drawn.
@@ -55,8 +70,10 @@ export function spcView(state, roomId) {
       + ` · spec ${specText(monitor, toUnits, format)} ${monitor.unit}`,
     rules: tripped.map(ruleText),
     inControl: tripped.length === 0,
-    verdictText: tripped.length === 0
-      ? `In control: no rule tripped in the last ${zs.length} lots.`
+    verdictText: sincePm.length === 0
+      ? 'Just PM\'d: no lots measured since the PM yet.'
+      : tripped.length === 0
+      ? `In control: no rule tripped in the last ${lotsText(sincePm.length)}${pmMarks.length > 0 ? ' since the PM' : ''}.`
       : `Out of control: the ${name} may be shifting. A shifted tool costs yield in this room.`,
   };
 }

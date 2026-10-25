@@ -55,6 +55,8 @@
 - 2026-10-25: plan written; waiting for David's OK.
 - 2026-10-25: David: split PM and DOE into two boxes (done in ROADMAP.md). A PM restores a tool to a random 75–95, not 100 (`PM_RESTORE_MIN`/`MAX`, drawn from the tools' generator). Side effects are noted for later. One PM per stop. Yes to the SPC chip.
 - Engine built. Hand check, seed 123456: PM on CMP (starting at 60) in the corridor after step 2 draws health 84, a 0.8σ shift. Final yield = healthy × 0.999375, against × 0.977312 without the PM; +40 min. Passes as computed.
+- Screen built: the PM screen (pmView.js, renderPm in floorPlan.js) shows a card per tool ahead with its SPC chart and verdict. The chart has a dotted PM mark, and the map has a red SPC chip with the word. On desktop the cards sit three to a row.
+- From the screenshots: after a PM the etch chart still said "Out of control" from its old points. The rules now look only at lots measured since the last PM, as an engineer restarts the chart, and the verdict says "Just PM'd". The PM label no longer clips at the chart edge.
 
 **Result:**
 

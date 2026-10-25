@@ -336,3 +336,13 @@
 .spc-verdict-out { color: var(--bad); }
 .spc-rules { margin: 4px 0 0; padding-left: 20px; }
 .spc-rule { font-size: 15px; }
+
+/* --- PM marks on SPC charts, the map's SPC chip, the PM screen ----------- */
+.spc-pm-line  { stroke: var(--ink); stroke-width: 1.5; stroke-dasharray: 2 3; }   /* dotted */
+.spc-pm-label { fill: var(--ink); font: 600 10px var(--mono); }
+.chip-spc { background: var(--die-fail); border: 2px solid var(--die-fail-edge); color: var(--on-die-fail); font-weight: 600; }
+.shop-item .spc-chart { margin-top: 8px; }
+.pm-button { margin-top: 10px; }
+@media (min-width: 900px) {
+  .pm-panel .shop-list { grid-template-columns: repeat(3, 1fr); }   /* tool cards side by side */
+}

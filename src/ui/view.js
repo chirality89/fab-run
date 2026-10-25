@@ -274,6 +274,8 @@ export function mapView(state) {
       roomId: step.room,
       roomName: ROOMS[step.room].name,
       status: bayStatus(index, nextIndex),
+      // The telegraph on the map: the tool of a room still ahead trips an SPC rule.
+      spcAlarm: index >= nextIndex && spcView(state, step.room)?.inControl === false,
     })),
     corridors: state.map.map((corridor, index) => ({
       afterStep: corridor.afterStep,
@@ -324,7 +326,7 @@ export function stopView(before, after, stopKind) {
 
 // Where an item next acts: the first route step from `fromIndex` on that is
 // in the item's room.
-function nextUseText(route, fromIndex, roomId) {
+export function nextUseText(route, fromIndex, roomId) {
   const index = route.findIndex((step, i) => i >= fromIndex && step.room === roomId);
   return index === -1 ? 'Not used again on this route' : `Next used at step ${index + 1}: ${route[index].label}`;
 }

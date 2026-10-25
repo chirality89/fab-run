@@ -7,16 +7,17 @@
 //
 // The whole run lives in one variable, `state`. The screen never changes it
 // directly: every button calls an engine function (enterStep, playCard,
-// resolveStep, walkCorridor, buyItem), stores the new state that comes back, and
+// resolveStep, walkCorridor, buyItem, pmTool), stores the new state that comes back, and
 // redraws.
 
 import { normalizeSeed } from '../engine/rng.js';
 import {
-  createRun, enterStep, resolveStep, playCard, walkCorridor, buyItem, starterDeck, defaultLoadout,
+  createRun, enterStep, resolveStep, playCard, walkCorridor, buyItem, pmTool, starterDeck, defaultLoadout,
 } from '../engine/run.js';
 import { roomView, resultView, mapView, stopView, shopView, parseSeed } from './view.js';
 import { renderRoom, renderResult, renderError, focusNextAction, showFromTop } from './render.js';
-import { renderMap, renderStop, renderShop } from './floorPlan.js';
+import { renderMap, renderStop, renderShop, renderPm } from './floorPlan.js';
+import { pmView } from './pmView.js';
 
 const LOT_TYPE_ID = 'cuLine';
 
@@ -83,7 +84,15 @@ function onTakeStop(stopKind) {
     const before = state;
     state = walkCorridor(state, stopKind);
     if (state.shop !== null) showShop(null);
+    else if (state.pm !== null) showPm(null);
     else renderStop(app, stopView(before, state, stopKind), { onContinue: () => safely(enterRoom) });
+  });
+}
+
+function onPm(roomId) {
+  safely(() => {
+    state = pmTool(state, roomId);
+    showPm(roomId);
   });
 }
 
@@ -128,6 +137,11 @@ function showMap() {
 // null when the shop has just opened.
 function showShop(justBought) {
   renderShop(app, shopView(state), { onBuy, onContinue: () => safely(enterRoom) }, justBought);
+}
+
+// The PM screen. `justPmd` is the room PM'd a moment ago, or null.
+function showPm(justPmd) {
+  renderPm(app, pmView(state), { onPm, onContinue: () => safely(enterRoom) }, justPmd);
 }
 
 function enterRoom() {

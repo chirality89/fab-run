@@ -14,6 +14,7 @@
 // No game logic here, and text only through textContent (see render.js).
 
 import { el, panel, onSingleClick, actionButton, showFromTop } from './render.js';
+import { drawSpcPicture } from './spcChart.js';
 
 const BAYS_PER_ROW = 3;
 
@@ -57,10 +58,12 @@ function drawBay(bay, index) {
   const tile = el('div', `bay room-${bay.roomId} bay-${bay.status}`);
   tile.setAttribute('role', 'listitem');
   const statusText = BAY_STATUS_TEXT[bay.status];
-  tile.setAttribute('aria-label', `Step ${bay.number}: ${bay.label}${statusText ? `, ${statusText.toLowerCase()}` : ''}`);
+  const alarmText = bay.spcAlarm ? ', SPC alarm on its tool' : '';
+  tile.setAttribute('aria-label', `Step ${bay.number}: ${bay.label}${statusText ? `, ${statusText.toLowerCase()}` : ''}${alarmText}`);
   tile.title = bay.label;
   tile.append(el('span', 'bay-number', String(bay.number)), el('span', 'bay-name', bay.roomName));
   if (statusText) tile.append(el('span', 'bay-status', statusText));
+  if (bay.spcAlarm) tile.append(el('span', 'chip chip-spc', 'SPC'));
   placeIn(tile, bayCell(index));
   return tile;
 }
@@ -102,7 +105,7 @@ function drawPlan(view) {
   view.bays.forEach((bay, index) => grid.append(drawBay(bay, index)));
   view.corridors.forEach(corridor => grid.append(drawCorridor(corridor)));
   box.append(grid);
-  box.append(el('p', 'map-key', `${view.stopKeyText} · QT Q-time window · LOT where the lot is now`));
+  box.append(el('p', 'map-key', `${view.stopKeyText} · QT Q-time window · LOT where the lot is now · SPC the tool's chart trips a rule`));
   return box;
 }
 
@@ -225,4 +228,40 @@ export function renderShop(container, view, actions, keepFocusOn = null) {
   const buyButtons = itemsFromHere.map(node => node.querySelector('.buy-button')).filter(button => button !== null);
   const target = buyButtons.length > 0 ? buyButtons[0] : container.querySelector('.go-button');
   target.focus({ preventScroll: true });
+}
+
+// One tool on the PM screen: its room, where it is used next, its SPC
+// chart and verdict, and a PM button (or why there is none).
+function drawPmChoice(choice, actions) {
+  const box = el('li', choice.done ? 'card shop-item shop-item-bought' : 'card shop-item');
+  const top = el('div', 'card-top');
+  top.append(el('span', 'card-name', choice.roomName), el('span', 'card-cost', choice.parameter));
+  box.append(top, el('span', 'shop-next', choice.nextUseText));
+  box.append(drawSpcPicture(choice.spc));
+  box.append(el('p', choice.spc.inControl ? 'spc-verdict' : 'spc-verdict spc-verdict-out', choice.spc.verdictText));
+  if (choice.done) {
+    box.append(el('span', 'shop-bought', 'PM done: the next lots run on a restored tool'));
+  } else if (choice.canPm) {
+    const button = actionButton('PM this tool', 'pm-button', () => actions.onPm(choice.roomId));
+    button.setAttribute('aria-label', `PM the ${choice.roomName} tool`);
+    box.append(button);
+  }
+  return box;
+}
+
+// The PM screen. `actions` holds onPm(roomId) and onContinue().
+// `justPmd` is the room just PM'd, if any: focus then moves to Continue.
+export function renderPm(container, view, actions, justPmd = null) {
+  const header = el('header', 'room-band map-band');
+  header.append(el('h1', 'room-name', view.name), el('p', 'room-step', view.what));
+  header.append(el('p', 'room-facts', `Seed ${view.seed}`));
+  const box = panel('Tools on the route ahead', 'pm-panel');
+  box.append(el('p', 'outcome-text', view.text));
+  const list = el('ul', 'shop-list');
+  list.setAttribute('role', 'list');
+  for (const choice of view.choices) list.append(drawPmChoice(choice, actions));
+  box.append(list, actionButton(view.goText, 'go-button', actions.onContinue));
+  container.replaceChildren(header, box);
+  if (justPmd === null) showFromTop(container);
+  else container.querySelector('.go-button').focus({ preventScroll: true });
 }
