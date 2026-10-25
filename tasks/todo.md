@@ -76,7 +76,7 @@
 - The bot test asserted cash ≥ 0, but O4 lets running costs go below 0: seed 17 (random, full deck) ended at −20 after the pad conditioner charged at CMP. David chose to change the test. It now checks that cash is never below 0 right after a purchase.
 - - view.js is now 384 lines, close to the ~400 split line. The map and shop views could move to their own file in M3 item 2b.
 
-**Result:**
+**Result:** a procurement stop opens a shop of up to 3 seeded items (equipment and materials) for rooms still ahead. Buying takes the cash, equipment acts in its room, and a material replaces its slot. `npm test` 132/132, `npm run screens` 22/22.
 
 ## Done: M3 item 1 — map of the Cu line route with side stops
 
