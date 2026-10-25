@@ -1,6 +1,77 @@
 # Fab Run — Task Tracker
 
-## Current: M3 item 3 — ship screen: yield against spec, cost per good die, cycle time; scrap and reject end states
+## Current: M4 item 1 — diagnose screen: name a failure mode from the evidence; a right answer writes the notebook
+
+**Decision first: O1, what earns an unlock.** Proposed: **B, diagnosing a failure mode.** This item is built on B. David, please confirm (Q1).
+
+### Task: on the ship report, name one failure mode that hurt this lot; if right, it goes into the notebook
+
+**What you'll see**
+- A **Diagnose** panel on the ship report, under the verdict, for every finished run: shipped, rejected or scrapped. Scrapped lots are the ones most worth learning from.
+- The evidence is the ship report itself:
+  - yield by step (which room lost the lot);
+  - the wafer map (an edge ring, a center-to-edge gradient or random dots);
+  - **new: the SPC chart of each tool on the route**, so a drifting tool is visible after the run.
+- **Four candidate failure modes**, each with its signature text from `content.js` (for example, "Only the outer ring of sites fails; inner sites are clean"). The seed picks the order, and the distractors come from the other failure modes.
+- **You pick one.** Exactly one guess per run.
+  - **Right:** "Diagnosed: keyhole void. Written in your notebook." The panel lists what it unlocks (low-current start, additive bath, bath analysis), with a note that unlocks take effect in M4 item 3.
+  - **Wrong:** "Not this one." The panel then names a failure mode that did hurt this lot, but does **not** write it to the notebook. You learn it here and earn it on a later run (Q3).
+  - **Already in the notebook:** marked as such, and choosing it adds nothing.
+
+**What counts as right (Q2)**
+- Idle runs on 5 seeds show several patterns costing about the same: residue, void, particles, dishing and depth variation each sit at 0.08–0.15 risk. So one single "the answer" would be arbitrary.
+- Proposal: **any failure mode whose pattern cost at least `DIAGNOSE_MIN_POINTS` yield points this run** (new in `balance.js`, proposed 3 points) counts as right.
+- The four candidates hold at least one right answer and up to three wrong ones. A wrong one is a failure mode whose pattern cost less than the line (0 points is fine).
+- If nothing cost 3 points, there is nothing to diagnose. The panel says "This lot lost too little to tell what hurt it."
+
+**Engine (`src/engine/`)**
+- [ ] `lot.js`: `realizeRisks` also adds up **kills per pattern**: `lot.kills[pattern] += mean over sites of risk × weight × nudge`.
+  - This is the same exponent it already uses, so the yield math does not change.
+  - Losses multiply, so the log-losses add, and each pattern's share of the yield lost is `kills[p] / Σ kills` (exact, not an approximation).
+  - Points lost to a pattern = `(1 − yield) × 100 × share`.
+- [ ] New `src/engine/notebook.js`, pure:
+  - `diagnosisFor(state, notebook)` returns `{ rightIds, candidates }` (four ids, in seeded order, using their own generator stream, so the lot's random numbers are untouched).
+  - `diagnose(state, notebook, failureModeId)` returns `{ correct, notebook, revealed }`.
+  - A notebook is a plain object: `{ version: 1, entries: [{ id, seed, date: null }] }`. No storage here; that is item 2.
+- [ ] `state.diagnosed` (null, then the id guessed) stops a second guess. Recorded as an action `['diagnose', id]` for Lane B's replay.
+
+**UI (`src/ui/`)**
+- [ ] `shipView`: a `diagnose` section and the route's SPC charts (reusing `spcView` and `drawSpc`).
+- [ ] `render.js`: draws the Diagnose panel and the candidate buttons (44 px, with the double-tap guard).
+- [ ] `main.js`: holds `notebook` in memory for now. Item 2 saves it under its own key with Lane B's helpers.
+
+**Tests**
+- [ ] Hand-computed, `lot.js`: particles 0.1 on even weights then edge ring 0.2 with no scatter. Kills = 0.1 and 0.2 × mean(edge weights) = 0.2 × 1 = 0.2, so the shares are 1/3 and 2/3.
+- [ ] `diagnosisFor` on an idle walk, seed 123456: every right id's pattern cost ≥ 3 points, every wrong one less, 4 distinct candidates, and the same seed gives the same order.
+- [ ] `diagnose`: right → added once; wrong → not added and names a right one; a second guess is refused; an id already in the notebook is not added twice.
+- [ ] Screens, desktop and phone: an idle run's ship report, pick a right answer, then New seed and the notebook still holds it (in memory); a wrong pick. Phone tests run with `--repeat-each=5`.
+
+**Size:** about 15 lines in `lot.js`, about 80 in `notebook.js`, about 120 UI and about 150 tests. It touches `src/engine/`, `src/ui/` and `balance.js`, so this plan is the ask.
+
+**Rule 6 check: what the screen can show today.** David, please check this table.
+
+| Failure mode | Told apart by, today | Gap |
+|---|---|---|
+| fm_particles | random dots on the map + clean SPC | — |
+| fm_chamber_flakes | loss at the dep steps + dep SPC | — |
+| fm_residue | loss at etch + etch rate falling on etch SPC | — |
+| fm_underlayer | loss at etch | **looks the same as residue** without a cross-section; only SPC tells them apart |
+| fm_edge_ring | edge ring on the map | — |
+| fm_dishing | loss at CMP | sig says "wide lines thin": needs metrology, not built yet |
+| fm_rr_drift | CMP SPC walking | — |
+| fm_keyhole | loss at plating | sig says "narrow vias, void in the fill": needs a cross-section |
+| fm_qtime | loss after a long wait | the yield table plus cycle time partly show it |
+| fm_implant_damage, fm_ped_ttop | not on the Cu line | never a right answer on this lot |
+
+Proposal: build it now with this evidence, and add the gaps (metrology and cross-section views) to NEEDS NEW LOGIC. The yield-by-step table plus the signature text is enough to play. The gaps make some pairs (residue vs underlayer, dishing vs rr_drift) guesses until the metrology stop shows real data.
+
+**Questions for David**
+1. **O1:** unlocks come from diagnosing a failure mode (B). Confirm?
+2. **What counts as right:** any failure mode that cost at least 3 yield points this run (my proposal), or only the single biggest one?
+3. **A wrong guess:** reveal a right answer without writing it (my proposal), or reveal nothing?
+4. **Rule 6 gaps above:** OK to ship with these gaps listed in NEEDS NEW LOGIC, or should the metrology stop show real data first? That would be its own item before this one.
+
+## Done: M3 item 3 — ship screen: yield against spec, cost per good die, cycle time; scrap and reject end states
 
 ### Task: when the run ends, a ship report shows how the lot did; the player can also scrap the lot
 
