@@ -24,7 +24,9 @@ Current milestone: **M3 — The run**
 
 ## M3 — The run (needs O3)
 - [x] Map of the Cu line route with side-stop branches (metrology, PM/DOE, procurement, event)
-- [ ] Procurement screen; PM/DOE upgrade; three events with a tradeoff each
+- [ ] Procurement stop: buy equipment and materials with cash
+- [ ] PM/DOE stop: restore a tool or upgrade one practice (needs tool wear first)
+- [ ] Three events with a tradeoff each
 - [ ] Ship screen: yield against spec, cost per good die, cycle time; scrap and reject end states
 - [ ] Save and resume a run (`SAVE_KEY`, storage-blocked safe)
 
