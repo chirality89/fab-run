@@ -42,6 +42,7 @@ On load, the game builds a fresh run for the seed and plays the actions again th
 
 - [ ] Merge `main` into `lane-b` (no rebase) and read Lane A's ship screen code before writing anything.
 - [ ] The page builds the starting run in **one** function (`createRun` with the lot type, starter deck, default loadout and normal scatter), used both for a new run and for the resume. That way the replay can't start from a different lot (code-explainer).
+- [ ] Every action button in today's `main.js` records its action: enter, play, run, walk, buy, pm, doe, choose (event option), scrap. Diagnose is not recorded: it comes after the run ends and the save is cleared.
 - [ ] `main.js` keeps an `actions` list next to `state`. An action is added only **after** the engine accepted it, so a refused tap never goes into the save. Every button that calls an engine function also adds that action to the list and calls `saveRun(state.seed, actions)`. "Go straight" records two actions: walk with no stop, then enter.
 - [ ] On page load (David, 25 Oct 2026):
   - If the address has a `?seed=` that **differs** from the saved seed, the link wins: a fresh run for that seed starts and replaces the save.
@@ -76,6 +77,12 @@ On load, the game builds a fresh run for the seed and plays the actions again th
 - I broke the code twice on purpose (replay drops the last action; a storage read without try/catch). The tests failed both times, then passed again with the code restored.
 - code-explainer: two must-fixes, done. The header claimed "nothing throws" (applyAction throws on purpose), and replayRun hid real engine bugs. It now prints a warning before starting fresh. Readability points done too: plain `check` function, a note on `Object.hasOwn`, a literal `SAVE_KEY`, short JavaScript notes in the header. Its Part 3 points are in the Part 3 list above.
 - David: yes, bump the save version on any balance or content change that ships. Written in the `SAVE_VERSION` comment in `storage.js`.
-- Part 3 waits for Lane A's ship screen on `main`.
+- 2026-10-25: David: merge `main`. Merged (no conflicts). `main` had added the ship report, scrap, PM, DOE, events, diagnose and a `run.js` split. All tests passed straight after the merge, but the save didn't know the new actions: a save after a PM, DOE, event choice or scrap would have failed to replay and started fresh. Added `pm`, `doe`, `choose` and `scrap` to the replay table, plus two tests:
+  - a run that takes every stop (PM and DOE by turns, every event, procurement), on the first seed from 123456 up that uses every action, saved and replayed after **every** action, exactly equal each time;
+  - scrap after step 1 replays.
+  - Deleting `pm` from the table once makes the first of these fail; restored.
+- After the merge: `npm test` 206/206, `npm run screens` 40/40.
+- Lane A's ship screen is now on `main`, so Part 3 (the `main.js` hook) can start when David says.
+- `main.js` now keeps the notebook in memory, and saving it is M4 item 2. That isn't in this lane, but it can use `readJson`/`writeJson` with its own key.
 
 **Result:**

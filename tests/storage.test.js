@@ -7,6 +7,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createRun, legalCards } from '../src/engine/run.js';
 import { whyCannotBuy } from '../src/engine/shop.js';
+import { whyCannotPm, whyCannotDoe } from '../src/engine/run.js';
 import {
   SAVE_KEY, SAVE_VERSION, readJson, writeJson, saveRun, loadRun, clearRun, applyAction, replayRun,
 } from '../src/ui/storage.js';
@@ -70,6 +71,37 @@ function finish(player) {
   }
 }
 
+// How many times the player has taken this kind of action so far.
+function countActions(player, name) {
+  return player.actions.filter(action => action[0] === name).length;
+}
+
+// At an open PM/DOE stop: PM a tool and DOE a practice by turns (PM first),
+// so a run uses both. Takes whichever is possible if only one is.
+function usePmStop(player) {
+  const pm = player.state.pm;
+  const room = pm.choices.find(roomId => whyCannotPm(player.state, roomId) === null);
+  const card = pm.doeOffers.find(cardId => whyCannotDoe(player.state, cardId) === null);
+  const doeTurn = countActions(player, 'pm') > countActions(player, 'doe');
+  if (card && (doeTurn || !room)) player.act('doe', card);
+  else if (room) player.act('pm', room);
+}
+
+// After a room: take a side stop whenever one is offered and use it, so a
+// run tries every kind of action. Events take their first option.
+function takeEveryStop(player) {
+  const offers = player.state.map[player.state.corridor].offers;
+  if (offers.includes('pm')) {
+    player.act('walk', 'pm');
+    usePmStop(player);
+  } else if (offers.includes('event')) {
+    player.act('walk', 'event');
+    if (player.state.event !== null) player.act('choose', 0);
+  } else {
+    walkOn(player);
+  }
+}
+
 // Saves the player's actions, loads them back and replays them from a
 // fresh run of the same seed.
 function saveAndResume(player) {
@@ -124,6 +156,43 @@ test('replay lands on every kind of spot: room with a hand, open shop, corridor,
   finish(player);
   assert.notEqual(player.state.status, 'running');
   check(`at the end (${player.state.status})`);
+});
+
+// The first seed from SEED up whose run, taking every stop, uses every
+// kind of action that happens before the end.
+function seedUsingEveryAction() {
+  const wanted = ['enter', 'play', 'run', 'walk', 'buy', 'pm', 'doe', 'choose'];
+  for (let seed = SEED; seed < SEED + 200; seed++) {
+    const player = recordingPlayer(seed);
+    while (player.state.status === 'running') {
+      if (player.state.corridor !== null) takeEveryStop(player);
+      playRoom(player);
+    }
+    if (wanted.every(name => countActions(player, name) > 0)) return seed;
+  }
+  throw new Error(`no seed from ${SEED} uses every action`);
+}
+
+test('every kind of action replays: saved after any action, the run resumes exactly there', () => {
+  const seed = seedUsingEveryAction();
+  const player = recordingPlayer(seed);
+  const act = player.act;
+  player.act = (...action) => {
+    act(...action);
+    assert.deepEqual(saveAndResume(player), player.state, `after ${action.join(' ')} (seed ${seed})`);
+  };
+  while (player.state.status === 'running') {
+    if (player.state.corridor !== null) takeEveryStop(player);
+    playRoom(player);
+  }
+});
+
+test('scrapping the lot replays too', () => {
+  const player = recordingPlayer(SEED);
+  playRoom(player);           // step 1, then the lot stands in a corridor
+  player.act('scrap');
+  assert.equal(player.state.status, 'scrapped');
+  assert.deepEqual(saveAndResume(player), player.state, `after scrap (seed ${SEED})`);
 });
 
 test('a bad action list replays as null, never a half-played state', () => {

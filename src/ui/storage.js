@@ -25,7 +25,9 @@
 //   a ?? b       a, unless a is null or undefined, then b
 //   catch { }    catches any error without naming it
 
-import { enterStep, playCard, resolveStep, walkCorridor, buyItem } from '../engine/run.js';
+import {
+  enterStep, playCard, resolveStep, walkCorridor, buyItem, pmTool, doeCard, chooseEventOption, scrapLot,
+} from '../engine/run.js';
 import { normalizeSeed } from '../engine/rng.js';
 
 // Goes up whenever a change ships that could replay an old save
@@ -114,7 +116,13 @@ const ACTIONS = {
   run: (state) => resolveStep(state),
   walk: (state, stopKind) => walkCorridor(state, stopKind),   // null = straight on
   buy: (state, itemId) => buyItem(state, itemId),
+  pm: (state, roomId) => pmTool(state, roomId),
+  doe: (state, cardId) => doeCard(state, cardId),
+  choose: (state, optionIndex) => chooseEventOption(state, optionIndex),   // an event's option
+  scrap: (state) => scrapLot(state),
 };
+// Diagnosing on the ship report is not an action here: it comes after the
+// run has ended, and an ended run's save is cleared.
 
 // Applies one action to the state and returns the new state. Throws if the
 // action is unknown or the engine refuses it.
