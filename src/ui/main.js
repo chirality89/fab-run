@@ -13,13 +13,14 @@
 import { normalizeSeed } from '../engine/rng.js';
 import {
   createRun, enterStep, resolveStep, playCard, walkCorridor, buyItem, pmTool, doeCard, chooseEventOption,
-  starterDeck, defaultLoadout,
+  starterDeck, defaultLoadout, scrapLot,
 } from '../engine/run.js';
 import { roomView, resultView, mapView, stopView, shopView, parseSeed } from './view.js';
-import { renderRoom, renderResult, renderError, focusNextAction, showFromTop } from './render.js';
+import { renderRoom, renderResult, renderShip, renderError, focusNextAction, showFromTop } from './render.js';
 import { renderMap, renderStop, renderShop, renderPm, renderEvent } from './floorPlan.js';
 import { eventView } from './eventView.js';
 import { pmView } from './pmView.js';
+import { shipView } from './shipView.js';
 
 const LOT_TYPE_ID = 'cuLine';
 
@@ -124,7 +125,15 @@ function onRunRoom() {
   safely(() => {
     const before = state;
     state = resolveStep(state);
-    renderResult(app, resultView(before, state), { onContinue: () => safely(showMap), onReplay, onNewSeed });
+    const onShip = () => safely(showShipReport);
+    renderResult(app, resultView(before, state), { onContinue: () => safely(showMap), onShip, onReplay, onNewSeed });
+  });
+}
+
+function onScrap() {
+  safely(() => {
+    state = scrapLot(state);
+    showShipReport();
   });
 }
 
@@ -147,7 +156,13 @@ function showRoom() {
 }
 
 function showMap() {
-  renderMap(app, mapView(state), { onTakeStop, onGoStraight });
+  renderMap(app, mapView(state), { onTakeStop, onGoStraight, onScrap });
+}
+
+// The ship report: the one screen every finished run ends on, whether the
+// lot shipped, was rejected or was scrapped.
+function showShipReport() {
+  renderShip(app, shipView(state), { onReplay, onNewSeed });
 }
 
 // The procurement screen. `justBought` is the item bought a moment ago, or

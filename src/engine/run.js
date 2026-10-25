@@ -1,17 +1,17 @@
 // run.js — one run: one lot walking its route from the first room to ship.
 //
 // Walk the route, deal a hand in each room, play cards, resolve the room,
-// walk the corridor to the next room, ship. A procurement side stop opens a
-// shop (buyItem); the other side stops and saves come later in M3.
+// walk the corridor to the next room, ship. What the player does at a side
+// stop is in sideStops.js.
 //
 // A run goes like this, one step of the route at a time:
 //   enterStep    → the lot arrives in the step's room
 //   playCard     → zero or more times, while time and cash allow
 //   resolveStep  → the room's risks bite; scrap, move on, or ship
 //   walkCorridor → between two rooms: take one side stop, or go straight on
-//   buyItem      → zero or more times, while a procurement stop's shop is open
-//   pmTool or doeCard → one of the two at most, while a PM/DOE stop is open
-//   chooseEventOption → once, while an event stop is open
+//   then, at a side stop: buyItem, pmTool or doeCard, chooseEventOption
+//   (sideStops.js)
+//   scrapLot     → at any point between rooms, the player may scrap the lot
 //
 // Order inside enterStep (lotTypes.js): add the step's risks and the room
 // tool's drift risk (tools.js), set the room's time budget, apply the
@@ -27,23 +27,23 @@ import { TOOL_MONITORS } from '../content/toolMonitors.js';
 import { LOT_TYPES } from '../content/lotTypes.js';
 import {
   STARTING_CASH, HAND_SIZE, SCRAP_LINE, CUSTOMER_SPEC, SCATTER_STRENGTH, TIME_BUDGETS,
-  SIDE_STOP_MINUTES, PM_DOE_CHOICES_PER_STOP, DOE_CASH_COST, QTIME_RISK_PER_MINUTE,
+  SIDE_STOP_MINUTES, QTIME_RISK_PER_MINUTE,
 } from '../content/balance.js';
 import { normalizeSeed, shuffle } from './rng.js';
+import { findItem, slotEntry, addLog, checkRunning } from './runState.js';
 import { createLot, addRisk, realizeRisks, rollScatter, lotYield } from './lot.js';
 import { conditionMet, applyEffects } from './resolve.js';
 import { buildMap } from './map.js';
-import { shopStock, whyCannotBuy, findShopItem } from './shop.js';
-import { startingTools, driftRisk, useTool, pmChoices, restoreTool } from './tools.js';
+import { shopStock } from './shop.js';
+import { startingTools, driftRisk, useTool, pmChoices } from './tools.js';
 import { cardInRun, doeOffers } from './doe.js';
-import { drawEvent, findEvent } from './events.js';
+import { drawEvent } from './events.js';
 
-// Looks up a content item by id, or throws naming it.
-function findItem(list, id, kind) {
-  const item = list.find(entry => entry.id === id);
-  if (!item) throw new Error(`Unknown ${kind}: ${id}`);
-  return item;
-}
+// The side stops' own actions live in sideStops.js. They are re-exported
+// here so the rest of the game keeps importing every run action from run.js.
+export { slotEntry };
+export { buyItem, whyCannotPm, pmTool, whyCannotDoe, doeCard, chooseEventOption } from './sideStops.js';
+
 const findCard = id => findItem(PRACTICES, id, 'practice');
 
 // Cards that some item unlocks with an `enables` effect (e.g. the endpoint
@@ -63,13 +63,6 @@ export function starterDeck() {
 // Every practice in the game, for tests and the bot ("--deck full").
 export function fullPool() {
   return PRACTICES.map(card => card.id);
-}
-
-// A material as it sits in a slot (the shape resolve.js expects). The decay
-// factor starts at 1 and only grows with decayPerUse.
-export function slotEntry(materialId) {
-  const material = findItem(MATERIALS, materialId, 'material');
-  return { id: material.id, shelfLife: material.shelfLife ?? null, decay: 1 };
 }
 
 // The starting loadout David chose: the i-line resist in the litho resist
@@ -130,7 +123,9 @@ export function createRun({
     hand: [],
     minutesUsed: 0,
     cycleTime: 0,
+    stepYields: [],         // after each room: { stepIndex, roomId, yieldAfter } (the ship report)
     status: 'running',      // 'running' | 'scrapped' | 'shipped' | 'rejected'
+    scrappedBy: null,       // 'scrapLine' | 'player' once scrapped
     log: [],
   };
 }
@@ -139,15 +134,6 @@ export function createRun({
 
 function currentStep(state) {
   return LOT_TYPES[state.lotTypeId].route[state.stepIndex];
-}
-
-function addLog(state, line) {
-  return { ...state, log: [...state.log, line] };
-}
-
-// Every engine call on a finished run is a bug in the caller.
-function checkRunning(state, caller) {
-  if (state.status !== 'running') throw new Error(`${caller}: the run is over (${state.status})`);
 }
 
 function checkInRoom(state, caller, wanted) {
@@ -254,11 +240,14 @@ export function resolveStep(state) {
   next = useTool(next, step.room);   // this lot's SPC point, then wear
 
   const yieldNow = lotYield(lot);
+  const stepYield = { stepIndex: state.stepIndex, roomId: step.room, yieldAfter: yieldNow };
+  next = { ...next, stepYields: [...state.stepYields, stepYield] };
   const percent = `${(yieldNow * 100).toFixed(1)}%`;
   const isLastStep = next.stepIndex >= LOT_TYPES[state.lotTypeId].route.length;
   if (yieldNow < SCRAP_LINE) {
     // A scrapped lot stays at the step where it died.
-    return addLog({ ...next, stepIndex: state.stepIndex, status: 'scrapped' }, `  yield ${percent}: scrapped`);
+    next = { ...next, stepIndex: state.stepIndex, status: 'scrapped', scrappedBy: 'scrapLine' };
+    return addLog(next, `  yield ${percent}: scrapped`);
   }
   if (isLastStep) {
     const status = yieldNow >= CUSTOMER_SPEC ? 'shipped' : 'rejected';
@@ -318,103 +307,13 @@ export function walkCorridor(state, stopKind) {
   return addLog(next, `  corridor: ${stopKind} (${minutes} min${stockText})`);
 }
 
-// Has this PM/DOE stop's one choice (a PM or a DOE) been used?
-function stopUsed(pm) {
-  return pm.done.length + pm.doeDone.length >= PM_DOE_CHOICES_PER_STOP;
-}
-
-// Why this room's tool can't be PM'd right now, or null if it can.
-// Exported so the screen can say why a PM button is missing.
-export function whyCannotPm(state, roomId) {
-  if (state.pm === null) return 'no PM stop open';
-  if (stopUsed(state.pm)) return 'already used this stop\'s one choice';
-  if (!state.pm.choices.includes(roomId)) return 'not a tool on the route ahead';
-  return null;
-}
-
-// PMs one tool at an open PM/DOE stop (M3 item 2c). Its health goes back
-// to a seeded 75–95 (tools.js restoreTool), so drift and wear start again
-// from there. One choice per stop: a PM or a DOE (PM_DOE_CHOICES_PER_STOP).
-export function pmTool(state, roomId) {
-  checkRunning(state, 'pmTool');
-  const reason = whyCannotPm(state, roomId);
-  if (reason) throw new Error(`Cannot PM ${roomId}: ${reason}`);
-  const before = state.tools[roomId].health;
-  let next = restoreTool(state, roomId);
-  next = { ...next, pm: { ...next.pm, done: [...next.pm.done, roomId] } };
-  return addLog(next, `  PM ${roomId}: health ${before} → ${next.tools[roomId].health}`);
-}
-
-// Why this practice can't be upgraded by a DOE right now, or null if it can.
-// Exported so the screen can say why.
-export function whyCannotDoe(state, cardId) {
-  if (state.pm === null) return 'no PM/DOE stop open';
-  if (stopUsed(state.pm)) return 'already used this stop\'s one choice';
-  if (!state.pm.doeOffers.includes(cardId)) return 'not offered at this stop';
-  if (DOE_CASH_COST > state.cash) return 'not enough cash';
-  return null;
-}
-
-// Runs a DOE on one practice at an open PM/DOE stop (M3 item 2d): it plays
-// as its DOE version (content.js `upgrade`) for the rest of the run, and
-// the DOE costs DOE_CASH_COST.
-export function doeCard(state, cardId) {
-  checkRunning(state, 'doeCard');
-  const reason = whyCannotDoe(state, cardId);
-  if (reason) throw new Error(`Cannot DOE ${cardId}: ${reason}`);
-  const next = {
-    ...state,
-    cash: state.cash - DOE_CASH_COST,
-    upgraded: [...state.upgraded, cardId],
-    pm: { ...state.pm, doeDone: [...state.pm.doeDone, cardId] },
-  };
-  return addLog(next, `  DOE ${cardId} (${DOE_CASH_COST})`);
-}
-
-// Chooses one option of the open event (M3 item 2e), once. Its minutes
-// change cycle time (never below 0); in a Q-time corridor, positive minutes
-// also grow the Q-time pattern, like a side stop's wait. Then its effects
-// apply (events.js content: cash, addRisk, toolHealth with a room).
-export function chooseEventOption(state, optionIndex) {
-  checkRunning(state, 'chooseEventOption');
-  if (state.event === null) throw new Error('chooseEventOption: no event open');
-  if (state.event.chosen !== null) throw new Error('chooseEventOption: an option was already chosen');
-  const event = findEvent(state.event.eventId);
-  const option = event.options[optionIndex];
-  if (!option) throw new Error(`chooseEventOption: ${event.id} has no option ${optionIndex}`);
-
-  const qtimePattern = LOT_TYPES[state.lotTypeId].route[state.event.corridor].qtime;
-  let lot = state.lot;
-  if (qtimePattern && option.minutes > 0) lot = addRisk(lot, qtimePattern, QTIME_RISK_PER_MINUTE * option.minutes);
-  let next = {
-    ...state,
-    lot,
-    cycleTime: Math.max(0, state.cycleTime + option.minutes),
-    event: { ...state.event, chosen: optionIndex },
-  };
-  next = applyEffects(next, option);
-  return addLog(next, `  event ${event.id}: ${option.label}`);
-}
-
-// Buys one item from the open shop and pays its cash price. Equipment joins
-// the lot's equipment and acts every time the lot enters its room, from the
-// next room on. A material replaces whatever is in its slot. Buying never
-// takes cash below 0 (decision O4): an item you can't afford is refused.
-export function buyItem(state, itemId) {
-  checkRunning(state, 'buyItem');
-  const reason = whyCannotBuy(state, itemId);
-  if (reason) throw new Error(`Cannot buy ${itemId}: ${reason}`);
-
-  const item = findShopItem(itemId);
-  let next = {
-    ...state,
-    cash: state.cash - item.cost.cash,
-    shop: { ...state.shop, bought: [...state.shop.bought, itemId] },
-  };
-  if (item.kind === 'equipment') {
-    next = { ...next, equipment: [...next.equipment, itemId] };
-  } else {
-    next = { ...next, slots: { ...next.slots, [item.slot]: slotEntry(itemId) } };
-  }
-  return addLog(next, `  bought ${itemId} (${item.cost.cash})`);
+// The player scraps the lot (decision O4). Allowed only between rooms, while
+// the run goes on: at the door, in a corridor or at a side stop. The lot
+// stays at the step it was going to enter next. Late scrap is expensive:
+// everything already spent on the lot is lost (the ship report shows it).
+export function scrapLot(state) {
+  checkRunning(state, 'scrapLot');
+  checkInRoom(state, 'scrapLot', false);
+  const next = { ...state, shop: null, pm: null, event: null, status: 'scrapped', scrappedBy: 'player' };
+  return addLog(next, `  scrapped by the player before step ${state.stepIndex + 1}`);
 }

@@ -29,7 +29,7 @@ Current milestone: **M3 — The run**
 - [x] PM stop: restore one tool on the route ahead
 - [x] DOE stop: upgrade one practice for the run (upgrades as data)
 - [x] Three events with a tradeoff each
-- [ ] Ship screen: yield against spec, cost per good die, cycle time; scrap and reject end states
+- [x] Ship screen: yield against spec, cost per good die, cycle time; scrap and reject end states
 - [ ] Save and resume a run (`SAVE_KEY`, storage-blocked safe)
 
 ## M4 — Notebook and unlocks (needs O1)
