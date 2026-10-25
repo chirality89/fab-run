@@ -99,6 +99,11 @@ That makes 24 + 5 + ~5 + ~6 = **about 40 items**, plus new failure modes. Every 
 ## NEEDS NEW LOGIC
 - **Feature damage from cleans** (batch 1, megasonicClean): too much acoustic power breaks fine features, but only on patterned wafers. Needs a "patterned" condition or a damage pattern. Today the card's cost is time and cash only.
 - **CD per site on the metrology screen** (batch 1, fm_dose_offset): the sig ("same offset on every site, SPC step from the previous lot") needs mean CD and spread shown on screen. A yield-only map with scatter will not look uniform. Confirm before this failure mode goes live (CLAUDE.md §5 rule 6).
+- **Deal only cards that can matter for this lot** (batch 2): siliconFrontEnd cards are dealt on the Cu line but are never playable there. Same idea as the shop lesson in lessons.md.
+- **Step-level condition** (batch 2): soft-landing gate etch should act only at the gate etch, not at the STI trench (step 4) or the contact etch (step 14), where a poly-over-oxide landing is meaningless. Needs `when: { step: ... }` on route-step tags. This is an engine change.
+- **Gate-foot profile cost** (batch 2): soft landing's real cost includes footing or notching (a CD cost), but cd_error is not on the lot during etch.
+- **Evidence views for NMOS diagnosis** (batch 2): electrical test (Vt, junction leakage, ramped-voltage breakdown, C-V thickness), a dopant depth profile, and post-etch oxide thickness. Diagnosis must use the route step or lot type to tell apart failure modes that share a pattern: underlayer_attack, qtime_oxide, void and cd_error.
+- **Monitor wafers reveal values nothing models** (batch 2): oxideThickness and implantDose. These need a consumable engine and a dose or thickness risk. implantMonitor is unlocked by fm_channeling, which it cannot see; move it to a future dose failure mode.
 - **Low-pressure polish copper residue** (batch 1, optional): a slower polish can leave copper residue (shorts). No pattern fits today.
 
 ## Proposed lessons (for whoever merges into tasks/lessons.md)
@@ -126,6 +131,27 @@ That makes 24 + 5 + ~5 + ~6 = **about 40 items**, plus new failure modes. Every 
   3. The ionized PVD particle cost stays.
   4. Low-pressure polish: agreed, no scratch cost.
   Batch 1 done: 29 items. 132/132.
+- 2026-10-25: batch 2 drafted (4 practices, 2 consumables, the gate_oxide pattern, 4 failure modes). physics-reviewer fixes:
+  - screen oxide: no particle benefit (it catches beamline metals and carbon, not particles);
+  - HF-last note: no particle claim;
+  - fm_gate_punch sig: S/D leakage and silicon recess, not gate leakage;
+  - fm_gate_breakdown sig: no Q-time clue (that clue belongs to fm_gate_native_oxide);
+  - fm_channeling sig: circular clue dropped;
+  - tilt wording.
+- David's rulings on batch 2:
+  1. HF-last and soft-landing gate etch need `when: { lot: 'siliconFrontEnd' }`, a static NMOS trait, so they're never playable on the Cu line.
+  2. Soft landing: residue ×1.1 (micromasking) and time as the main cost.
+  3. endpointEtch gets underlayer_attack ×1.5 when thinGateOxide (the over-etch after endpoint is in the main chemistry).
+  4. New pattern channeling_tail (the 2nd new pattern): tilt and screen oxide scale it, and spike anneal keeps junction_spread.
+  Batch 2 done: 35 items. 132/132; the bot is clean.
+- **For the NMOS route (item 2):**
+  - traits `siliconFrontEnd` and `thinGateOxide`;
+  - step 7 (SiN strip + pre-gate clean) adds gate_oxide and qtime_oxide and is the qtime step;
+  - step 8 realizes both;
+  - step 11 adds underlayer_attack and residue;
+  - step 12 adds channeling_tail, junction_spread and implant_damage;
+  - step 13 realizes those.
+  - Reviewer, for David: should step 7's qtime_oxide be small (an SC1/SC2 chemical oxide end)?
 
 ## Result
 - (open)

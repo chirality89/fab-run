@@ -58,6 +58,7 @@ export const PATTERNS = {
   implant_damage:   'crystal damage not repaired',
   junction_spread:  'dopant diffused too far',
   gate_oxide:       'thin gate oxide that leaks or breaks down early',
+  channeling_tail:  'implanted dopant ran deep along crystal channels',
 };
 
 // ---------------------------------------------------------------------------
@@ -105,14 +106,14 @@ export const FAILURE_MODES = [
   { id: 'fm_dose_offset',    draft: true, pattern: 'cd_error',
     sig: 'Line width is off target by the same amount on every site and every wafer; SPC shows a step from the previous lot, and the scatter within the lot is small.',
     unlocks: ['sendAheadWafer'] },
-  { id: 'fm_channeling',     draft: true, pattern: 'junction_spread',
-    sig: 'Junctions are deeper than the dose and anneal predict, on every site; the dopant depth profile has a long tail beyond the main peak, and the tail shrinks on a wafer implanted at a tilt or through an oxide. Anneal time does not change the tail.',
+  { id: 'fm_channeling',     draft: true, pattern: 'channeling_tail',
+    sig: 'Junctions are deeper than the dose and energy predict, on every site; the dopant depth profile has a long tail beyond the main peak.',
     unlocks: ['tiltedImplant', 'screenOxideImplant', 'implantMonitor'] },
   { id: 'fm_gate_punch',     draft: true, pattern: 'underlayer_attack',
-    sig: 'Gate-to-substrate leakage on every site and wafer, not just the most over-etched dies; oxide thickness measured after the poly etch is thin or gone beside the gate, and the cross-section shows pits in the silicon there.',
+    sig: 'Source/drain junction leakage and higher series resistance on every site and wafer, not just the most over-etched dies; oxide measured after the poly etch is thin or gone beside the gate, and the cross-section shows the silicon recessed or pitted there.',
     unlocks: ['softLandGateEtch'] },
   { id: 'fm_gate_breakdown', draft: true, pattern: 'gate_oxide',
-    sig: 'On a ramped-voltage test the gate oxide breaks down at a low voltage, with a wide spread of breakdown voltage from site to site; the oxide thickness itself is on target, and the early breakdowns are worse on lots that waited long after the pre-gate clean.',
+    sig: 'On a ramped-voltage test the gate oxide breaks down at a low voltage, with a wide spread of breakdown voltage from site to site; the low-voltage breakdowns sit at random sites, thickness and capacitance-voltage are on target, and it is worse on lots with more particles or metal contamination.',
     unlocks: ['hfLastClean'] },
   { id: 'fm_gate_native_oxide', draft: true, pattern: 'qtime_oxide',
     sig: 'Capacitance-voltage shows an electrical oxide thickness larger than the furnace recipe gives, and threshold voltage is shifted, but breakdown voltage is normal; the gap grows with the wait after the pre-gate clean.',
@@ -211,16 +212,18 @@ export const PRACTICES = [
     effects: [
       { op: 'defectMult', pattern: 'underlayer_attack', mult: 0.3 },
       { op: 'defectMult', pattern: 'residue', mult: 1.3 },
+      { op: 'defectMult', pattern: 'underlayer_attack', mult: 1.5, when: { lot: 'thinGateOxide' } },
     ],
     upgrade: { name: 'Stop on endpoint, DOE-centred',
       effects: [
         { op: 'defectMult', pattern: 'underlayer_attack', mult: 0.35 },
         { op: 'defectMult', pattern: 'residue', mult: 1.15 },
+        { op: 'defectMult', pattern: 'underlayer_attack', mult: 1.5, when: { lot: 'thinGateOxide' } },
       ],
       tradeoff: 'Less residue in slow spots, but the short extra etch after the signal attacks the film below a little more.',
       physicsNote: 'A small fixed over-etch after the endpoint signal clears the last film in slow spots, while the underlayer is exposed a bit longer.' },
-    tradeoff: 'Stops right when the film clears, so slow spots can keep a little residue.',
-    physicsNote: 'Plasma emission changes when the etched film runs out; the tool stops on that signal instead of a fixed time.' },
+    tradeoff: 'Stops right when the film clears, so slow spots can keep a little residue. On a thin gate oxide the over-etch after endpoint, still in the main chemistry, can punch through.',
+    physicsNote: 'Plasma emission changes when the etched film runs out; the tool stops on that signal instead of a fixed time. A short over-etch in the same chemistry usually follows, to clear slow spots.' },
 
   { id: 'dummyFill', draft: true, kind: 'practice', room: 'litho', rarity: 'advanced',
     name: 'Add dummy fill to the mask', unlockedBy: 'fm_dishing',
@@ -322,47 +325,46 @@ export const PRACTICES = [
   { id: 'tiltedImplant', draft: true, kind: 'practice', room: 'implant', rarity: 'standard',
     name: 'Tilted implant (about 7 degrees)', unlockedBy: 'fm_channeling',
     cost: { time: 6 },
-    // Needs: S/D implant step (NMOS step 12) adds junction_spread on entering, before this card is played.
+    // Needs: S/D implant step (NMOS step 12) adds channeling_tail on entering, before this card is played.
     effects: [
-      { op: 'defectMult', pattern: 'junction_spread', mult: 0.6 },
+      { op: 'defectMult', pattern: 'channeling_tail', mult: 0.6 },
     ],
     tradeoff: 'Cuts the channeling tail, but the tall gate shadows one side of each source or drain, so the wafer must be rotated through several implants, which takes extra minutes.',
-    physicsNote: 'Ions fired along an open crystal direction travel far between atoms (channeling) and make a deep tail on the dopant profile. Tilting the wafer about 7 degrees off the axis makes the ions hit atoms sooner. A tall gate then shadows one side of the implant, so the implant is split into steps with the wafer rotated between them.' },
+    physicsNote: 'Ions fired along an open crystal direction travel far down open channels between rows of atoms, losing energy slowly (channeling), and make a deep tail on the dopant profile. Tilting the wafer about 7 degrees off the axis makes the ions hit atoms sooner. A tall gate then shadows one side of the implant, so the implant is split into steps with the wafer rotated between them.' },
 
   { id: 'screenOxideImplant', draft: true, kind: 'practice', room: 'implant', rarity: 'standard',
     name: 'Implant through a screen oxide', unlockedBy: 'fm_channeling',
     cost: { time: 4, cash: 30 },
-    // Needs: S/D implant step (NMOS step 12) adds junction_spread, particles and implant_damage on entering, before this card is played.
+    // Needs: S/D implant step (NMOS step 12) adds channeling_tail and implant_damage on entering, before this card is played.
     effects: [
-      { op: 'defectMult', pattern: 'junction_spread', mult: 0.7 },
-      { op: 'defectMult', pattern: 'particles', mult: 0.8 },
+      { op: 'defectMult', pattern: 'channeling_tail', mult: 0.7 },
       { op: 'defectMult', pattern: 'implant_damage', mult: 1.3 },
     ],
-    tradeoff: 'Less channeling and fewer particles on the bare silicon, but ions knock oxygen out of the oxide into the silicon, which adds crystal damage the anneal must repair.',
-    physicsNote: 'A thin amorphous oxide on the silicon scatters the incoming ions, so they enter the crystal at random angles and channel less. It also keeps particles and contamination off the silicon surface. Collisions push oxygen atoms into the silicon (knock-on) and the oxide shifts the dopant peak shallower, so the dose and energy must be set to suit.' },
+    tradeoff: 'Less channeling, and the oxide catches beamline contamination, but ions knock oxygen out of the oxide into the silicon, which adds crystal damage the anneal must repair.',
+    physicsNote: 'A thin amorphous oxide on the silicon scatters the incoming ions, so they enter the crystal at random angles and channel less. It also catches metal and carbon contamination from the beamline, which is stripped away with the oxide. Collisions push oxygen atoms into the silicon (knock-on) and the oxide shifts the dopant peak shallower, so the dose and energy must be set to suit.' },
 
   { id: 'softLandGateEtch', draft: true, kind: 'practice', room: 'etch', rarity: 'advanced',
     name: 'Soft-landing gate etch', unlockedBy: 'fm_gate_punch',
-    cost: { time: 6 },
+    cost: { time: 6 }, when: { lot: 'siliconFrontEnd' },
     // Needs: gate etch step (NMOS step 11) adds underlayer_attack and residue on entering, before this card is played.
     effects: [
       { op: 'defectMult', pattern: 'underlayer_attack', mult: 0.7 },
       { op: 'defectMult', pattern: 'underlayer_attack', mult: 0.5, when: { lot: 'thinGateOxide' } },
-      { op: 'defectMult', pattern: 'residue', mult: 1.4 },
+      { op: 'defectMult', pattern: 'residue', mult: 1.1 },
     ],
-    tradeoff: 'Protects the thin gate oxide, but the slow, polymer-rich final step can leave poly stringers at the foot of the gate, and it takes most of the room\'s minutes.',
-    physicsNote: 'Near the end the etch switches to a chemistry with high poly-to-oxide selectivity and low ion energy, so it removes the last poly without punching the thin oxide below. The same polymer that protects the oxide can mask poly at the gate foot and leave residue.' },
+    tradeoff: 'Protects the thin gate oxide, but the slow final step takes most of the room\'s minutes, and polymer micromasking can leave small poly residues.',
+    physicsNote: 'Near the end the etch switches to a chemistry with high poly-to-oxide selectivity and low ion energy, so it removes the last poly without punching the thin oxide below. The polymer that makes it selective can micromask a little poly and leave small residues.' },
 
   { id: 'hfLastClean', draft: true, kind: 'practice', room: 'clean', rarity: 'standard',
     name: 'HF-last clean before gate oxidation', unlockedBy: 'fm_gate_breakdown',
-    cost: { time: 6, cash: 40 },
+    cost: { time: 6, cash: 40 }, when: { lot: 'siliconFrontEnd' },
     // Needs: SiN strip + pre-gate clean step (NMOS step 7) adds gate_oxide and qtime_oxide on entering. Play it in that step; the earlier clean (step 1) comes before the risk exists.
     effects: [
       { op: 'defectMult', pattern: 'gate_oxide', mult: 0.5 },
       { op: 'defectMult', pattern: 'qtime_oxide', mult: 1.5 },
     ],
-    tradeoff: 'A final dip in dilute HF strips the old oxide and the contamination in it, but the bare silicon regrows native oxide as soon as the lot waits, so the Q-time window gets tighter.',
-    physicsNote: 'Dilute HF removes silicon dioxide and the metals and particles trapped in it, leaving a hydrogen-terminated silicon surface that makes a cleaner, more uniform gate oxide. That surface is only stable for a short time; it regrows native oxide in air and moisture.' },
+    tradeoff: 'A final dip in dilute HF strips the thin chemical oxide left by the earlier cleans and the contamination in it, but the bare silicon regrows native oxide as soon as the lot waits, so the Q-time window gets tighter.',
+    physicsNote: 'Dilute HF removes silicon dioxide and the metals trapped in it, leaving a hydrogen-terminated silicon surface that makes a cleaner, more uniform gate oxide. That surface is only stable for a short time; it regrows native oxide in air and moisture.' },
 ];
 
 // ---------------------------------------------------------------------------
