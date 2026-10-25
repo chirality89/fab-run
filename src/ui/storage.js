@@ -28,8 +28,10 @@
 import { enterStep, playCard, resolveStep, walkCorridor, buyItem } from '../engine/run.js';
 import { normalizeSeed } from '../engine/rng.js';
 
-// Goes up when the actions or the rules change in a way that would replay
-// differently. An old save is then ignored instead of replayed wrongly.
+// Goes up whenever a change ships that could replay an old save
+// differently: the actions, the engine rules, or any number or effect in
+// balance.js or content.js (David, 25 Oct 2026). An old save is then
+// ignored instead of replayed wrongly.
 // The notebook (M4) has its own key, so bumping this never touches it.
 export const SAVE_VERSION = 1;
 export const SAVE_KEY = 'fabrun.run.v1';   // bump the v1 together with SAVE_VERSION

@@ -54,10 +54,9 @@ On load, the game builds a fresh run for the seed and plays the actions again th
 - A `?seed=` link that differs from the save wins and starts fresh.
 - Resume silently.
 - Save the seed plus the list of actions, not the whole state.
+- Bump `SAVE_VERSION` (and the `v1` in `SAVE_KEY`) on any shipped change to the actions, the engine rules, `balance.js` or `content.js`.
 
 **Size:** Parts 1–2 are `src/ui/` + `tests/` only, about 250 lines with tests. Part 3 is about 40 lines in `main.js` plus one screen test file. Two to three commits: storage + tests, then the hook.
-
-**Question for David before Part 3:** does a change to `balance.js` or `content.js` (a price, a time budget, a card's effect) also need a `SAVE_VERSION` bump? Without one, an old save replays under the new numbers: the lot comes out slightly different, or the replay fails and the seed starts fresh. Proposed: yes, bump on any balance or content change that ships. It's one number in `storage.js`.
 
 **Not in this lane (noted):** the notebook itself (M4); a "your save was from an older version" message; saving more than one run; removing the old `v1` key after a version bump (a few bytes left behind).
 
@@ -76,6 +75,7 @@ On load, the game builds a fresh run for the seed and plays the actions again th
 - The resume test on seed 123456 plays three rooms, including a procurement purchase after step 2, then saves, loads and replays. The state is exactly equal; both finish with the same status, cash, cycle time and lot.
 - I broke the code twice on purpose (replay drops the last action; a storage read without try/catch). The tests failed both times, then passed again with the code restored.
 - code-explainer: two must-fixes, done. The header claimed "nothing throws" (applyAction throws on purpose), and replayRun hid real engine bugs. It now prints a warning before starting fresh. Readability points done too: plain `check` function, a note on `Object.hasOwn`, a literal `SAVE_KEY`, short JavaScript notes in the header. Its Part 3 points are in the Part 3 list above.
+- David: yes, bump the save version on any balance or content change that ships. Written in the `SAVE_VERSION` comment in `storage.js`.
 - Part 3 waits for Lane A's ship screen on `main`.
 
 **Result:**
