@@ -99,7 +99,7 @@ export const FAILURE_MODES = [
     sig: 'Lines come out with a T-shaped top when the lot waited between expose and bake.',
     unlocks: ['resistCAR', 'freshResist'] },
   { id: 'fm_overhang_void',  draft: true, pattern: 'void',
-    sig: 'Opens on narrow, deep trenches; the cross-section shows the void high in the feature under a pinched mouth, with thin or missing seed on the lower sidewall.',
+    sig: 'Opens on narrow, deep trenches; the cross-section shows either a void under a pinched mouth or voids at the lower sidewall where the seed is thin.',
     unlocks: ['ionizedSeed'] },
   { id: 'fm_dose_offset',    draft: true, pattern: 'cd_error',
     sig: 'Line width is off target by the same amount on every site and every wafer; SPC shows a step from the previous lot, and the scatter within the lot is small.',
@@ -261,56 +261,51 @@ export const PRACTICES = [
 
   { id: 'sendAheadWafer', draft: true, kind: 'practice', room: 'litho', rarity: 'standard',
     name: 'Send-ahead wafer', unlockedBy: 'fm_dose_offset',
-    cost: { time: 10 },
+    cost: { time: 10, cash: 40 },
     effects: [
       { op: 'defectMult', pattern: 'cd_error', mult: 0.5 },
       { op: 'defectMult', pattern: 'particles', mult: 1.1 },
-      { op: 'defectMult', pattern: 'cd_error', mult: 1.3, when: { material: 'resistCAR' } },
     ],
-    tradeoff: 'Sets the dose from a measured wafer, but the rest of the lot waits while it is developed and measured, and the wait hurts chemically amplified resist.',
-    physicsNote: 'Line width changes with exposure dose. One wafer is exposed, developed and measured, then the dose is corrected for the rest of the lot. Exposed chemically amplified resist waiting for the bake loses acid to airborne bases.' },
+    tradeoff: 'Sets the dose from a measured wafer, but the lot waits for the measurement, and the send-ahead wafer is stripped and recoated, which adds handling particles.',
+    physicsNote: 'Line width changes with exposure dose. One wafer is exposed, developed and measured while the rest of the lot waits unexposed; the dose is then corrected for the rest of the lot.' },
 
   { id: 'megasonicClean', draft: true, kind: 'practice', room: 'clean', rarity: 'standard',
     name: 'Megasonic clean', unlockedBy: 'fm_particles',
-    cost: { time: 6, cash: 40 },
+    cost: { time: 6, cash: 60 },
     effects: [
       { op: 'defectMult', pattern: 'particles', mult: 0.5 },
-      { op: 'defectMult', pattern: 'cd_error', mult: 1.3, when: { lot: 'tightCD' } },
     ],
-    tradeoff: 'Strong particle removal, but the acoustic energy can damage or collapse fragile fine features.',
+    tradeoff: 'Strong particle removal, but slow and paid for. On patterned wafers, too much acoustic power can break fine features.',
     physicsNote: 'High-frequency sound in the cleaning liquid makes a thin flow layer that sweeps small particles off the surface. Too much acoustic power can damage delicate fine-line structures.' },
 
   { id: 'ionizedSeed', draft: true, kind: 'practice', room: 'dep', rarity: 'advanced',
     name: 'Ionized PVD seed', unlockedBy: 'fm_overhang_void',
     cost: { time: 9, cash: 90 },
     effects: [
-      { op: 'setFlag', flag: 'ionized_seed' },
       { op: 'defectMult', pattern: 'void', mult: 0.6 },
       { op: 'defectMult', pattern: 'particles', mult: 1.2 },
     ],
-    tradeoff: 'Better sidewall coverage in narrow trenches, but slower and dearer, and the energetic ions flake more particles.',
+    tradeoff: 'Better sidewall coverage in narrow trenches, but slower and dearer, and the extra coil and shields in the plasma collect metal that can flake off as particles.',
     physicsNote: 'Ionizing the sputtered metal lets a substrate bias steer it down into the feature, so the sidewall gets more seed and the opening overhangs less. Less overhang means the plated copper is less likely to pinch off the mouth and trap a void.' },
 
   { id: 'lowPressurePolish', draft: true, kind: 'practice', room: 'cmp', rarity: 'standard',
     name: 'Low-pressure final polish', unlockedBy: 'fm_dishing',
-    cost: { time: 6 },
+    cost: { time: 6, cash: 30 },
     effects: [
       { op: 'defectMult', pattern: 'dishing', mult: 0.6 },
-      { op: 'defectMult', pattern: 'particles', mult: 1.15 },
     ],
-    tradeoff: 'Less dishing in wide lines, but it takes longer and the extra pad contact time adds scratches and slurry particles.',
-    physicsNote: 'Preston: removal rate is proportional to pressure times velocity. Lower down force removes less per second and loads the pad less on soft wide copper, so the finish takes more time.' },
+    tradeoff: 'Less dishing in wide lines, but the polish takes longer and uses more slurry and pad per wafer.',
+    physicsNote: 'Preston: removal rate ≈ k × pressure × velocity, so a lighter down force removes less per second and the polish takes longer. Under pressure the pad bends down into wide features and keeps polishing the copper there; less pressure means less bending, so wide lines dish less.' },
 
   { id: 'chamberSeasoning', draft: true, kind: 'practice', room: 'etch', rarity: 'standard',
     name: 'Chamber seasoning', unlockedBy: 'fm_edge_ring',
     cost: { time: 3, cash: 40 },
     effects: [
       { op: 'defectMult', pattern: 'depth_variation', mult: 0.7 },
-      { op: 'defectMult', pattern: 'edge_ring', mult: 0.7 },
       { op: 'defectMult', pattern: 'particles', mult: 1.2 },
     ],
     tradeoff: 'A steadier chamber, but it spends minutes and dummy wafers, and the film coated on the walls can flake.',
-    physicsNote: 'Running conditioning wafers coats the chamber walls so they recombine and release radicals at a steady rate. Without it the first wafers see a different etch rate, especially at the edge. Wall film can flake as particles.' },
+    physicsNote: 'Running conditioning wafers coats the chamber walls so they recombine and release radicals at a steady rate. Without it the first wafers see a different etch rate. Wall film can flake as particles.' },
 ];
 
 // ---------------------------------------------------------------------------

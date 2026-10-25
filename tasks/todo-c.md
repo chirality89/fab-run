@@ -97,13 +97,29 @@ That makes 24 + 5 + ~5 + ~6 = **about 40 items**, plus new failure modes. Every 
 - Constraint while view.test.js needs endpoint etch dealt from the full pool: at most 5 etch practices in content.
 
 ## NEEDS NEW LOGIC
-- (none yet)
+- **Feature damage from cleans** (batch 1, megasonicClean): too much acoustic power breaks fine features, but only on patterned wafers. Needs a "patterned" condition or a damage pattern. Today the card's cost is time and cash only.
+- **CD per site on the metrology screen** (batch 1, fm_dose_offset): the sig ("same offset on every site, SPC step from the previous lot") needs mean CD and spread shown on screen. A yield-only map with scatter will not look uniform. Confirm before this failure mode goes live (CLAUDE.md §5 rule 6).
+- **Low-pressure polish copper residue** (batch 1, optional): a slower polish can leave copper residue (shorts). No pattern fits today.
 
 ## Proposed lessons (for whoever merges into tasks/lessons.md)
 - (none yet)
 
 ## Progress notes
 - 2026-10-25: plan written and OK'd. Branch lane-c from main 0b19ca8.
+- 2026-10-25: step 0b done (run.test.js names its etch deck), 132/132.
+- 2026-10-25: batch 1 drafted (5 practices, 2 failure modes). physics-reviewer: not ready as drafted. Fixed without needing David:
+  - send-ahead: the CAR penalty is gone (the lot waits before expose, not between expose and bake); cost is now time 10 + cash 40, and the particles are explained (the send-ahead wafer is stripped and recoated);
+  - megasonic: the cd_error penalty could never act and is gone; cost is time 6 + cash 60;
+  - ionized seed: the unused flag is dropped; the particle cost is reworded (coil and shields flake);
+  - low-pressure polish: no particle cost (lower force scratches less); cash 30 instead; Preston note rewritten;
+  - seasoning: no edge_ring effect;
+  - fm_overhang_void sig names both void locations.
+  132/132; the bot (seed 123456, random, full deck) is clean.
+- **Waiting on David (batch 1):**
+  1. Ionized seed's void ×0.6 never acts, because void enters at plating. Proposed: move `void: 0.08` from the plating step's adds to step 6 (barrier + seed) adds in cuLine. The do-nothing yield is unchanged. startRisks was rejected: the card would then work at step 2, before any trench exists.
+  2. Seasoning: unlock from fm_underlayer, or a new first-wafer-effect failure mode (needs per-wafer evidence)?
+  3. Is coil/shield flaking a fair particle cost for ionized PVD?
+  4. Agree that low-pressure finishing should not add scratches?
 
 ## Result
 - (open)
