@@ -100,3 +100,15 @@ The start routine only reads files on the current branch. Work that lives on an 
 ✅ At session start, list open PRs and remote branches (`git branch -r`, GitHub PR list) and check none holds newer roadmap work before picking an item
 ✅ When an item is done, get its PR merged to `main` (or tell David it's still open) before the session ends
 
+## A double tap could play a card and run the room
+
+### What Happened
+Playing a card redraws the screen at once. In review, the second click of a fast double tap was found to land on whatever slid into the card's place, which with one card in hand is the Run etch button.
+
+### Root Cause
+Buttons that move under the finger after a redraw. Nothing told a deliberate second tap from the tail end of a double tap.
+
+### Rule to Prevent
+✅ Every button that changes the run uses `onSingleClick` (render.js), which ignores the second click of a double click
+✅ After any redraw on tap, test a fast double tap at the same spot in the browser
+

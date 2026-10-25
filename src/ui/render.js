@@ -1,6 +1,8 @@
-// render.js — draws the room screen from the display data made by view.js.
+// render.js — draws the room and result screens from the display data made
+// by view.js.
 //
-// No game logic here: every number and word comes from roomView(). Text is
+// No game logic here: every number and word comes from roomView() or
+// resultView(). Buttons only call the functions main.js hands in. Text is
 // always set with textContent (never innerHTML), so nothing in the data can
 // turn into page code.
 
@@ -10,6 +12,20 @@ function el(tag, className, text) {
   if (className) node.className = className;
   if (text !== undefined) node.textContent = text;
   return node;
+}
+
+// Calls `handler` when the button is clicked, tapped or pressed with Enter
+// or Space, but ignores the second click of a double click. Playing a card
+// redraws the screen at once, so without this the second click of a fast
+// double tap would land on whatever slid into that spot (often Run etch).
+// event.detail counts the clicks in a row: 1, then 2 for a double click
+// (0 for a key press).
+function onSingleClick(button, handler) {
+  button.type = 'button';
+  button.addEventListener('click', event => {
+    if (event.detail > 1) return;
+    handler();
+  });
 }
 
 // A small heading for each panel.
@@ -106,41 +122,113 @@ function costText(card) {
   return parts.join(' · ');
 }
 
-// One card in the hand. Not clickable yet (playing cards is the next item).
-function drawCard(card) {
-  const node = el('div', card.playable ? 'card' : 'card card-unplayable');
-  node.setAttribute('role', 'listitem');
+// One card in the hand. A playable card is a button: tapping it calls
+// actions.onPlay(cardId). An unplayable card is a plain box with its reason.
+function drawCard(card, actions) {
+  const node = card.playable
+    ? el('button', 'card card-button')
+    : el('div', 'card card-unplayable');
+  if (card.playable) onSingleClick(node, () => actions.onPlay(card.id));
   const top = el('div', 'card-top');
-  top.append(el('h3', 'card-name', card.name), el('span', 'card-cost', costText(card)));
-  node.append(top, el('p', 'card-summary', card.summary));
-  if (!card.playable) node.append(el('p', 'card-reason', `Can't play: ${card.reason}`));
+  top.append(el('span', 'card-name', card.name), el('span', 'card-cost', costText(card)));
+  node.append(top, el('span', 'card-summary', card.summary));
+  if (!card.playable) node.append(el('span', 'card-reason', `Can't play: ${card.reason}`));
   return node;
 }
 
-function drawHand(view) {
+// The button that ends the room: "Run etch".
+function drawRunButton(view, actions) {
+  const run = el('button', 'action-button run-button', `Run ${view.roomName.toLowerCase()}`);
+  onSingleClick(run, actions.onRunRoom);
+  return run;
+}
+
+// The hand, then the button that ends the room.
+function drawHand(view, actions) {
   const box = panel('Hand', 'hand-panel');
   if (view.hand.length === 0) {
-    box.append(el('p', 'slot-empty', 'No practices for this room in your deck.'));
-    return box;
+    box.append(el('p', 'slot-empty hand-empty', 'No practices left in your hand.'));
+  } else {
+    const list = el('ul', 'hand');
+    list.setAttribute('role', 'list');   // some screen readers drop it when bullets are hidden
+    for (const card of view.hand) {
+      const item = el('li', 'hand-item');
+      item.append(drawCard(card, actions));
+      list.append(item);
+    }
+    box.append(list);
   }
-  const list = el('div', 'hand');
-  list.setAttribute('role', 'list');
-  for (const card of view.hand) list.append(drawCard(card));
-  box.append(list);
+  box.append(drawRunButton(view, actions));
   return box;
 }
 
 // Draws the whole room into the given container, replacing what was there.
-export function renderRoom(container, view) {
+// `actions` holds what the buttons call: onPlay(cardId) and onRunRoom().
+export function renderRoom(container, view, actions) {
   const body = el('div', 'room-body');
   body.append(
     drawWaferMap(view),
     meter('Time budget', `${view.timeLeft} of ${view.budget} min left`, view.timeLeft / view.budget, 'time-panel'),
     drawSlots(view),
     meter('Tool health', `${view.toolHealth} / 100`, view.toolHealth / 100, 'tool-panel'),
-    drawHand(view),
+    drawHand(view, actions),
   );
   container.replaceChildren(drawHeader(view), drawYield(view), body);
+}
+
+// After a card is played, moves keyboard focus to the playable card now in
+// the same place in the hand (`position`, counted from 0), or the nearest
+// playable card after it, or else the Run button. That way a keyboard
+// player doesn't lose their place when the screen redraws.
+export function focusNextAction(container, position) {
+  const items = [...container.querySelectorAll('.hand-item')];
+  const later = items.slice(position).map(item => item.querySelector('.card-button'));
+  const earlier = items.slice(0, position).reverse().map(item => item.querySelector('.card-button'));
+  const card = [...later, ...earlier].find(button => button !== null);
+  // `??` means: use the right-hand side if the left is missing (undefined).
+  const target = card ?? container.querySelector('.run-button');
+  target.focus();
+}
+
+// The yield before and after the room, with the bar showing "after".
+function drawResultYield(view) {
+  const box = panel('Line yield', 'yield-panel');
+  box.append(el('p', 'yield-number', `${view.yieldBeforePercent.toFixed(1)}% → ${view.yieldAfterPercent.toFixed(1)}%`));
+  const bar = el('div', 'yield-bar');
+  bar.setAttribute('role', 'img');
+  bar.setAttribute('aria-label', `Yield ${view.yieldAfterPercent}%, scrap line ${view.scrapLine}%, spec ${view.spec}%`);
+  const fill = el('div', `yield-fill yield-${view.yieldBand}`);
+  fill.style.width = `${view.yieldAfterPercent}%`;
+  bar.append(fill, barMark(view.scrapLine, `Scrap ${view.scrapLine}%`, 'mark-scrap'),
+    barMark(view.spec, `Spec ${view.spec}%`, 'mark-spec'));
+  box.append(bar, el('p', 'expected-loss', view.lossText));
+  return box;
+}
+
+// A plain button that calls `onClick`.
+function actionButton(text, className, onClick) {
+  const button = el('button', `action-button ${className}`, text);
+  onSingleClick(button, onClick);
+  return button;
+}
+
+// The screen after a room is run: what it cost, the new wafer map, what
+// happens next, and two ways to play again.
+// `actions` holds onReplay() and onNewSeed().
+export function renderResult(container, view, actions) {
+  const outcome = panel('Result', 'result-panel');
+  outcome.setAttribute('role', 'status');
+  outcome.append(el('p', 'outcome-text', view.outcomeText));
+  const buttons = el('div', 'result-buttons');
+  buttons.append(
+    actionButton('Replay this seed', 'replay-button', actions.onReplay),
+    actionButton('New seed', 'new-seed-button', actions.onNewSeed),
+  );
+  outcome.append(buttons);
+  container.replaceChildren(drawHeader(view), drawResultYield(view), outcome, drawWaferMap(view));
+  // Focus Replay for keyboard players, but show the result from the top.
+  window.scrollTo(0, 0);
+  container.querySelector('.replay-button').focus({ preventScroll: true });
 }
 
 // A plain message instead of a room, e.g. when the lot was scrapped before

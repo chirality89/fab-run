@@ -149,3 +149,47 @@ export function parseSeed(search, fallback) {
   const seed = normalizeSeed(Number(text));
   return seed === null ? fallback : seed;
 }
+
+// What happens to the lot after a room, in words.
+function outcomeText(after, route) {
+  if (after.status === 'scrapped') {
+    return `Lot scrapped: yield fell below the scrap line (${toPercent(SCRAP_LINE)}%).`;
+  }
+  if (after.status === 'shipped') return 'Lot shipped: it meets the customer spec.';
+  if (after.status === 'rejected') return 'Lot rejected: shipped below the customer spec.';
+  const next = route[after.stepIndex];
+  return `The lot moves on to step ${after.stepIndex + 1}: ${next.label}.`;
+}
+
+// Everything the result screen shows after a room is run. `before` is the
+// state while the lot was still in the room; `after` is what resolveStep
+// returned. Reads both; changes neither.
+export function resultView(before, after) {
+  if (before.room === null) throw new Error('resultView: `before` must be the state inside the room');
+  const route = LOT_TYPES[before.lotTypeId].route;
+  const step = route[before.stepIndex];
+  const yieldBefore = lotYield(before.lot);
+  const yieldAfter = lotYield(after.lot);
+  const lossPoints = (yieldBefore - yieldAfter) * 100;
+  return {
+    seed: before.seed,
+    roomId: before.room.id,
+    roomName: ROOMS[before.room.id].name,
+    stepNumber: before.stepIndex + 1,
+    stepCount: route.length,
+    stepLabel: step.label,
+    cash: after.cash,
+    yieldBeforePercent: toPercent(yieldBefore),
+    yieldAfterFraction: yieldAfter,
+    yieldAfterPercent: toPercent(yieldAfter),
+    yieldBand: yieldBand(yieldAfter),
+    scrapLine: toPercent(SCRAP_LINE),
+    spec: toPercent(CUSTOMER_SPEC),
+    lossPoints,
+    lossText: `This room cost ${lossPoints.toFixed(1)} points of yield.`,
+    sites: after.lot.sites.map(siteView),
+    mapKeyText: mapKeyText(),
+    status: after.status,
+    outcomeText: outcomeText(after, route),
+  };
+}
