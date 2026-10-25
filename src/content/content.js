@@ -81,7 +81,7 @@ export const FAILURE_MODES = [
     sig: 'Opens on narrow vias only; a seam or void sits in the middle of the fill.',
     unlocks: ['slowStartPlate', 'additiveBath', 'bathAnalysis'] },
   { id: 'fm_qtime',          draft: true, pattern: 'qtime_oxide',
-    sig: 'High contact resistance only on lots that waited long after clean.',
+    sig: 'High via resistance only on lots that waited long after clean.',
     unlocks: ['n2Storage'] },
   { id: 'fm_implant_damage', draft: true, pattern: 'implant_damage',
     sig: 'Junction leakage after implant; a longer anneal fixes leakage but shifts the device.',
