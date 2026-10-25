@@ -1,6 +1,69 @@
 # Fab Run — Task Tracker
 
-## Current: M3 item 2c — PM/DOE stop, part 1: PM restores one tool
+## Current: M3 item 2d — DOE stop: upgrade one practice for the run
+
+### Task: at a PM/DOE stop, choose a PM **or** a DOE that upgrades one practice
+
+**What a DOE is, in game terms**
+- In a fab, a DOE (design of experiments) tunes a recipe: it finds a centred process window instead of the safe default. The game version: each practice gets **one DOE version as data**. That version is a better-centred recipe that keeps its tradeoff (rule 7): nothing becomes strictly better than every alternative, it just gets a better balance.
+- A DOE upgrades that card for the rest of the run. Each card can be upgraded once. In the hand, an upgraded card shows a **DOE** tag and its new numbers.
+- Content stays data (CLAUDE.md §6): a practice gets an `upgrade` field holding only what changes (name, cost, effects, tradeoff, physicsNote). No new effect operation.
+
+**Proposed DOE versions for the starter cards** (David to check the physics; content-drafter drafts the other 8, and physics-reviewer and David review them):
+
+| Card | Now | DOE version | Why |
+|---|---|---|---|
+| Timed over-etch (+20%) | 4 min; residue ×0.3, underlayer attack ×1.5 | "Timed over-etch, DOE-centred": 4 min; residue ×0.3, underlayer attack ×1.25 | The DOE finds the shortest over-etch that still clears: same clearing, less punch-through |
+| Measure all 25 sites | 20 min, 150 cash | 12 min, 150 cash | A tuned sampling recipe (fewer sites per wafer, same coverage of the lot) |
+| Strip and re-expose | 30 min, 150 cash; CD error ×0.2, particles ×1.2 | particles ×1.1 | A tuned strip with gentler handling |
+
+**The stop**
+- [ ] The PM/DOE screen gets two sections: **PM a tool** (as now) and **DOE a practice**.
+- [ ] One choice per stop: doing a PM closes the DOE section, and the other way round.
+- [ ] DOE lists every practice in your deck that has a DOE version, isn't upgraded yet, and whose room is still ahead. No random pick: the starter deck has only 3 practices.
+- [ ] Each DOE card shows the card now → after the DOE (cost and effects in words, plus the new tradeoff), and a **Run this DOE** button.
+
+**Engine (`src/engine/`)**
+- [ ] `run.js`:
+  - `state.upgraded = []`;
+  - a card lookup that applies the `upgrade` when the card's id is in `state.upgraded`, used by `whyIllegal`, `playCard` and the dealing filter;
+  - new `doeCard(state, cardId)` that refuses a card not in the deck, one already upgraded, one without a DOE version, one whose room is behind the lot, a stop already used, or no stop open;
+  - `pmTool` and `doeCard` share the one-choice-per-stop rule (`state.pm.done`).
+- [ ] Bot: at a PM/DOE stop the random bot picks PM or DOE on a coin flip, then uses its PM rule or a random DOE.
+
+**Content (`src/content/`)**
+- [ ] `upgrade` fields on the practices (all `draft: true` as part of their card).
+- [ ] `content.test.js`: every `upgrade` keeps a tradeoff and a physicsNote, uses only known effect ops and patterns, and changes something.
+- [ ] `sideStops.js`: PM / DOE says "PM one tool, or DOE one practice".
+
+**Screen (`src/ui/`)**
+- [ ] The PM/DOE screen's DOE section; the DOE tag on cards in the hand.
+
+**Tests**
+- [ ] `tests/doe.test.js`: the refusals above; one choice per stop; an upgraded card plays its DOE numbers; the lot's `rngState` is untouched.
+- [ ] **Hand check** (scatter off, drift off), seed 123456: DOE timed over-etch at the stop after step 2, then play it at etch.
+  - Underlayer attack is 0.05 × 1.25 = 0.0625 instead of 0.05 × 1.5 = 0.075. That is an even pattern, so yield after etch = the non-DOE result × e^(0.0125) = × **1.012578**.
+  - Everything else is the same, residue ×0.3 included.
+- [ ] Screen tests at both sizes; screenshots checked.
+- [ ] `content-drafter` for the 8 other upgrades; `physics-reviewer` on all 11; `code-explainer` and `playtester` before done.
+
+**Size:** content, engine and screen, about 300 lines plus 11 data entries. This plan is the ask.
+
+**Questions for David**
+1. One choice per stop, PM or DOE?
+2. Is the DOE rule right: one data-defined upgrade per card, once per run, keeping a tradeoff?
+3. Are the three starter-card DOE versions above physically right?
+4. Is it fine that DOE costs only the stop's 40 minutes and no cash (O2: cash is spent only at procurement)?
+5. Should the DOE list every eligible card (proposed), or a random 2–3?
+
+**NEEDS NEW LOGIC (noted, not built):** a DOE that needs qual wafers (a consumable); a DOE with an uncertain result.
+
+**Progress notes:**
+- 2026-10-25: plan written; waiting for David's OK.
+
+**Result:**
+
+## Done: M3 item 2c — PM/DOE stop, part 1: PM restores one tool
 
 (Proposed split, for David to OK: the roadmap box "PM/DOE stop: restore a tool or upgrade one practice" becomes two. **PM** comes first, because worn tools now exist. **DOE** follows: upgrading a practice needs an upgraded version of each card written as data, drafted by content-drafter and reviewed by David and physics-reviewer.)
 
