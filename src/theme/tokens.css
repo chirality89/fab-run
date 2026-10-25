@@ -53,6 +53,12 @@
   --die-pass-edge: #1B7F4E;
   --die-fail: #C8362D;
   --die-fail-edge: #8E241D;
+  --die-warn: #F7E3C0;        /* warning site: pale amber fill... */
+  --die-warn-edge: #A15C00;   /* ...with a dotted edge in this amber */
+  /* Text on fills. These stay the same in night shift, because the fills
+     (room colors, wafer tiles) stay light or red in both themes. */
+  --on-fill: #14202B;         /* on room colors and pale tiles: 6.7:1 or better */
+  --on-die-fail: #FFFFFF;     /* on --die-fail: 5.2:1 */
 
   /* Type */
   --sans: 'Barlow', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
@@ -78,9 +84,6 @@
   --blue: #6FA8F5; --on-blue: #0F1720;
   --ok: #5CC48F; --warn: #F0B44C; --bad: #F27466;
 }
-
-/* Text on a room fill is always dark, in both themes */
-.on-room { color: #14202B; }
 
 body {
   margin: 0;

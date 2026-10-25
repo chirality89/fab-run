@@ -2,7 +2,7 @@
 
 Work top to bottom, one checkbox per session. Plan in `tasks/todo.md` first (see `PROJECT.md`). Tick the box here when done. Before starting a milestone, settle the `docs/decisions.md` items it depends on.
 
-Current milestone: **M1 — Engine core, no screen**
+Current milestone: **M2 — One room you can play**
 
 ## M0 — Move in
 - [x] Turn on GitHub Pages (Settings → Pages → Deploy from a branch → `main` / root); confirm the placeholder page loads at `https://chirality89.github.io/fab-run/` on desktop and phone
@@ -10,15 +10,15 @@ Current milestone: **M1 — Engine core, no screen**
 - [x] Settle D7 (tech stack) and O8 (name) from `docs/decisions.md`; update CLAUDE.md §4 if anything changes
 
 ## M1 — Engine core, no screen (needs O2, O4, O6)
-- [ ] `src/engine/rng.js`: port mulberry32 from FabSim2; seed in state; tests that the same seed gives the same sequence
-- [ ] `src/engine/lot.js`: lot state, defect patterns, yield math (losses multiply, no healing); tests with hand-computed values from David
-- [ ] `src/engine/resolve.js`: the eight effect operations from `content.js`, including `when` conditions; one test per operation
-- [ ] `src/content/balance.js`: starting cash, time budgets, scrap line, spec, hand size
-- [ ] `src/content/lotTypes.js`: the inlaid Cu line route from DESIGN.md §11
-- [ ] Bot: plays the Cu line route headless with a fixed seed; reports final yield, cash, time; no `NaN`/`Infinity`
+- [x] `src/engine/rng.js`: port mulberry32 from FabSim2; seed in state; tests that the same seed gives the same sequence
+- [x] `src/engine/lot.js`: lot state, defect patterns, yield math (losses multiply, no healing); tests with hand-computed values from David
+- [x] `src/engine/resolve.js`: the eight effect operations from `content.js`, including `when` conditions; one test per operation
+- [x] `src/content/balance.js`: starting cash, time budgets, scrap line, spec, hand size
+- [x] `src/content/lotTypes.js`: the inlaid Cu line route from DESIGN.md §11
+- [x] Bot: plays the Cu line route headless with a fixed seed; reports final yield, cash, time; no `NaN`/`Infinity`
 
 ## M2 — One room you can play
-- [ ] `src/ui/`: a single process room (etch) on screen: hand, time budget, slots, tool health, yield bar, wafer map
+- [x] `src/ui/`: a single process room (etch) on screen: hand, time budget, slots, tool health, yield bar, wafer map
 - [ ] Playing a card calls the engine and redraws; seed shown on screen
 - [ ] Playwright set up; screenshots at 1280×800 and 375×812; checked by eye
 

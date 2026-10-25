@@ -4,6 +4,7 @@
   "type": "module",
   "description": "One lot, one run: a fab roguelite card game where wafer yield is your health bar",
   "scripts": {
-    "test": "node --test"
+    "test": "node --test",
+    "bot": "node tools/bot.js"
   }
 }
