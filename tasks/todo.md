@@ -4,7 +4,7 @@
 
 ### Task: `src/engine/rng.js`, the one seeded random number generator
 - [ ] Write `src/engine/rng.js` with mulberry32 and four small functions:
-  - `makeRng(seed)` turns a seed number into a starting generator state: `{ seed, counter }`. Any whole number works; it is folded into the 0 to 4,294,967,295 range.
+  - `makeRng(seed)` turns a seed number into a starting generator state: `{ seed, state }` (the original seed, kept for display, and the one number mulberry32 steps forward). Any whole number works; it is folded into the 0 to 4,294,967,295 range.
   - `nextRandom(rng)` returns `{ value, rng }`: a number from 0 up to (not including) 1, plus the *new* generator state. It never changes the old state, so the run state stays one plain object that can be saved and replayed.
   - `randomInt(rng, min, max)` returns a whole number from min to max, both ends included (for "which card", "how much scatter").
   - `shuffle(rng, list)` returns a shuffled copy of a list (Fisher–Yates), for deck draws later.
