@@ -125,3 +125,17 @@ test('cuLine doing nothing: center 0.588605, inner 0.559898, outer 0.492567, yie
   lot.sites.forEach((s, i) => close(s, byRing[ring(i)], `site ${i}`));
   close(lotYield(lot), 0.517954, 'yield');
 });
+
+test('a Q-time step names a known pattern that a later step realizes', () => {
+  for (const lotType of Object.values(LOT_TYPES)) {
+    lotType.route.forEach((step, index) => {
+      if (!step.qtime) return;
+      assert.ok(step.qtime in PATTERNS, `${lotType.id} step ${index + 1}: unknown pattern ${step.qtime}`);
+      assert.ok(index < lotType.route.length - 1, `${lotType.id}: the last step has no corridor after it`);
+      const laterSteps = lotType.route.slice(index + 1);
+      assert.ok(laterSteps.some(later => later.realizes.includes(step.qtime)),
+        `${lotType.id} step ${index + 1}: ${step.qtime} is never realized later`);
+    });
+  }
+  assert.equal(LOT_TYPES.cuLine.route[4].qtime, 'qtime_oxide', 'the Cu line Q-time window is after step 5');
+});

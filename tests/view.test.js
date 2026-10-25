@@ -5,7 +5,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createRun, enterStep, resolveStep, playCard, fullPool, whyIllegal } from '../src/engine/run.js';
+import { createRun, enterStep, resolveStep, playCard, walkCorridor, fullPool, whyIllegal } from '../src/engine/run.js';
 import { lotYield } from '../src/engine/lot.js';
 import { roomView, resultView, siteBand, yieldBand, parseSeed } from '../src/ui/view.js';
 
@@ -15,10 +15,17 @@ const ETCH = 3;   // 0-based step index of etch on the cuLine route
 const close = (actual, expected, label) =>
   assert.ok(Math.abs(actual - expected) < TOLERANCE, `${label}: got ${actual}, expected ${expected} (seed ${SEED})`);
 
+// Runs a room doing nothing, then goes straight on through the corridor
+// after it (if the run is still going).
+function idleRoom(state) {
+  const after = resolveStep(enterStep(state));
+  return after.corridor === null ? after : walkCorridor(after, null);
+}
+
 // Seed 123456, scatter off, nothing played, until the lot is IN etch.
 function idleToEtch(changes = {}) {
   let state = createRun({ seed: SEED, scatterStrength: 0, ...changes });
-  while (state.stepIndex < ETCH) state = resolveStep(enterStep(state));
+  while (state.stepIndex < ETCH) state = idleRoom(state);
   return enterStep(state);
 }
 

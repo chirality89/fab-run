@@ -45,10 +45,13 @@ export const LOT_TYPES = {
         adds: { particles: 0.01, residue: 0.10, underlayer_attack: 0.05, edge_ring: 0.05 },
         realizes: ['particles', 'residue', 'underlayer_attack', 'edge_ring', 'depth_variation'] },
       // The oxide grows while the lot waits here, but only bites in the
-      // next step, once the barrier traps it.
+      // next step, once the barrier traps it. `qtime` marks the corridor
+      // after this step as a Q-time window: a side stop there grows the
+      // oxide further (QTIME_RISK_PER_MINUTE in balance.js, run.js).
       { room: 'clean', label: 'Resist strip + wet clean',
         adds: { particles: 0.01, qtime_oxide: 0.04 },
-        realizes: ['particles'] },
+        realizes: ['particles'],
+        qtime: 'qtime_oxide' },
       { room: 'dep', label: 'Deposition (barrier + seed)',
         adds: { particles: 0.01 },
         realizes: ['particles', 'qtime_oxide'] },

@@ -2,9 +2,11 @@
 //
 // Usage:  npm run bot -- --seed 123456 --policy random [--deck full]
 //
-// Policies (how the bot picks cards):
-//   idle    plays nothing: the baseline you can check by hand
-//   random  plays random legal cards until none fits, then resolves the room
+// Policies (how the bot picks cards and side stops):
+//   idle    plays nothing and always goes straight on: the baseline you can
+//           check by hand
+//   random  plays random legal cards until none fits, then resolves the
+//           room; in each corridor picks a random side stop or straight on
 //
 // The random policy has its OWN seeded generator, started from the run's
 // seed mixed with a fixed constant (BOT_SEED_MIX). So the bot's choices never
@@ -16,7 +18,7 @@ import { pathToFileURL } from 'node:url';
 import { normalizeSeed, pick } from '../src/engine/rng.js';
 import { lotYield } from '../src/engine/lot.js';
 import {
-  createRun, enterStep, legalCards, playCard, resolveStep, starterDeck, fullPool,
+  createRun, enterStep, legalCards, playCard, resolveStep, walkCorridor, starterDeck, fullPool,
 } from '../src/engine/run.js';
 
 const BOT_SEED_MIX = 0x9E3779B9;   // any fixed number works; this one is a common "mixing" constant
@@ -45,6 +47,15 @@ function playRoom(state, policy, botRng) {
   return { state: current, botRng: rng, played };
 }
 
+// Picks what to do in the corridor the lot stands in: a side stop, or null
+// for straight on. Returns the choice and the bot's generator number.
+function chooseSideStop(state, policy, botRng) {
+  if (policy === 'idle') return { stopKind: null, botRng };
+  const offers = state.map[state.corridor].offers;
+  const choice = pick(botRng, [null, ...offers]);
+  return { stopKind: choice.value, botRng: choice.rngState };
+}
+
 // Plays a run to the end. options.deck is 'starter' (default), 'full' or a
 // list of card ids; other options go straight to createRun.
 export function playRun(seed, policy = 'idle', options = {}) {
@@ -55,17 +66,24 @@ export function playRun(seed, policy = 'idle', options = {}) {
   let state = createRun({ ...runOptions, seed, deck: deckIds });
   let botRng = botSeed(seed);
   const cardsPlayed = [];
+  const sideStops = [];
   while (state.status === 'running') {
     state = enterStep(state);
     const room = playRoom(state, policy, botRng);
     botRng = room.botRng;
     cardsPlayed.push(...room.played);
     state = resolveStep(room.state);
+    if (state.corridor !== null) {
+      const corridor = chooseSideStop(state, policy, botRng);
+      botRng = corridor.botRng;
+      if (corridor.stopKind !== null) sideStops.push(corridor.stopKind);
+      state = walkCorridor(state, corridor.stopKind);
+    }
   }
 
   const summary = {
     seed, policy, status: state.status, yield: lotYield(state.lot), cash: state.cash,
-    minutesUsed: state.minutesUsed, cycleTime: state.cycleTime, cardsPlayed,
+    minutesUsed: state.minutesUsed, cycleTime: state.cycleTime, cardsPlayed, sideStops,
   };
   return { state, summary };
 }
@@ -86,6 +104,7 @@ function printSummary(summary) {
   console.log(`Minutes played: ${summary.minutesUsed}`);
   console.log(`Cycle time:    ${summary.cycleTime} min`);
   console.log(`Cards played:  ${summary.cardsPlayed.length} (${summary.cardsPlayed.join(', ') || 'none'})`);
+  console.log(`Side stops:    ${summary.sideStops.length} (${summary.sideStops.join(', ') || 'none'})`);
 }
 
 // Only runs when started from the command line, not when a test imports it.

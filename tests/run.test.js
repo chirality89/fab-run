@@ -7,7 +7,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { addRisk, lotYield } from '../src/engine/lot.js';
 import {
-  createRun, enterStep, legalCards, playCard, resolveStep,
+  createRun, enterStep, legalCards, playCard, resolveStep, walkCorridor,
   starterDeck, fullPool, defaultLoadout, slotEntry,
 } from '../src/engine/run.js';
 
@@ -21,17 +21,24 @@ const LITHO = 2;
 const ETCH = 3;
 const METRO = 8;
 
+// Runs a room doing nothing, then goes straight on through the corridor
+// after it (if the run is still going).
+function idleRoom(state) {
+  const after = resolveStep(enterStep(state));
+  return after.corridor === null ? after : walkCorridor(after, null);
+}
+
 // Walks the route playing nothing until the lot is IN the given step's room.
 function enterStepNumber(state, stepIndex) {
   let current = state;
-  while (current.stepIndex < stepIndex) current = resolveStep(enterStep(current));
+  while (current.stepIndex < stepIndex) current = idleRoom(current);
   return enterStep(current);
 }
 
 // Plays the whole route doing nothing.
 function playIdle(state) {
   let current = state;
-  while (current.status === 'running') current = resolveStep(enterStep(current));
+  while (current.status === 'running') current = idleRoom(current);
   return current;
 }
 
@@ -186,4 +193,86 @@ test('nothing is changed in place', () => {
 test('slotEntry builds the slot shape resolve.js expects', () => {
   assert.deepEqual(slotEntry('additiveBath'), { id: 'additiveBath', shelfLife: null, decay: 1 });
   assert.throws(() => slotEntry('nope'), /nope/);
+});
+
+// --- M3 item 1: corridors and side stops ---------------------------------
+// Hand check (tasks/todo.md, M3 item 1). The corridor after step 5 (index 4,
+// "Resist strip + wet clean") is the Q-time window. Going straight on, the
+// lot carries qtime_oxide 0.04 into step 6. A 40-minute PM stop there adds
+// 0.001 × 40 = 0.04 more, so 0.08. qtime_oxide is an even pattern (weight 1
+// at every site), so every site, and the final yield, is × e^(−0.04).
+
+const QTIME_CORRIDOR = 4;
+
+// The first seed from SEED up whose Q-time corridor offers PM. Scatter is
+// off in these tests, so which seed it is doesn't change the yield.
+function seedWithPmInQtimeCorridor() {
+  for (let seed = SEED; seed < SEED + 1000; seed++) {
+    if (createRun({ seed }).map[QTIME_CORRIDOR].offers.includes('pm')) return seed;
+  }
+  throw new Error('no seed near SEED offers PM in the Q-time corridor');
+}
+
+// Plays the whole route doing nothing, taking `stopKind` in one corridor
+// and going straight on everywhere else.
+function playIdleWithStop(state, corridorIndex, stopKind) {
+  let current = state;
+  while (current.status === 'running') {
+    current = resolveStep(enterStep(current));
+    if (current.corridor === null) continue;
+    current = walkCorridor(current, current.corridor === corridorIndex ? stopKind : null);
+  }
+  return current;
+}
+
+test('after a room the lot stands in the corridor; enterStep waits for walkCorridor', () => {
+  const afterClean = resolveStep(enterStep(scatterOff()));
+  assert.equal(afterClean.corridor, 0, `seed ${SEED}`);
+  assert.throws(() => enterStep(afterClean), /still in a corridor/);
+  const walked = walkCorridor(afterClean, null);
+  assert.equal(walked.corridor, null);
+  assert.equal(walked.map[0].walked, true);
+  assert.equal(walked.map[0].taken, null);
+  assert.equal(walked.cycleTime, afterClean.cycleTime, 'straight on costs no time');
+});
+
+test('a side stop costs its minutes and is marked on the map', () => {
+  const afterClean = resolveStep(enterStep(scatterOff()));
+  const kind = afterClean.map[0].offers[0];
+  const minutes = { metrology: 20, pm: 40, procurement: 10, event: 10 }[kind];
+  const walked = walkCorridor(afterClean, kind);
+  assert.equal(walked.cycleTime, afterClean.cycleTime + minutes, `${kind}, seed ${SEED}`);
+  assert.equal(walked.map[0].taken, kind);
+  assert.deepEqual(walked.lot, afterClean.lot, 'outside a Q-time corridor the lot is untouched');
+});
+
+test('walkCorridor refuses a stop that is not offered, or no corridor', () => {
+  const afterClean = resolveStep(enterStep(scatterOff()));
+  const missing = ['metrology', 'pm', 'procurement', 'event'].find(kind => !afterClean.map[0].offers.includes(kind));
+  if (missing) assert.throws(() => walkCorridor(afterClean, missing), /not offered/);
+  assert.throws(() => walkCorridor(afterClean, 'cafeteria'), /not offered/);
+  assert.throws(() => walkCorridor(scatterOff(), null), /not in a corridor/);
+  const inClean = enterStep(scatterOff());
+  assert.throws(() => walkCorridor(inClean, null), /not in a corridor/);
+});
+
+test('the last room ends the run with no corridor after it', () => {
+  const end = playIdle(scatterOff());
+  assert.equal(end.corridor, null);
+  assert.ok(end.map.every(corridor => corridor.walked), 'all 8 corridors walked');
+  assert.throws(() => walkCorridor(end, null), /over/);
+});
+
+test('PM in the Q-time corridor: qtime_oxide 0.08, final yield × e^(−0.04), +40 min', () => {
+  const seed = seedWithPmInQtimeCorridor();
+  const start = createRun({ seed, scatterStrength: 0 });
+  const straight = playIdle(start);
+  const withPm = playIdleWithStop(start, QTIME_CORRIDOR, 'pm');
+  close(lotYield(straight.lot), 0.517954, `straight on everywhere is today's idle run (seed ${seed})`);
+  close(lotYield(withPm.lot) / lotYield(straight.lot), 0.960789, `yield ratio e^(-0.04) (seed ${seed})`);
+  assert.equal(withPm.cycleTime, straight.cycleTime + 40, `seed ${seed}`);
+
+  // The risk itself, just after the stop and before step 6 realizes it.
+  const atStop = walkCorridor(resolveStep(enterStepNumber(start, QTIME_CORRIDOR)), 'pm');
+  close(atStop.lot.risks.qtime_oxide, 0.08, `qtime_oxide after a PM stop (seed ${seed})`);
 });

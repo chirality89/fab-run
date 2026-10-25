@@ -47,3 +47,19 @@ export const TIME_BUDGETS = {
   cmp:     10,
   metro:   20,
 };
+
+// Cycle time (minutes) each kind of side stop costs on the map (decision O3).
+// PM/DOE is the slowest because it takes the tool offline. Agreed with
+// David, 25 Oct 2026.
+export const SIDE_STOP_MINUTES = {
+  metrology:   20,
+  pm:          40,
+  procurement: 10,
+  event:       10,
+};
+
+// Extra risk per minute a side stop keeps the lot waiting in a Q-time
+// corridor (a route step marked `qtime` in lotTypes.js). 0.001 means a
+// 40-minute PM stop doubles the Cu line's Q-time oxide, 0.04 to 0.08.
+// Agreed with David, 25 Oct 2026.
+export const QTIME_RISK_PER_MINUTE = 0.001;
