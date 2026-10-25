@@ -22,11 +22,11 @@ So the persona loop is: run the driver → look at the screenshot → think out 
 
 Each file has: who the persona is, what it knows and doesn't, what it watches for, the driver loop, and the report format. Tools: `Read, Bash, Write`. The prompt forbids reading `src/`, `tests/`, `tools/`, `DESIGN.md`, `CLAUDE.md` and `docs/` outside `docs/playtest/`; it may read only its own screenshots and driver output. No politeness padding.
 
-- [ ] `persona-fab-engineer.md`: a fab engineer, not a gamer. Plays desktop. Looks for anything that teaches something false, wrong words, wrong cause and effect, numbers that look off. Judges only what the screen says.
-- [ ] `persona-spire-veteran.md`: a Slay the Spire veteran with no fab knowledge. Plays desktop. Checks whether choices are real, looks for a dominant card or route, an always-right side stop, or a do-nothing option that wins.
-- [ ] `persona-phone-5min.md`: a phone player with 5 minutes. Plays at 375×812 only. First-minute clarity, tap targets, scrolling to find things, the exact moment it would put the phone down. Notes how many taps and screens a full run takes.
-- [ ] `persona-student.md`: a curious student. Plays desktop and phone. Does the game explain itself; lists each term it met without an explanation (Q-time, SPC, CD, CMP, dishing…) and where.
-- [ ] `persona-exploit-hunter.md`: an exploit hunter. Plays desktop. Economy and shop (buy-everything runs, cash going negative, free options), seed abuse (reload, back button, changing `?seed=` mid-run, re-rolling for a good start), double taps.
+- [x] `persona-fab-engineer.md`: a fab engineer, not a gamer. Plays desktop. Looks for anything that teaches something false, wrong words, wrong cause and effect, numbers that look off. Judges only what the screen says.
+- [x] `persona-spire-veteran.md`: a Slay the Spire veteran with no fab knowledge. Plays desktop. Checks whether choices are real, looks for a dominant card or route, an always-right side stop, or a do-nothing option that wins.
+- [x] `persona-phone-5min.md`: a phone player with 5 minutes. Plays at 375×812 only. First-minute clarity, tap targets, scrolling to find things, the exact moment it would put the phone down. Notes how many taps and screens a full run takes.
+- [x] `persona-student.md`: a curious student. Plays desktop and phone. Does the game explain itself; lists each term it met without an explanation (Q-time, SPC, CD, CMP, dishing…) and where.
+- [x] `persona-exploit-hunter.md`: an exploit hunter. Plays desktop. Economy and shop (buy-everything runs, cash going negative, free options), seed abuse (reload, back button, changing `?seed=` mid-run, re-rolling for a good start), double taps.
 
 Every persona plays seeds **123456, 42 and 777**, one full run each (to ship or scrap), and takes a screenshot at every decision.
 
@@ -49,8 +49,8 @@ Every persona plays seeds **123456, 42 and 777**, one full run each (to ship or 
 
 ## Steps
 
-- [ ] 1. Write `drive.mjs`; check it on seed 42 by walking 3 steps at both sizes; check the phone shot really is 375×812 (lesson).
-- [ ] 2. Write the five agent files. Commit.
+- [x] 1. Write `drive.mjs`; check it on seed 42 by walking 3 steps at both sizes; check the phone shot really is 375×812 (lesson).
+- [x] 2. Write the five agent files. Commit.
 - [ ] 3. Run the five personas in parallel (each writes only its own two files, so they don't collide). One server on port 8000 for all.
 - [ ] 4. Read each report: every problem has a seed + step and a screenshot that exists; no quoting of source code; no padding. Send back any that fail.
 - [ ] 5. Copy only the screenshots the reports cite into `docs/playtest/shots/` and fix the paths (see question 1). Commit.
@@ -71,5 +71,7 @@ Every persona plays seeds **123456, 42 and 777**, one full run each (to ship or 
 
 **Progress notes:**
 - 25 Oct 2026: plan written. Checked that `?seed=42` loads, the seed shows on screen and the first screen's button can be found by its label.
+
+- 25 Oct 2026: David OK'd the plan and all three questions (shots: only cited ones committed; driver in docs/playtest/; prompt rule + grep for code names). Driver checked on seed 42 at both sizes (1280×800 and 375×812 confirmed from the PNG headers); added a `doubletap` action for the exploit hunter.
 
 **Result:**
