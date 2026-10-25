@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 140" role="img">
+  <title>Nitrogen-purged storage: a contact opening in oxide down to Si. While the lot waited in nitrogen, only a very thin native oxide grew on the Si at the bottom.</title>
+  <rect class="mat-si"    x="0"   y="96" width="260" height="44"/>
+  <rect class="mat-oxide" x="0"   y="44" width="110" height="52"/>
+  <rect class="mat-oxide" x="150" y="44" width="110" height="52"/>
+  <!-- Native oxide at the bottom of the opening: thin, kept thin by the purge. -->
+  <rect class="mat-oxide" x="110" y="90" width="40" height="6"/>
+  <text class="art-label-on-dark" x="6" y="30">N2 purge</text>
+  <text class="art-label" x="6" y="74">oxide</text>
+  <text class="art-label" x="6" y="124">Si</text>
+  <!-- Scale bar. Thin films are drawn at least 6 px thick, so it is a guide, not a ruler. -->
+  <path class="mat-measure" d="M208 16h44M208 12v8M252 12v8"/>
+  <text class="art-label-on-dark" x="252" y="9" text-anchor="end">200 nm</text>
+</svg>

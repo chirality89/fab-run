@@ -8,7 +8,8 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
+import { PRACTICES } from '../src/content/content.js';
 
 const CSS = readFileSync(new URL('../src/theme/tokens.css', import.meta.url), 'utf8');
 const ROOMS = ['clean', 'litho', 'etch', 'dep', 'diff', 'implant', 'plate', 'cmp', 'metro'];
@@ -114,4 +115,38 @@ test('cross-section shapes stand out from the dark window and from Si', () => {
   assertContrast(LIGHT, '--mat-junction', '--mat-doped', 3);
   assertContrast(LIGHT, '--mat-particle', '--mat-si', 2);   // pale dots on grey Si
   assertContrast(LIGHT, '--mat-doped', '--mat-si', 1.35);   // a step, like the art faces
+});
+
+// --- Card files use tokens only ---------------------------------------------
+
+const read = path => readFileSync(new URL(`../${path}`, import.meta.url), 'utf8');
+const ART_FILES = ['icons', 'sections'].flatMap(folder =>
+  readdirSync(new URL(`../src/art/${folder}/`, import.meta.url)).map(name => `src/art/${folder}/${name}`));
+const CARDS_CSS = read('src/ui/cards.css');
+
+// A hex color like #1F5FBF or #fff. Comments are skipped first, so a note
+// that mentions a color can't trip the check (tasks/lessons.md).
+function hexColorsIn(text) {
+  const noComments = text.replace(/\/\*[\s\S]*?\*\//g, '').replace(/<!--[\s\S]*?-->/g, '');
+  return noComments.match(/#[0-9A-Fa-f]{3,8}\b/g) || [];
+}
+
+test('cards.css, art-preview.html and the art files have no hard-coded colors', () => {
+  for (const path of ['src/ui/cards.css', 'art-preview.html', ...ART_FILES]) {
+    assert.deepEqual(hexColorsIn(read(path)), [], `${path} has hard-coded colors`);
+  }
+  // Prove the check can fail (tasks/lessons.md).
+  assert.deepEqual(hexColorsIn('a { fill: #8E989D; } /* #FFFFFF */'), ['#8E989D']);
+});
+
+test('every practice has a cross-section, and every class it uses has a CSS rule', () => {
+  for (const practice of PRACTICES) {
+    const path = `src/art/sections/${practice.id}.svg`;
+    assert.ok(ART_FILES.includes(path), `no art for ${practice.id} (${path})`);
+    const svg = read(path);
+    assert.match(svg, /<title>[^<]{20,}<\/title>/, `${path} needs a <title> that describes it`);
+    for (const [, className] of svg.matchAll(/class="([\w-]+)"/g)) {
+      assert.ok(CARDS_CSS.includes(`.${className} `), `${path} uses .${className}, which cards.css never styles`);
+    }
+  }
 });

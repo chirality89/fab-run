@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 140" role="img">
+  <title>Strip and re-expose: resist lines on oxide. The first, too-wide line is shown as a dotted outline (stripped); the new line inside it is the right width. Two handling particles sit on the surface.</title>
+  <rect class="mat-si"     x="0"   y="118" width="260" height="22"/>
+  <rect class="mat-oxide"  x="0"   y="92"  width="260" height="26"/>
+  <!-- Resist lines. The middle one was redone. -->
+  <rect class="mat-resist" x="30"  y="62"  width="30"  height="30"/>
+  <rect class="mat-resist" x="115" y="62"  width="30"  height="30"/>
+  <rect class="mat-resist" x="200" y="62"  width="30"  height="30"/>
+  <!-- The first exposure's line: too wide, now stripped. -->
+  <rect class="mat-ghost"  x="105" y="58"  width="50"  height="34"/>
+  <text class="art-label-on-dark" x="130" y="50" text-anchor="middle">old: too wide</text>
+  <!-- Each strip adds handling particles. -->
+  <circle class="mat-particle" cx="84"  cy="88" r="4"/>
+  <circle class="mat-particle" cx="176" cy="88" r="4"/>
+  <text class="art-label-on-dark" x="6" y="58">resist</text>
+  <text class="art-label" x="6" y="109">oxide</text>
+  <text class="art-label" x="6" y="134">Si</text>
+  <!-- Scale bar. Thin films are drawn at least 6 px thick, so it is a guide, not a ruler. -->
+  <path class="mat-measure" d="M208 16h44M208 12v8M252 12v8"/>
+  <text class="art-label-on-dark" x="252" y="9" text-anchor="end">200 nm</text>
+</svg>

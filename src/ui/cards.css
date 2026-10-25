@@ -222,16 +222,16 @@
 .mat-seed     { fill: var(--mat-seed); }
 .mat-cu       { fill: var(--mat-cu); }
 .mat-doped    { fill: var(--mat-doped); }
-.mat-particle { fill: var(--mat-particle); }
+.mat-particle { fill: var(--mat-particle); stroke: var(--view-dark); stroke-width: 1; }  /* edge so it shows on pale oxide */
 .mat-plasma   { fill: none; stroke: var(--mat-plasma); stroke-width: 2; stroke-linecap: round; }
 .mat-junction { fill: none; stroke: var(--mat-junction); stroke-width: 2; stroke-dasharray: 6 4; }
 .mat-damage   { fill: none; stroke: var(--mat-junction); stroke-width: 2; stroke-linecap: round; }
 .mat-void     { fill: none; stroke: var(--mat-void); stroke-width: 2; stroke-dasharray: 4 3; }
+/* A cut-away: etched-out space, the same dark as the window behind it. */
+.art-hole     { fill: var(--view-dark); }
 /* An outline only: a shape that was there before (a stripped resist line). */
 .mat-ghost    { fill: none; stroke: var(--mat-resist); stroke-width: 1.5; stroke-dasharray: 2 2; }
 /* Measurement marks and their labels on the dark window. */
 .mat-measure  { fill: none; stroke: var(--view-ink); stroke-width: 1.5; }
 .art-label    { fill: var(--on-fill); font: 500 11px var(--mono); }
 .art-label-on-dark { fill: var(--view-ink); font: 500 11px var(--mono); }
-/* Every edge between materials: a crisp thin dark line, like an SEM image. */
-.art-edge     { fill: none; stroke: var(--view-dark); stroke-width: 1; }

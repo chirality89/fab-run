@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 140" role="img">
+  <title>Spike anneal: the implanted layer at the top of the Si after a few seconds at peak temperature. Only a few damage marks are left, and the junction sits only a little deeper than where the implant put it.</title>
+  <rect class="mat-si"    x="0" y="40" width="260" height="100"/>
+  <!-- Implanted layer. -->
+  <rect class="mat-doped" x="0" y="40" width="260" height="46"/>
+  <!-- Damage left after the anneal: a few marks. -->
+  <path class="mat-damage" d="M70 56l8 8M78 56l-8 8M150 66l8 8M158 66l-8 8M214 52l8 8M222 52l-8 8"/>
+  <!-- The junction, a little deeper than as implanted. -->
+  <path class="mat-junction" d="M0 86h260"/>
+  <text class="art-label-on-dark" x="6" y="28">seconds at peak</text>
+  <text class="art-label" x="6" y="62">doped Si</text>
+  <text class="art-label" x="190" y="104">junction</text>
+  <text class="art-label" x="6" y="128">Si</text>
+  <!-- Scale bar. Thin films are drawn at least 6 px thick, so it is a guide, not a ruler. -->
+  <path class="mat-measure" d="M208 16h44M208 12v8M252 12v8"/>
+  <text class="art-label-on-dark" x="252" y="9" text-anchor="end">200 nm</text>
+</svg>

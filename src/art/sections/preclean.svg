@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 140" role="img">
+  <title>Pre-deposition clean: on the left, Si with a thin native oxide and particles on it; on the right, the same surface after the clean, bare and ready for the film.</title>
+  <rect class="mat-si"    x="0"   y="90" width="260" height="50"/>
+  <!-- Left half, before the clean: native oxide and particles. -->
+  <rect class="mat-oxide" x="0"   y="84" width="128" height="6"/>
+  <circle class="mat-particle" cx="40"  cy="79" r="5"/>
+  <circle class="mat-particle" cx="78"  cy="80" r="4"/>
+  <circle class="mat-particle" cx="108" cy="78" r="6"/>
+  <!-- A divider between before and after. -->
+  <path class="mat-measure" d="M130 30v104"/>
+  <text class="art-label-on-dark" x="6"   y="50">before</text>
+  <text class="art-label-on-dark" x="6"   y="66">native oxide</text>
+  <text class="art-label-on-dark" x="138" y="50">after clean</text>
+  <text class="art-label" x="6" y="120">Si</text>
+  <!-- Scale bar. Thin films are drawn at least 6 px thick, so it is a guide, not a ruler. -->
+  <path class="mat-measure" d="M208 16h44M208 12v8M252 12v8"/>
+  <text class="art-label-on-dark" x="252" y="9" text-anchor="end">200 nm</text>
+</svg>
