@@ -112,3 +112,15 @@ Buttons that move under the finger after a redraw. Nothing told a deliberate sec
 ✅ Every button that changes the run uses `onSingleClick` (render.js), which ignores the second click of a double click
 ✅ After any redraw on tap, test a fast double tap at the same spot in the browser
 
+## A screen test tapped off the edge of the screen
+
+### What Happened
+The phone double-tap test failed: the card was never played. No click reached the page at all.
+
+### Root Cause
+On the phone the card sits below the bottom of the screen. A raw `page.touchscreen.tap(x, y)` does not scroll, so it tapped a spot outside the window. (`locator.tap()` does scroll, which is why the other tests passed.)
+
+### Rule to Prevent
+✅ Before a raw tap or click at coordinates, call `scrollIntoViewIfNeeded()` on the target and measure it after
+✅ When a guard test passes, switch the guard off once and confirm the test then fails
+
