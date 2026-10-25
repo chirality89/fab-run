@@ -81,6 +81,11 @@ test('the etch room shows the seed and a playable card', async ({ page }) => {
   await expect(timeText(page)).toHaveText('8 of 8 min left');
   await expect(card(page)).toBeVisible();
   await expect(runButton(page)).toBeVisible();
+  // The tool's SPC chart: 11 earlier lots, the limits in words, a verdict.
+  await expect(page.locator('.spc-panel .spc-title')).toHaveText('Etch rate (nm/min)');
+  await expect(page.locator('.spc-chart .spc-point')).toHaveCount(11);
+  await expect(page.locator('.spc-limits').first()).toContainText('Centre 300.0');
+  await expect(page.locator('.spc-verdict')).toHaveText(/^(In control|Out of control)/);
   await expectNoSidewaysScroll(page);
   await screenshot(page, '1-room');
   expect(errors, `console errors (seed ${SEED})`).toEqual([]);

@@ -2,7 +2,7 @@
 //
 // Every card, tool, material and consumable in content.js is a list of
 // effects such as { op: 'defectMult', pattern: 'residue', mult: 0.3 }.
-// This file is the one place that knows what the eight operations mean, and
+// This file is the one place that knows what the nine operations mean, and
 // when a `when` condition is true. It does not decide WHEN a card is played or
 // pay its base cost; that is the run's job (run.js, later).
 //
@@ -13,7 +13,7 @@
 //
 // Every function returns a NEW state. Nothing is changed in place.
 
-import { scaleRisk } from './lot.js';
+import { scaleRisk, addRisk as addRiskToLot } from './lot.js';
 
 const MIN_HEALTH = 0;
 const MAX_HEALTH = 100;
@@ -86,9 +86,11 @@ function reveal(state, effect) {
   return { ...state, room: { ...state.room, revealed } };
 }
 
-// Repairs or wears the tool of the room the lot is in, kept within 0..100.
+// Repairs or wears a tool, kept within 0..100: the tool of the room the lot
+// is in, or of `effect.room` when given (an event between rooms names it).
 function toolHealth(state, effect) {
-  const roomId = state.room.id;
+  const roomId = effect.room ?? state.room?.id;
+  if (!roomId) throw new Error('toolHealth: not in a room and no room given');
   const tool = state.tools[roomId];
   if (!tool) throw new Error(`toolHealth: no tool for room ${roomId}`);
   const delta = checkFinite(effect.delta, 'toolHealth delta');
@@ -119,8 +121,17 @@ function decayPerUse(state, effect, source) {
   return { ...state, lot, slots: { ...state.slots, [slotName]: newSlot } };
 }
 
+// A risk enters the lot now and bites when a room realizes its pattern
+// (M3 item 2e, for events). Negative amounts are refused: yield only goes
+// down (CLAUDE.md §5 rule 2).
+function addRisk(state, effect) {
+  const amount = checkFinite(effect.amount, 'addRisk amount');
+  if (amount < 0) throw new Error(`addRisk: amount must be 0 or more, got ${amount}`);
+  return { ...state, lot: addRiskToLot(state.lot, effect.pattern, amount) };
+}
+
 const OPERATIONS = {
-  defectMult, timeCost, cashCost, setFlag, reveal, toolHealth, enables, decayPerUse,
+  defectMult, timeCost, cashCost, setFlag, reveal, toolHealth, enables, decayPerUse, addRisk,
 };
 
 // Applies one effect, if its `when` holds. `source` is the item it came from.

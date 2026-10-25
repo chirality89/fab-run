@@ -42,7 +42,7 @@ function playIdle(state) {
   return current;
 }
 
-const scatterOff = (changes = {}) => createRun({ seed: SEED, scatterStrength: 0, ...changes });
+const scatterOff = (changes = {}) => createRun({ seed: SEED, scatterStrength: 0, toolDrift: false, ...changes });
 
 test('createRun: defaults are the cuLine, the starter deck, i-line resist loaded free', () => {
   const state = createRun({ seed: SEED });
@@ -55,7 +55,7 @@ test('createRun: defaults are the cuLine, the starter deck, i-line resist loaded
   assert.equal(state.cash, 1500);
   assert.deepEqual(state.lotTraits, ['narrowFeatures']);
   assert.deepEqual(state.lot.risks, { depth_variation: 0.08, dishing: 0.08 });
-  assert.equal(state.tools.etch.health, 100);
+  assert.equal(createRun({ seed: SEED, toolDrift: false }).tools.etch.health, 100, 'with drift off, tools start at 100');
   assert.equal(state.status, 'running');
   assert.equal(state.room, null);
 });
@@ -265,7 +265,7 @@ test('the last room ends the run with no corridor after it', () => {
 
 test('PM in the Q-time corridor: qtime_oxide 0.08, final yield × e^(−0.04), +40 min', () => {
   const seed = seedWithPmInQtimeCorridor();
-  const start = createRun({ seed, scatterStrength: 0 });
+  const start = createRun({ seed, scatterStrength: 0, toolDrift: false });
   const straight = playIdle(start);
   const withPm = playIdleWithStop(start, QTIME_CORRIDOR, 'pm');
   close(lotYield(straight.lot), 0.517954, `straight on everywhere is today's idle run (seed ${seed})`);

@@ -1,41 +1,49 @@
 // run.js — one run: one lot walking its route from the first room to ship.
 //
 // Walk the route, deal a hand in each room, play cards, resolve the room,
-// walk the corridor to the next room, ship. A procurement side stop opens a
-// shop (buyItem); the other side stops and saves come later in M3.
+// walk the corridor to the next room, ship. What the player does at a side
+// stop is in sideStops.js.
 //
 // A run goes like this, one step of the route at a time:
 //   enterStep    → the lot arrives in the step's room
 //   playCard     → zero or more times, while time and cash allow
 //   resolveStep  → the room's risks bite; scrap, move on, or ship
 //   walkCorridor → between two rooms: take one side stop, or go straight on
-//   buyItem      → zero or more times, while a procurement stop's shop is open
+//   then, at a side stop: buyItem, pmTool or doeCard, chooseEventOption
+//   (sideStops.js)
+//   scrapLot     → at any point between rooms, the player may scrap the lot
 //
-// Order inside enterStep (lotTypes.js): add the step's risks, set the room's
-// time budget, apply the equipment and materials for this room, then deal.
+// Order inside enterStep (lotTypes.js): add the step's risks and the room
+// tool's drift risk (tools.js), set the room's time budget, apply the
+// equipment and materials for this room, then deal. resolveStep then records
+// the tool's SPC point for this lot and wears the tool.
 //
 // Every function returns a NEW state. Nothing is changed in place. All
 // randomness comes from rng.js, and the generator's number (rngState) is
 // kept in the state, so the same seed and the same plays give the same run.
 
-import { PRACTICES, EQUIPMENT, MATERIALS, ROOMS, STARTER_IDS } from '../content/content.js';
+import { PRACTICES, EQUIPMENT, MATERIALS, STARTER_IDS } from '../content/content.js';
+import { TOOL_MONITORS } from '../content/toolMonitors.js';
 import { LOT_TYPES } from '../content/lotTypes.js';
 import {
   STARTING_CASH, HAND_SIZE, SCRAP_LINE, CUSTOMER_SPEC, SCATTER_STRENGTH, TIME_BUDGETS,
-  STARTING_TOOL_HEALTH, SIDE_STOP_MINUTES, QTIME_RISK_PER_MINUTE,
+  SIDE_STOP_MINUTES, QTIME_RISK_PER_MINUTE,
 } from '../content/balance.js';
 import { normalizeSeed, shuffle } from './rng.js';
+import { findItem, slotEntry, addLog, checkRunning } from './runState.js';
 import { createLot, addRisk, realizeRisks, rollScatter, lotYield } from './lot.js';
 import { conditionMet, applyEffects } from './resolve.js';
 import { buildMap } from './map.js';
-import { shopStock, whyCannotBuy, findShopItem } from './shop.js';
+import { shopStock } from './shop.js';
+import { startingTools, driftRisk, useTool, pmChoices } from './tools.js';
+import { cardInRun, doeOffers } from './doe.js';
+import { drawEvent } from './events.js';
 
-// Looks up a content item by id, or throws naming it.
-function findItem(list, id, kind) {
-  const item = list.find(entry => entry.id === id);
-  if (!item) throw new Error(`Unknown ${kind}: ${id}`);
-  return item;
-}
+// The side stops' own actions live in sideStops.js. They are re-exported
+// here so the rest of the game keeps importing every run action from run.js.
+export { slotEntry };
+export { buyItem, whyCannotPm, pmTool, whyCannotDoe, doeCard, chooseEventOption } from './sideStops.js';
+
 const findCard = id => findItem(PRACTICES, id, 'practice');
 
 // Cards that some item unlocks with an `enables` effect (e.g. the endpoint
@@ -57,13 +65,6 @@ export function fullPool() {
   return PRACTICES.map(card => card.id);
 }
 
-// A material as it sits in a slot (the shape resolve.js expects). The decay
-// factor starts at 1 and only grows with decayPerUse.
-export function slotEntry(materialId) {
-  const material = findItem(MATERIALS, materialId, 'material');
-  return { id: material.id, shelfLife: material.shelfLife ?? null, decay: 1 };
-}
-
 // The starting loadout David chose: the i-line resist in the litho resist
 // slot, loaded free (no cash is taken for it).
 export function defaultLoadout() {
@@ -72,12 +73,17 @@ export function defaultLoadout() {
 
 // The one state object for a whole run. The lot starts with its latent
 // risks; the first step has not been entered yet (room is null).
+// `toolDrift: false` keeps every tool at full health and stops wear, so
+// drift adds nothing (for hand checks, like scatterStrength: 0).
+// `startingHealth`, e.g. { cmp: 60 }, fixes a tool's starting health.
 export function createRun({
   seed = 1,
   lotTypeId = 'cuLine',
   deck = starterDeck(),
   loadout = defaultLoadout(),
   scatterStrength = SCATTER_STRENGTH,
+  toolDrift = true,
+  startingHealth = {},
 } = {}) {
   if (normalizeSeed(seed) === null) throw new Error(`createRun: bad seed ${seed}`);
   const lotType = LOT_TYPES[lotTypeId];
@@ -88,8 +94,7 @@ export function createRun({
   for (const [pattern, amount] of Object.entries(lotType.startRisks)) {
     lot = addRisk(lot, pattern, amount);
   }
-  const tools = {};
-  for (const roomId of Object.keys(ROOMS)) tools[roomId] = { health: STARTING_TOOL_HEALTH };
+  const { tools, toolRngState } = startingTools(seed, { toolDrift, startingHealth });
 
   return {
     seed,
@@ -103,7 +108,13 @@ export function createRun({
     map: buildMap(seed, lotType.route),   // the corridors (map.js), known from the start
     corridor: null,         // index of the corridor the lot stands in, or null
     shop: null,             // { corridor, stock, bought } while a procurement stop is open
-    tools,                  // tool health stays 100 for now (NEEDS NEW LOGIC)
+    pm: null,               // { corridor, choices, done, doeOffers, doeDone } while a PM/DOE stop is open
+    upgraded: [],           // practices a DOE has upgraded for this run (doe.js)
+    event: null,            // { corridor, eventId, chosen } while an event stop is open
+    eventsSeen: [],         // event ids already shown this run (events.js)
+    tools,                  // per room: { health, spc: [points in sigma] } (tools.js)
+    toolDrift,
+    toolRngState,           // the tools' own generator, for SPC noise
     equipment: [...loadout.equipment],
     slots: { ...loadout.slots },
     enabled: [],
@@ -112,7 +123,10 @@ export function createRun({
     hand: [],
     minutesUsed: 0,
     cycleTime: 0,
+    stepYields: [],         // after each room: { stepIndex, roomId, yieldAfter } (the ship report)
     status: 'running',      // 'running' | 'scrapped' | 'shipped' | 'rejected'
+    scrappedBy: null,       // 'scrapLine' | 'player' once scrapped
+    diagnosed: null,        // the failure mode named on the ship report (notebook.js), once
     log: [],
   };
 }
@@ -121,15 +135,6 @@ export function createRun({
 
 function currentStep(state) {
   return LOT_TYPES[state.lotTypeId].route[state.stepIndex];
-}
-
-function addLog(state, line) {
-  return { ...state, log: [...state.log, line] };
-}
-
-// Every engine call on a finished run is a bug in the caller.
-function checkRunning(state, caller) {
-  if (state.status !== 'running') throw new Error(`${caller}: the run is over (${state.status})`);
 }
 
 function checkInRoom(state, caller, wanted) {
@@ -158,8 +163,12 @@ export function enterStep(state) {
   // 1. The step's own risks enter the lot.
   let lot = state.lot;
   for (const [pattern, amount] of Object.entries(step.adds)) lot = addRisk(lot, pattern, amount);
-  // Entering a room also closes any shop the lot was standing in.
-  let next = { ...state, lot, shop: null, room: { id: step.room, timeLeft: TIME_BUDGETS[step.room], revealed: [] } };
+  // A drifted tool adds risk to the pattern it feeds (0 for a healthy tool).
+  const monitor = TOOL_MONITORS[step.room];
+  const drift = monitor ? driftRisk(state.tools[step.room].health, monitor.oneSided) : 0;
+  if (drift > 0) lot = addRisk(lot, monitor.pattern, drift);
+  // Entering a room also closes any shop, PM/DOE or event stop the lot was at.
+  let next = { ...state, lot, shop: null, pm: null, event: null, room: { id: step.room, timeLeft: TIME_BUDGETS[step.room], revealed: [] } };
 
   // 2. Equipment and materials for this room act once, before any card.
   // applyEffects skips effects whose own `when` fails, but not the item's
@@ -173,7 +182,7 @@ export function enterStep(state) {
   next = { ...next, room: { ...next.room, budget }, cycleTime: next.cycleTime + budget };
 
   // 4. Deal a hand from the deck's cards for this room (seeded shuffle).
-  const roomCards = next.deck.filter(id => findCard(id).room === step.room);
+  const roomCards = next.deck.filter(id => cardInRun(next, id).room === step.room);
   const dealt = shuffle(next.rngState, roomCards);
   next = { ...next, rngState: dealt.rngState, hand: dealt.value.slice(0, HAND_SIZE) };
   return addLog(next, `Step ${state.stepIndex + 1} ${step.label}: ${budget} min, hand ${next.hand.join(', ') || '(none)'}`);
@@ -183,7 +192,7 @@ export function enterStep(state) {
 // screen can say why a card is greyed out (src/ui/view.js).
 export function whyIllegal(state, cardId) {
   if (!state.hand.includes(cardId)) return 'not in hand';
-  const card = findCard(cardId);
+  const card = cardInRun(state, cardId);   // the DOE version, if upgraded
   if (card.room !== state.room.id) return `belongs in ${card.room}, not ${state.room.id}`;
   if (!conditionMet(state, card.when)) return 'its condition is not met';
   if (GATED_CARDS.has(cardId) && !state.enabled.includes(cardId)) return 'not enabled yet';
@@ -206,7 +215,7 @@ export function playCard(state, cardId) {
   const reason = whyIllegal(state, cardId);
   if (reason) throw new Error(`Cannot play ${cardId}: ${reason}`);
 
-  const card = findCard(cardId);
+  const card = cardInRun(state, cardId);
   const timeLeft = state.room.timeLeft - (card.cost.time ?? 0);
   let next = { ...state, room: { ...state.room, timeLeft }, cash: state.cash - (card.cost.cash ?? 0) };
   next = applyEffects(next, card);
@@ -229,13 +238,17 @@ export function resolveStep(state) {
     ...state, lot, minutesUsed, rngState: scatter.rngState,
     room: null, hand: [], stepIndex: state.stepIndex + 1,
   };
+  next = useTool(next, step.room);   // this lot's SPC point, then wear
 
   const yieldNow = lotYield(lot);
+  const stepYield = { stepIndex: state.stepIndex, roomId: step.room, yieldAfter: yieldNow };
+  next = { ...next, stepYields: [...state.stepYields, stepYield] };
   const percent = `${(yieldNow * 100).toFixed(1)}%`;
   const isLastStep = next.stepIndex >= LOT_TYPES[state.lotTypeId].route.length;
   if (yieldNow < SCRAP_LINE) {
     // A scrapped lot stays at the step where it died.
-    return addLog({ ...next, stepIndex: state.stepIndex, status: 'scrapped' }, `  yield ${percent}: scrapped`);
+    next = { ...next, stepIndex: state.stepIndex, status: 'scrapped', scrappedBy: 'scrapLine' };
+    return addLog(next, `  yield ${percent}: scrapped`);
   }
   if (isLastStep) {
     const status = yieldNow >= CUSTOMER_SPEC ? 'shipped' : 'rejected';
@@ -250,7 +263,9 @@ export function resolveStep(state) {
 // of its offers) or go straight on (`stopKind` = null). A stop costs cycle
 // time (SIDE_STOP_MINUTES). In a Q-time corridor, the wait also grows the
 // Q-time pattern: QTIME_RISK_PER_MINUTE × the minutes. A procurement stop
-// opens a shop (shop.js); the other stops only cost their time for now.
+// opens a shop (shop.js), a PM/DOE stop opens a PM or DOE (pmTool, doeCard)
+// and an event stop draws an event (chooseEventOption). Metrology only costs
+// its time for now.
 export function walkCorridor(state, stopKind) {
   checkRunning(state, 'walkCorridor');
   if (state.corridor === null) throw new Error('walkCorridor: the lot is not in a corridor');
@@ -269,31 +284,37 @@ export function walkCorridor(state, stopKind) {
   const shop = stopKind === 'procurement'
     ? { corridor: state.corridor, stock: shopStock(state, state.corridor), bought: [] }
     : null;
-  const next = { ...state, lot, map, shop, corridor: null, cycleTime: state.cycleTime + minutes };
+  const pm = stopKind === 'pm'
+    ? {
+      corridor: state.corridor,
+      choices: pmChoices(state, state.corridor), done: [],
+      doeOffers: doeOffers(state, state.corridor), doeDone: [],
+    }
+    : null;
+  let event = null;
+  let eventsSeen = state.eventsSeen;
+  if (stopKind === 'event') {
+    const eventId = drawEvent(state, state.corridor);
+    if (eventId !== null) {   // null: no event matters any more, a quiet shift
+      event = { corridor: state.corridor, eventId, chosen: null };
+      eventsSeen = [...eventsSeen, eventId];
+    }
+  }
+  const next = {
+    ...state, lot, map, shop, pm, event, eventsSeen, corridor: null, cycleTime: state.cycleTime + minutes,
+  };
   if (stopKind === null) return addLog(next, '  corridor: straight on');
   const stockText = shop ? `, stock ${shop.stock.join(', ')}` : '';
   return addLog(next, `  corridor: ${stopKind} (${minutes} min${stockText})`);
 }
 
-// Buys one item from the open shop and pays its cash price. Equipment joins
-// the lot's equipment and acts every time the lot enters its room, from the
-// next room on. A material replaces whatever is in its slot. Buying never
-// takes cash below 0 (decision O4): an item you can't afford is refused.
-export function buyItem(state, itemId) {
-  checkRunning(state, 'buyItem');
-  const reason = whyCannotBuy(state, itemId);
-  if (reason) throw new Error(`Cannot buy ${itemId}: ${reason}`);
-
-  const item = findShopItem(itemId);
-  let next = {
-    ...state,
-    cash: state.cash - item.cost.cash,
-    shop: { ...state.shop, bought: [...state.shop.bought, itemId] },
-  };
-  if (item.kind === 'equipment') {
-    next = { ...next, equipment: [...next.equipment, itemId] };
-  } else {
-    next = { ...next, slots: { ...next.slots, [item.slot]: slotEntry(itemId) } };
-  }
-  return addLog(next, `  bought ${itemId} (${item.cost.cash})`);
+// The player scraps the lot (decision O4). Allowed only between rooms, while
+// the run goes on: at the door, in a corridor or at a side stop. The lot
+// stays at the step it was going to enter next. Late scrap is expensive:
+// everything already spent on the lot is lost (the ship report shows it).
+export function scrapLot(state) {
+  checkRunning(state, 'scrapLot');
+  checkInRoom(state, 'scrapLot', false);
+  const next = { ...state, shop: null, pm: null, event: null, status: 'scrapped', scrappedBy: 'player' };
+  return addLog(next, `  scrapped by the player before step ${state.stepIndex + 1}`);
 }

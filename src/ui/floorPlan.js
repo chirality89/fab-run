@@ -14,6 +14,7 @@
 // No game logic here, and text only through textContent (see render.js).
 
 import { el, panel, onSingleClick, actionButton, showFromTop } from './render.js';
+import { drawSpcPicture } from './spcChart.js';
 
 const BAYS_PER_ROW = 3;
 
@@ -57,10 +58,12 @@ function drawBay(bay, index) {
   const tile = el('div', `bay room-${bay.roomId} bay-${bay.status}`);
   tile.setAttribute('role', 'listitem');
   const statusText = BAY_STATUS_TEXT[bay.status];
-  tile.setAttribute('aria-label', `Step ${bay.number}: ${bay.label}${statusText ? `, ${statusText.toLowerCase()}` : ''}`);
+  const alarmText = bay.spcAlarm ? ', SPC alarm on its tool' : '';
+  tile.setAttribute('aria-label', `Step ${bay.number}: ${bay.label}${statusText ? `, ${statusText.toLowerCase()}` : ''}${alarmText}`);
   tile.title = bay.label;
   tile.append(el('span', 'bay-number', String(bay.number)), el('span', 'bay-name', bay.roomName));
   if (statusText) tile.append(el('span', 'bay-status', statusText));
+  if (bay.spcAlarm) tile.append(el('span', 'chip chip-spc', 'SPC'));
   placeIn(tile, bayCell(index));
   return tile;
 }
@@ -102,7 +105,7 @@ function drawPlan(view) {
   view.bays.forEach((bay, index) => grid.append(drawBay(bay, index)));
   view.corridors.forEach(corridor => grid.append(drawCorridor(corridor)));
   box.append(grid);
-  box.append(el('p', 'map-key', `${view.stopKeyText} · QT Q-time window · LOT where the lot is now`));
+  box.append(el('p', 'map-key', `${view.stopKeyText} · QT Q-time window · LOT where the lot is now · SPC the tool's chart trips a rule`));
   return box;
 }
 
@@ -146,10 +149,27 @@ function drawChoices(view, actions) {
     box.append(el('h3', 'choice-heading', 'Or go straight on'));
   }
   box.append(actionButton(view.goText, 'go-button', actions.onGoStraight));
+  if (view.position !== 'start') box.append(drawScrap(actions));
   return box;
 }
 
-// Draws the map screen. `actions` holds onTakeStop(kind) and onGoStraight().
+// Scrap the lot (decision O4). The first tap only asks; "Keep the lot" takes
+// the asking button's place, so a double tap can never scrap by accident.
+function drawScrap(actions) {
+  const box = el('div', 'scrap-box');
+  const ask = actionButton('Scrap the lot', 'scrap-button secondary-button', () => {
+    const keep = actionButton('Keep the lot', 'keep-button secondary-button', () => box.replaceChildren(ask));
+    const buttons = el('div', 'result-buttons');
+    buttons.append(keep, actionButton('Yes, scrap it', 'scrap-confirm-button', actions.onScrap));
+    box.replaceChildren(el('p', 'scrap-question', 'Scrap this lot? The run ends, and everything spent on it is lost.'), buttons);
+    keep.focus();
+  });
+  box.append(ask);
+  return box;
+}
+
+// Draws the map screen. `actions` holds onTakeStop(kind), onGoStraight()
+// and onScrap().
 export function renderMap(container, view, actions) {
   const body = el('div', 'map-body');
   body.append(drawChoices(view, actions), drawPlan(view));
@@ -225,4 +245,120 @@ export function renderShop(container, view, actions, keepFocusOn = null) {
   const buyButtons = itemsFromHere.map(node => node.querySelector('.buy-button')).filter(button => button !== null);
   const target = buyButtons.length > 0 ? buyButtons[0] : container.querySelector('.go-button');
   target.focus({ preventScroll: true });
+}
+
+// One tool on the PM screen: its room, where it is used next, its SPC
+// chart and verdict, and a PM button (or why there is none).
+function drawPmChoice(choice, actions) {
+  const box = el('li', choice.done ? 'card shop-item shop-item-bought' : 'card shop-item');
+  const top = el('div', 'card-top');
+  top.append(el('span', 'card-name', choice.roomName), el('span', 'card-cost', choice.parameter));
+  box.append(top, el('span', 'shop-next', choice.nextUseText));
+  box.append(drawSpcPicture(choice.spc));
+  box.append(el('p', choice.spc.inControl ? 'spc-verdict' : 'spc-verdict spc-verdict-out', choice.spc.verdictText));
+  if (choice.done) {
+    box.append(el('span', 'shop-bought', 'PM done: the next lots run on a restored tool'));
+  } else if (choice.canPm) {
+    const button = actionButton('PM this tool', 'pm-button', () => actions.onPm(choice.roomId));
+    button.setAttribute('aria-label', `PM the ${choice.roomName} tool`);
+    box.append(button);
+  }
+  return box;
+}
+
+// One practice a DOE could upgrade: now → after, and a DOE button.
+function drawDoeOffer(offer, actions) {
+  const box = el('li', offer.done ? 'card shop-item shop-item-bought' : 'card shop-item');
+  const top = el('div', 'card-top');
+  top.append(el('span', 'card-name', offer.name), el('span', 'card-cost', offer.roomName));
+  box.append(top);
+  box.append(el('span', 'shop-next', `Now: ${offer.nowText}`));
+  box.append(el('span', 'shop-next doe-after', `After the DOE (${offer.afterName}): ${offer.afterText}`));
+  box.append(el('span', 'card-summary', offer.afterTradeoff));
+  if (offer.done) {
+    box.append(el('span', 'shop-bought', 'DOE done: this card plays its tuned recipe from now on'));
+  } else if (offer.canDoe) {
+    const button = actionButton('Run this DOE', 'doe-button', () => actions.onDoe(offer.cardId));
+    button.setAttribute('aria-label', `Run a DOE on ${offer.name}`);
+    box.append(button);
+  } else if (!offer.choiceUsed) {
+    box.append(el('span', 'card-reason', `Can't run: ${offer.reason}`));
+  }
+  return box;
+}
+
+// The PM/DOE screen: a DOE section (short), then the PM section (one card
+// per tool), then Continue. `actions` holds onPm(roomId), onDoe(cardId) and
+// onContinue(). `justChose` is true right after a PM or DOE: focus then
+// moves to Continue instead of the title.
+export function renderPm(container, view, actions, justChose = false) {
+  const header = el('header', 'room-band map-band');
+  header.append(el('h1', 'room-name', view.name), el('p', 'room-step', view.what));
+  const facts = el('p', 'room-facts');
+  facts.append(el('span', 'seed', `Seed ${view.seed}`), el('span', 'cash pm-cash', `Cash ${view.cash}`));
+  header.append(facts);
+
+  const doe = panel('DOE a practice', 'doe-panel');
+  doe.append(el('p', 'outcome-text', view.doeText));
+  const doeList = el('ul', 'shop-list');
+  doeList.setAttribute('role', 'list');
+  for (const offer of view.doeOffers) doeList.append(drawDoeOffer(offer, actions));
+  if (view.doeOffers.length === 0) doe.append(el('p', 'slot-empty', 'No practice in your deck can be tuned here.'));
+  doe.append(doeList);
+
+  const pm = panel('Or PM a tool on the route ahead', 'pm-panel');
+  pm.append(el('p', 'outcome-text', view.text));
+  const list = el('ul', 'shop-list');
+  list.setAttribute('role', 'list');
+  for (const choice of view.choices) list.append(drawPmChoice(choice, actions));
+  pm.append(list);
+
+  const go = actionButton(view.goText, 'go-button', actions.onContinue);
+  container.replaceChildren(header, doe, pm, go);
+  if (justChose) go.focus({ preventScroll: true });
+  else showFromTop(container);
+}
+
+// One option of an event: what it does, its tradeoff, and a button to
+// choose it (until one is chosen).
+function drawEventOption(option, chosen, actions) {
+  const box = el('li', option.chosen ? 'card shop-item shop-item-bought' : 'card shop-item');
+  box.append(el('span', 'card-name', option.label));
+  box.append(el('span', 'shop-next doe-after', option.consequences));
+  box.append(el('span', 'card-summary', option.tradeoff));
+  if (option.chosen) {
+    box.append(el('span', 'shop-bought', 'Chosen'));
+  } else if (!chosen) {
+    const button = actionButton('Choose this', 'event-button', () => actions.onChoose(option.index));
+    button.setAttribute('aria-label', `Choose: ${option.label}`);
+    box.append(button);
+  }
+  return box;
+}
+
+// The event screen. `actions` holds onChoose(optionIndex) and onContinue().
+// After a choice the result shows, and focus moves to Continue.
+export function renderEvent(container, view, actions) {
+  const header = el('header', 'room-band map-band');
+  header.append(el('h1', 'room-name', view.name), el('p', 'room-step', 'Event'));
+  const facts = el('p', 'room-facts');
+  facts.append(el('span', 'seed', `Seed ${view.seed}`), el('span', 'cash event-cash', `Cash ${view.cash}`));
+  header.append(facts);
+
+  const box = panel('What happens', 'event-panel');
+  box.append(el('p', 'outcome-text', view.text), el('p', 'map-key', view.costText));
+  const list = el('ul', 'shop-list');
+  list.setAttribute('role', 'list');
+  for (const option of view.options) list.append(drawEventOption(option, view.chosen, actions));
+  box.append(list);
+  if (view.resultText) {
+    const result = el('p', 'outcome-text event-result', view.resultText);
+    result.setAttribute('role', 'status');
+    box.append(result);
+  }
+  const go = actionButton(view.goText, 'go-button', actions.onContinue);
+  box.append(go);
+  container.replaceChildren(header, box);
+  if (view.chosen) go.focus({ preventScroll: true });
+  else showFromTop(container);
 }

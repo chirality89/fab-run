@@ -76,3 +76,60 @@ export const SHOP_OFFER_COUNT = 3;
 // material, not only the unlocked ones. M4 turns this off, so that items
 // with an `unlockedBy` failure mode only appear once it is diagnosed.
 export const SHOP_SELLS_LOCKED_ITEMS = true;
+
+// --- Tool drift and SPC (M3 item 2b). Agreed with David, 25 Oct 2026. ---
+
+// Health lost per one sigma of mean shift: health 80 = 1σ, 60 = 2σ, 40 = 3σ.
+export const HEALTH_PER_SIGMA = 20;
+
+// Spec limits sit this many sigma from the target (4 = a Cp 1.33 process).
+export const SPEC_LIMIT_SIGMA = 4;
+
+// SPC control limits, in sigma from the centre line.
+export const CONTROL_LIMIT_SIGMA = 3;
+
+// Health a tool loses each time the lot runs its room.
+export const WEAR_PER_RUN = 5;
+
+// Each tool starts a run with health from this to STARTING_TOOL_HEALTH,
+// drawn from the seed: some runs begin with a tool overdue for PM.
+export const STARTING_HEALTH_MIN = 50;
+
+// Points on an SPC chart: earlier lots, then this lot once it has run.
+export const SPC_HISTORY = 12;
+
+// A PM restores a tool to a health from MIN to MAX, both included, drawn
+// from the tools' generator: a PM is never perfect and never the same
+// twice. Agreed with David, 25 Oct 2026.
+export const PM_RESTORE_MIN = 75;
+export const PM_RESTORE_MAX = 95;
+
+// How many choices one PM/DOE stop gives: one PM OR one DOE (David,
+// 25 Oct 2026).
+export const PM_DOE_CHOICES_PER_STOP = 1;
+
+// Cash a DOE costs: the extra tool time and test wafers it uses (David,
+// 25 Oct 2026; this amends decision O2). Placeholder until M7.
+export const DOE_CASH_COST = 100;
+
+// How many practices one DOE stop offers to upgrade, drawn by the seed:
+// from MIN to MAX, both included, or fewer if fewer are eligible.
+export const DOE_OFFER_MIN = 2;
+export const DOE_OFFER_MAX = 3;
+
+// --- Ship report (M3 item 3). Proposed by Claude, 25 Oct 2026; David to
+// confirm (tasks/todo.md Q1). ---
+
+// What a lot costs before any choice you make: 25 wafers plus routine
+// processing on every step. The ship report adds the cash spent during the
+// run to this and divides by the good die. Placeholder until M7.
+export const LOT_BASE_COST = 2000;
+
+// --- Diagnosis (M4 item 1). Agreed with David, 25 Oct 2026. ---
+
+// A failure mode counts as a right diagnosis when its pattern cost the lot
+// at least this many yield points (0..100) this run.
+export const DIAGNOSE_MIN_POINTS = 3;
+
+// How many failure modes the diagnose panel offers to choose from.
+export const DIAGNOSE_CANDIDATES = 4;

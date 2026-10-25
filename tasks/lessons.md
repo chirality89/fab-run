@@ -171,3 +171,87 @@ The test's check was stricter than the agreed rule (O4: buying is blocked below 
 ### Rule to Prevent
 ✅ A test's limits come from the written decision, not from what the engine happens to do today. Read the decision before writing the limit.
 ✅ When a check fails, ask David which is right, the check or the rule. Never loosen it silently (David chose to change the test, 25 Oct 2026).
+
+## The SPC chart drew a lower spec limit on particle counts
+
+### What Happened
+physics-reviewer found that the particle (clean, deposition) and seam-rate (plating) charts showed a lower spec line, and the yield math counted a lower tail. That teaches that "too few particles" is out of spec, which is false.
+
+### Root Cause
+I used one two-sided capability model for every parameter. Some parameters are only bad in one direction.
+
+### Rule to Prevent
+✅ For every monitored parameter, ask whether it has a lower spec, an upper spec, or both, and keep that as data (`oneSided`)
+✅ A chart line on screen is a claim about physics: review it as content, not as decoration
+
+## New content entries went in without draft: true
+
+### What Happened
+code-explainer found the six tool monitors had no `draft: true`, which CLAUDE.md §6 requires.
+
+### Root Cause
+They were a new kind of content in a new file, so the existing entries weren't there as a pattern to copy.
+
+### Rule to Prevent
+✅ Every new entry in `src/content/`, of any kind and in any file, starts with `draft: true`
+
+## A PM could make a healthy tool worse
+
+### What Happened
+code-explainer found that a PM set health to the 75–95 roll whatever the tool's health was before, so a PM on a tool at 100 dropped it to 84.
+
+### Root Cause
+I built "PM restores to 75–95" literally as "set to 75–95" and never tested a tool that was already healthier than the range.
+
+### Rule to Prevent
+✅ For any "restore" or "repair" action, test it on something already in good shape. Repairing must never make a thing worse unless David asked for that as a side effect.
+✅ When a rule moves a value into a range, write down what happens to values already above and below the range
+
+## The double-click window caught a new screen test again
+
+### What Happened
+The phone DOE screen test failed every time on "Continue to the corridor". Its "Run litho" tap landed where "Continue to step 3" had been tapped a moment before, so the double-tap guard ignored it. My own run of the suite had passed once by timing luck.
+
+### Root Cause
+The rule from the earlier lessons (wait out the double-click window) lives in each spec file, not in one shared helper, so a new spec didn't have it.
+
+### Rule to Prevent
+✅ Every screen test that taps twice across a screen change waits `DOUBLE_CLICK_WINDOW_MS` between the taps. When a new spec chains screens, add the wait at each screen change.
+✅ Run a new screen test with `--repeat-each=5` on the phone before calling it done
+
+## An event's risk could not be diagnosed, and some options cost nothing
+
+### What Happened
+physics-reviewer found that the cheaper-slurry option added a polish-rate risk that never showed on any chart, so rule 6 (every failure is diagnosable) broke. It also found that an event could come up after its room had passed, making "take the cash" free.
+
+### Root Cause
+I checked each option against the physics but not against the evidence on screen, nor against where the lot is on the route. The second is the same root cause as the shop lesson.
+
+### Rule to Prevent
+✅ Every new way to lose yield must show up somewhere on screen (SPC, wafer map, metrology) before it ships. Name where.
+✅ Anything offered between rooms (shop items, PM tools, DOE cards, events) is checked against the route still ahead
+
+## The ship report said "Shipped yield" for a scrapped lot, and "CMP CMP"
+
+### What Happened
+The unit tests for the ship report passed, but the screenshots showed two wrong texts: a lot the player scrapped was labelled "Shipped yield", and steps whose label equals the room's name read twice ("CMP CMP", "Metrology Metrology").
+
+### Root Cause
+I wrote the labels for the shipped case and tested numbers, not words. Text built from two content fields can repeat itself when the fields hold the same words.
+
+### Rule to Prevent
+✅ Every label on an end screen is checked once for each end state (shipped, rejected, scrapped by the line, scrapped by the player)
+✅ When text joins two content fields, check the screenshot for the case where both say the same thing
+
+## Splitting yield loss by the wafer average under-credited a pattern
+
+### What Happened
+To say how many yield points each pattern cost, I took each pattern's exponent averaged over the wafer and split the total loss in that ratio. physics-reviewer showed it was wrong when one pattern saturates some sites: an edge ring that kills the outer sites takes almost all the credit, and particles that cost about 6.5 points were credited about 1.2. A right diagnosis would then be graded wrong.
+
+### Root Cause
+Yield is the average of the sites' survivals, not e to the power of the average exponent. A ratio of averaged exponents is not a ratio of yield lost.
+
+### Rule to Prevent
+✅ Split a yield loss where it happens: per site, then add the sites up. Check that the parts add up to the whole.
+✅ Test an attribution with a pattern that saturates some sites next to one that is spread evenly
+✅ A failure mode is a right answer only if its cause was present, not just its pattern (several causes can make the same pattern)

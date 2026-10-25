@@ -26,7 +26,7 @@ function idleRoom(state) {
 
 // Seed 123456, scatter off, nothing played, until the lot is IN etch.
 function idleToEtch(changes = {}) {
-  let state = createRun({ seed: SEED, scatterStrength: 0, ...changes });
+  let state = createRun({ seed: SEED, scatterStrength: 0, toolDrift: false, ...changes });
   while (state.stepIndex < ETCH) state = idleRoom(state);
   return enterStep(state);
 }
@@ -178,7 +178,7 @@ test('resultView names the scrap when the lot dies', () => {
 // --- M3 item 1: the floor-plan map ----------------------------------------
 
 test('map at the start: lot at the door, bay 1 next, no side stops', () => {
-  const view = mapView(createRun({ seed: SEED, scatterStrength: 0 }));
+  const view = mapView(createRun({ seed: SEED, scatterStrength: 0, toolDrift: false }));
   assert.equal(view.position, 'start');
   assert.equal(view.bays.length, 9);
   assert.deepEqual(view.bays.map(bay => bay.status), ['next', ...Array(8).fill('ahead')]);
@@ -190,7 +190,7 @@ test('map at the start: lot at the door, bay 1 next, no side stops', () => {
 });
 
 test('map in the corridor after step 1: its offers, bay 1 done, bay 2 next', () => {
-  const inCorridor = resolveStep(enterStep(createRun({ seed: SEED, scatterStrength: 0 })));
+  const inCorridor = resolveStep(enterStep(createRun({ seed: SEED, scatterStrength: 0, toolDrift: false })));
   const view = mapView(inCorridor);
   assert.equal(view.position, 'corridor');
   assert.deepEqual(view.offers.map(offer => offer.kind), inCorridor.map[0].offers, `seed ${SEED}`);
@@ -201,7 +201,7 @@ test('map in the corridor after step 1: its offers, bay 1 done, bay 2 next', () 
 });
 
 test('map in the Q-time corridor: warning shown, each stop shows its oxide risk', () => {
-  let state = createRun({ seed: SEED, scatterStrength: 0 });
+  let state = createRun({ seed: SEED, scatterStrength: 0, toolDrift: false });
   while (state.stepIndex < 4) state = idleRoom(state);
   const view = mapView(resolveStep(enterStep(state)));
   assert.match(view.qtimeText, /Q-time window/);
@@ -212,7 +212,7 @@ test('map in the Q-time corridor: warning shown, each stop shows its oxide risk'
 });
 
 test('stopView: names the stop and its minutes, and the step that comes next', () => {
-  const inCorridor = resolveStep(enterStep(createRun({ seed: SEED, scatterStrength: 0 })));
+  const inCorridor = resolveStep(enterStep(createRun({ seed: SEED, scatterStrength: 0, toolDrift: false })));
   const kind = inCorridor.map[0].offers[0];
   const view = stopView(inCorridor, walkCorridor(inCorridor, kind), kind);
   const minutes = { metrology: 20, pm: 40, procurement: 10, event: 10 }[kind];
@@ -273,4 +273,89 @@ test('a bought item shows in its room\'s Slots panel', () => {
   let state = buyItem(shopAfterStep2(), 'resistCAR');
   state = enterStep(state);   // step 3, litho
   assert.deepEqual(roomView(state).slots.map(item => item.id), ['resistCAR']);
+});
+
+// --- the SPC chart (M3 item 2b) ---------------------------------------------
+
+test('spcView: etch rate in nm/min with centre, control and spec limits in units', () => {
+  const state = idleToEtch();   // drift off, so the etch tool is at 100
+  const spc = roomView(state).spc;
+  assert.equal(spc.parameter, 'Etch rate');
+  assert.equal(spc.unit, 'nm/min');
+  assert.equal(spc.zs.length, 11, 'earlier lots only: this lot has not run yet');
+  // target 300, sigma 8: control 300 ± 24, spec 300 ± 32.
+  assert.equal(spc.limitsText, 'Centre 300.0 · control 276.0–324.0 · spec 268.0–332.0 nm/min');
+});
+
+test('spcView: rules in words, and the verdict', () => {
+  const state = idleToEtch();
+  const below8 = [0.1, -0.2, -0.5, -0.1, -0.9, -0.3, -0.4, -0.2, -0.6, -3.4, 0.2];
+  const tools = { ...state.tools, etch: { ...state.tools.etch, spc: below8 } };
+  const spc = roomView({ ...state, tools }).spc;
+  assert.deepEqual(spc.rules, ['A point beyond the lower control limit', '8 points in a row below the centre line']);
+  assert.equal(spc.inControl, false);
+  assert.match(spc.verdictText, /^Out of control: the etch rate may be shifting/);
+  assert.deepEqual(spc.outOfControl.map((out, i) => (out ? i : null)).filter(i => i !== null), [9]);
+
+  const calm = { ...state.tools, etch: { ...state.tools.etch, spc: [0.5, -0.5, 0.2] } };
+  assert.equal(roomView({ ...state, tools: calm }).spc.verdictText, 'In control: no rule tripped in the last 3 lots.');
+});
+
+test('the metrology room has no SPC chart', () => {
+  let state = createRun({ seed: SEED, scatterStrength: 0, toolDrift: false });
+  while (state.stepIndex < 8) state = idleRoom(state);
+  assert.equal(roomView(enterStep(state)).spc, null);
+});
+
+test('spcView: a one-sided spec (particle adders) shows only an upper spec limit', () => {
+  const spc = roomView(enterStep(createRun({ seed: SEED, scatterStrength: 0, toolDrift: false }))).spc;
+  assert.equal(spc.parameter, 'Particle adders');
+  assert.deepEqual(spc.specSides, [1]);
+  // target 20, sigma 4: control 8–32, spec up to 36.
+  assert.equal(spc.limitsText, 'Centre 20.0 · control 8.0–32.0 · spec up to 36.0 per wafer');
+});
+
+// --- PM and the map's SPC chip (M3 item 2c) ---------------------------------
+
+test('mapView: a bay ahead whose tool trips an SPC rule has spcAlarm', () => {
+  const state = idleToEtch();   // drift off: tools at 100, so only chance alarms
+  const forced = { ...state.tools, cmp: { ...state.tools.cmp, spc: [-0.2, -0.5, -0.1, -0.9, -0.3, -0.4, -0.2, -0.6] } };
+  const view = mapView(resolveStep({ ...state, tools: forced }));   // in the corridor after etch
+  const cmpBay = view.bays.find(bay => bay.roomId === 'cmp');
+  assert.equal(cmpBay.spcAlarm, true);
+  assert.equal(view.bays.find(bay => bay.roomId === 'metro').spcAlarm, false, 'metrology has no chart');
+});
+
+test('spcView: a PM mark sits before the next point', () => {
+  const state = idleToEtch();
+  const tool = { ...state.tools.etch, spc: [0, 0, 0], pmAt: [2] };
+  assert.deepEqual(roomView({ ...state, tools: { ...state.tools, etch: tool } }).spc.pmMarks, [2]);
+});
+
+test('spcView: after a PM the rules look only at lots measured since it', () => {
+  const state = idleToEtch();
+  const drifting = [-0.2, -0.5, -0.1, -0.9, -0.3, -0.4, -0.2, -0.6];
+  const justPmd = { ...state.tools.etch, spc: drifting, pmAt: [8] };
+  const view = roomView({ ...state, tools: { ...state.tools, etch: justPmd } }).spc;
+  assert.equal(view.inControl, true);
+  assert.equal(view.verdictText, "Just PM'd: no lots measured since the PM yet.");
+  const oneLater = { ...justPmd, spc: [...drifting, 0.3] };
+  assert.equal(roomView({ ...state, tools: { ...state.tools, etch: oneLater } }).spc.verdictText,
+    'In control: no rule tripped in the last 1 lot since the PM.');
+});
+
+// --- the event screen (M3 item 2e) -----------------------------------------
+
+test('eventView: consequences in words, tool health said as a service, Q-time wait shown', async () => {
+  const { eventView } = await import('../src/ui/eventView.js');
+  let state = createRun({ seed: SEED, scatterStrength: 0, toolDrift: false });
+  state = resolveStep(enterStep(state));
+  while (state.corridor < 4) state = resolveStep(enterStep(walkCorridor(state, null)));
+  const atAudit = { ...state, corridor: null, event: { corridor: 4, eventId: 'audit', chosen: null } };
+  const view = eventView(atAudit);
+  assert.equal(view.name, 'Quality audit');
+  assert.equal(view.options[0].consequences, '+30 min cycle time · +0.030 risk: native oxide grew while the lot waited (Q-time wait) · Wet clean tool serviced');
+  assert.equal(view.options[1].consequences, '−100 cash');
+  assert.equal(view.resultText, null);
+  assert.equal(view.goText, 'Continue to step 6: Deposition (barrier + seed)');
 });

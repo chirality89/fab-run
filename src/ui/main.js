@@ -7,16 +7,21 @@
 //
 // The whole run lives in one variable, `state`. The screen never changes it
 // directly: every button calls an engine function (enterStep, playCard,
-// resolveStep, walkCorridor, buyItem), stores the new state that comes back, and
-// redraws.
+// resolveStep, walkCorridor, buyItem, pmTool, doeCard, chooseEventOption),
+// stores the new state that comes back, and redraws.
 
 import { normalizeSeed } from '../engine/rng.js';
 import {
-  createRun, enterStep, resolveStep, playCard, walkCorridor, buyItem, starterDeck, defaultLoadout,
+  createRun, enterStep, resolveStep, playCard, walkCorridor, buyItem, pmTool, doeCard, chooseEventOption,
+  starterDeck, defaultLoadout, scrapLot,
 } from '../engine/run.js';
 import { roomView, resultView, mapView, stopView, shopView, parseSeed } from './view.js';
-import { renderRoom, renderResult, renderError, focusNextAction, showFromTop } from './render.js';
-import { renderMap, renderStop, renderShop } from './floorPlan.js';
+import { renderRoom, renderResult, renderShip, renderError, focusNextAction, showFromTop } from './render.js';
+import { renderMap, renderStop, renderShop, renderPm, renderEvent } from './floorPlan.js';
+import { eventView } from './eventView.js';
+import { pmView } from './pmView.js';
+import { shipView } from './shipView.js';
+import { emptyNotebook, diagnoseLot } from '../engine/notebook.js';
 
 const LOT_TYPE_ID = 'cuLine';
 
@@ -47,6 +52,8 @@ function chooseSeed() {
 
 const app = document.getElementById('app');
 let state = null;   // the whole run; replaced, never edited
+let notebook = emptyNotebook();   // diagnosed failure modes; kept across runs (in memory until M4 item 2)
+let diagnosis = null;   // this lot's diagnose result (notebook.js), or null before the guess
 
 // Runs a screen-drawing step and shows any error in a visible box.
 function safely(draw) {
@@ -83,7 +90,30 @@ function onTakeStop(stopKind) {
     const before = state;
     state = walkCorridor(state, stopKind);
     if (state.shop !== null) showShop(null);
+    else if (state.pm !== null) showPm(JUST_OPENED);
+    else if (state.event !== null) showEvent();
     else renderStop(app, stopView(before, state, stopKind), { onContinue: () => safely(enterRoom) });
+  });
+}
+
+function onPm(roomId) {
+  safely(() => {
+    state = pmTool(state, roomId);
+    showPm(AFTER_CHOICE);
+  });
+}
+
+function onDoe(cardId) {
+  safely(() => {
+    state = doeCard(state, cardId);
+    showPm(AFTER_CHOICE);
+  });
+}
+
+function onChoose(optionIndex) {
+  safely(() => {
+    state = chooseEventOption(state, optionIndex);
+    showEvent();
   });
 }
 
@@ -98,7 +128,15 @@ function onRunRoom() {
   safely(() => {
     const before = state;
     state = resolveStep(state);
-    renderResult(app, resultView(before, state), { onContinue: () => safely(showMap), onReplay, onNewSeed });
+    const onShip = () => safely(showShipReport);
+    renderResult(app, resultView(before, state), { onContinue: () => safely(showMap), onShip, onReplay, onNewSeed });
+  });
+}
+
+function onScrap() {
+  safely(() => {
+    state = scrapLot(state);
+    showShipReport();
   });
 }
 
@@ -121,13 +159,44 @@ function showRoom() {
 }
 
 function showMap() {
-  renderMap(app, mapView(state), { onTakeStop, onGoStraight });
+  renderMap(app, mapView(state), { onTakeStop, onGoStraight, onScrap });
+}
+
+// The ship report: the one screen every finished run ends on, whether the
+// lot shipped, was rejected or was scrapped.
+function showShipReport() {
+  renderShip(app, shipView(state, notebook, diagnosis), { onDiagnose, onReplay, onNewSeed });
+}
+
+// The player names a failure mode on the ship report (M4 item 1). The
+// notebook lives in memory for now; M4 item 2 saves it under its own key.
+function onDiagnose(failureModeId) {
+  safely(() => {
+    const done = diagnoseLot(state, notebook, failureModeId);
+    state = done.state;
+    notebook = done.notebook;
+    diagnosis = done.result;
+    showShipReport();
+  });
 }
 
 // The procurement screen. `justBought` is the item bought a moment ago, or
 // null when the shop has just opened.
 function showShop(justBought) {
   renderShop(app, shopView(state), { onBuy, onContinue: () => safely(enterRoom) }, justBought);
+}
+
+// The PM/DOE screen, either just opened or right after a PM or a DOE (then
+// keyboard focus goes to Continue).
+const JUST_OPENED = false;
+const AFTER_CHOICE = true;
+function showPm(justChose) {
+  renderPm(app, pmView(state), { onPm, onDoe, onContinue: () => safely(enterRoom) }, justChose);
+}
+
+// The event screen: the situation and its options, then the result.
+function showEvent() {
+  renderEvent(app, eventView(state), { onChoose, onContinue: () => safely(enterRoom) });
 }
 
 function enterRoom() {
@@ -139,6 +208,7 @@ function enterRoom() {
 // A fresh run for the seed: starter deck, default loadout (i-line resist in
 // litho), normal scatter. It starts on the floor plan.
 function startRun(seed) {
+  diagnosis = null;
   state = createRun({ seed, lotTypeId: LOT_TYPE_ID, deck: starterDeck(), loadout: defaultLoadout() });
   showMap();
 }

@@ -6,13 +6,12 @@
 // always set with textContent (never innerHTML), so nothing in the data can
 // turn into page code.
 
-// Makes an element with a class and, optionally, some text.
-export function el(tag, className, text) {
-  const node = document.createElement(tag);
-  if (className) node.className = className;
-  if (text !== undefined) node.textContent = text;
-  return node;
-}
+import { el, panel } from './dom.js';
+import { drawSpc, drawSpcPicture } from './spcChart.js';
+
+// el and panel live in dom.js; they are passed on from here so the other
+// screen files can keep importing them from render.js.
+export { el, panel };
 
 // Calls `handler` when the button is clicked, tapped or pressed with Enter
 // or Space, but ignores the second click of a double click. Playing a card
@@ -26,13 +25,6 @@ export function onSingleClick(button, handler) {
     if (event.detail > 1) return;
     handler();
   });
-}
-
-// A small heading for each panel.
-export function panel(title, className) {
-  const box = el('section', `panel ${className}`);
-  box.append(el('h2', 'panel-title', title));
-  return box;
 }
 
 // Top bar: the room name on its room color, the step, the seed and cash.
@@ -131,7 +123,9 @@ function drawCard(card, actions) {
   if (card.playable) onSingleClick(node, () => actions.onPlay(card.id));
   const top = el('div', 'card-top');
   top.append(el('span', 'card-name', card.name), el('span', 'card-cost', costText(card)));
-  node.append(top, el('span', 'card-summary', card.summary));
+  node.append(top);
+  if (card.doe) node.append(el('span', 'chip chip-doe', 'DOE'));   // upgraded at a DOE stop
+  node.append(el('span', 'card-summary', card.summary));
   if (!card.playable) node.append(el('span', 'card-reason', `Can't play: ${card.reason}`));
   return node;
 }
@@ -170,7 +164,7 @@ export function renderRoom(container, view, actions) {
     drawWaferMap(view),
     meter('Time budget', `${view.timeLeft} of ${view.budget} min left`, view.timeLeft / view.budget, 'time-panel'),
     drawSlots(view),
-    meter('Tool health', `${view.toolHealth} / 100`, view.toolHealth / 100, 'tool-panel'),
+    drawSpc(view.spc),
     drawHand(view, actions),
   );
   container.replaceChildren(drawHeader(view), drawYield(view), body);
@@ -215,22 +209,126 @@ export function actionButton(text, className, onClick) {
 // The screen after a room is run: what it cost, the new wafer map, what
 // happens next, and two ways to play again.
 // `actions` holds onContinue() (shown only while the run goes on),
-// onReplay() and onNewSeed().
+// onShip() (shown once it is over), onReplay() and onNewSeed().
 export function renderResult(container, view, actions) {
   const outcome = panel('Result', 'result-panel');
   outcome.setAttribute('role', 'status');
   outcome.append(el('p', 'outcome-text', view.outcomeText));
   const buttons = el('div', 'result-buttons');
+  // While the run goes on, Continue is the main button; once it is over,
+  // the ship report is. Replay and New seed are always the plain ones.
   if (view.status === 'running') {
     buttons.append(actionButton('Continue to the corridor', 'continue-button', actions.onContinue));
+  } else {
+    buttons.append(actionButton('See the ship report', 'ship-button', actions.onShip));
   }
   buttons.append(
-    // While the run goes on, Continue is the main button and Replay is plain.
-    actionButton('Replay this seed', view.status === 'running' ? 'replay-button secondary-button' : 'replay-button', actions.onReplay),
+    actionButton('Replay this seed', 'replay-button secondary-button', actions.onReplay),
     actionButton('New seed', 'new-seed-button secondary-button', actions.onNewSeed),
   );
   outcome.append(buttons);
   container.replaceChildren(drawHeader(view), drawResultYield(view), outcome, drawWaferMap(view));
+  showFromTop(container);
+}
+
+// --- the ship report (M3 item 3) -------------------------------------------
+
+// One of the three numbers: label, big value, and what it is made of.
+function drawTile(tile) {
+  const box = el('div', 'ship-tile');
+  box.append(el('p', 'ship-tile-label', tile.label), el('p', 'ship-tile-value', tile.value),
+    el('p', 'ship-tile-detail', tile.detail));
+  return box;
+}
+
+// Yield by step: where the lot was lost, one row per room it ran through.
+function drawStepTable(view) {
+  const box = panel('Yield by step', 'steps-panel');
+  const table = el('table', 'step-table');
+  const head = el('tr');
+  for (const title of ['Step', 'Room', 'Yield after', 'Points lost']) head.append(el('th', null, title));
+  table.append(head);
+  for (const step of view.steps) {
+    const row = el('tr');
+    row.append(el('td', null, `${step.stepNumber}`));
+    const room = el('td', null);
+    room.append(el('span', `room-chip room-${step.roomId}`, step.roomName));
+    if (step.stepLabel) room.append(` ${step.stepLabel}`);
+    row.append(room, el('td', null, `${step.yieldPercent}%`), el('td', null, step.lossPoints));
+    table.append(row);
+  }
+  box.append(table);
+  if (view.stepsNotRun > 0) box.append(el('p', 'map-key', `${view.stepsNotRun} later steps were not run.`));
+  return box;
+}
+
+// The Diagnose panel (M4 item 1): four failure modes to choose from, then
+// what the guess earned. Each choice is a button with its signature text.
+function drawDiagnose(view, actions) {
+  const box = panel('Diagnose', 'diagnose-panel');
+  box.setAttribute('role', 'status');   // the result is announced when it appears
+  box.append(el('p', 'diagnose-text', view.text));
+  if (view.state === 'choose') {
+    const list = el('div', 'stop-list');
+    for (const choice of view.candidates) {
+      const button = el('button', 'stop-button diagnose-button');
+      const top = el('span', 'card-top');
+      top.append(el('span', 'card-name', choice.name));
+      if (choice.known) top.append(el('span', 'chip chip-known', 'In notebook'));
+      button.append(top, el('span', 'card-summary', choice.sig));
+      onSingleClick(button, () => actions.onDiagnose(choice.id));
+      list.append(button);
+    }
+    box.append(list);
+  }
+  if (view.state === 'done' && view.earned) {
+    const text = view.unlocks.length > 0
+      ? `Unlocks for later runs: ${view.unlocks.join(', ')}. (Unlocks start to count in a later update.)`
+      : 'It unlocks nothing yet.';
+    box.append(el('p', 'map-key', text));
+  }
+  return box;
+}
+
+// Every monitored tool's SPC chart after the run: drift is evidence too.
+function drawRouteSpc(view) {
+  const box = panel('Tool SPC after the run', 'route-spc-panel');
+  const grid = el('div', 'route-spc');
+  for (const tool of view.tools) {
+    const item = el('div', 'route-spc-item');
+    item.append(el('span', `room-chip room-${tool.roomId}`, tool.roomName),
+      el('p', 'spc-title', `${tool.spc.parameter} (${tool.spc.unit})`), drawSpcPicture(tool.spc),
+      el('p', tool.spc.inControl ? 'spc-verdict' : 'spc-verdict spc-verdict-out', tool.spc.verdictText));
+    grid.append(item);
+  }
+  box.append(grid);
+  return box;
+}
+
+// The screen after a run ends: the verdict, the three numbers, the diagnose
+// panel, yield by step, the tools' SPC and the final wafer map. `actions`
+// holds onDiagnose(id), onReplay() and onNewSeed().
+export function renderShip(container, view, actions) {
+  const header = el('header', 'room-band map-band');
+  header.append(el('h1', 'room-name', 'Ship report'), el('p', 'room-step', view.lotName));
+  const facts = el('p', 'room-facts');
+  facts.append(el('span', 'seed', `Seed ${view.seed}`), el('span', 'cash', `Cash ${view.cash}`));
+  header.append(facts);
+
+  const verdict = panel('Verdict', `result-panel verdict-${view.status}`);
+  verdict.setAttribute('role', 'status');
+  verdict.append(el('p', 'outcome-text', view.verdictText));
+  const tiles = el('div', 'ship-tiles');
+  view.tiles.forEach(tile => tiles.append(drawTile(tile)));
+  verdict.append(tiles);
+  const buttons = el('div', 'result-buttons');
+  buttons.append(
+    actionButton('Replay this seed', 'replay-button', actions.onReplay),
+    actionButton('New seed', 'new-seed-button secondary-button', actions.onNewSeed),
+  );
+  verdict.append(buttons);
+  container.replaceChildren(header, verdict, drawDiagnose(view.diagnose, actions), drawStepTable(view),
+    drawWaferMap(view), drawRouteSpc(view));
   showFromTop(container);
 }
 

@@ -321,3 +321,68 @@
 .shop-next { display: block; margin-top: 4px; font-size: 15px; }
 .shop-bought { display: block; margin-top: 8px; font-weight: 600; color: var(--ok); }
 .buy-button { margin-top: 10px; }
+
+/* --- Tool SPC chart (spcChart.js) ------------------------------------------ */
+.spc-title { margin: 0 0 6px; font-weight: 600; }
+.spc-chart { display: block; width: 100%; height: auto; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-small); }
+.spc-centre  { stroke: var(--ink); stroke-width: 1.5; }
+.spc-control { stroke: var(--warn); stroke-width: 1.5; stroke-dasharray: 6 4; }   /* dashed */
+.spc-spec    { stroke: var(--bad); stroke-width: 2; }                              /* solid */
+.spc-trace   { fill: none; stroke: var(--muted); stroke-width: 1; }
+.spc-point     { fill: var(--blue); }
+.spc-point-out { fill: var(--bad); }   /* also a larger square, not only red */
+.spc-limits { margin: 6px 0 0; font-size: 14px; color: var(--muted); }
+.spc-verdict { margin: 8px 0 0; font-weight: 600; color: var(--ok); }
+.spc-verdict-out { color: var(--bad); }
+.spc-rules { margin: 4px 0 0; padding-left: 20px; }
+.spc-rule { font-size: 15px; }
+
+/* --- PM marks on SPC charts, the map's SPC chip, the PM screen ----------- */
+.spc-pm-line  { stroke: var(--ink); stroke-width: 1.5; stroke-dasharray: 2 3; }   /* dotted */
+.spc-pm-label { fill: var(--ink); font: 600 10px var(--mono); }
+.chip-spc { background: var(--die-fail); border: 2px solid var(--die-fail-edge); color: var(--on-die-fail); font-weight: 600; }
+.shop-item .spc-chart { margin-top: 8px; }
+.pm-button { margin-top: 10px; }
+@media (min-width: 900px) {
+  .pm-panel .shop-list { grid-template-columns: repeat(3, 1fr); }   /* tool cards side by side */
+}
+
+/* --- DOE (M3 item 2d) ------------------------------------------------------- */
+.chip-doe { display: inline-block; margin-top: 4px; background: var(--ink); border-color: var(--ink); color: var(--surface); font-weight: 600; }
+.doe-after { font-weight: 600; }
+.doe-button { margin-top: 10px; }
+.pm-panel + .go-button { margin-bottom: 12px; }
+
+/* --- Events (M3 item 2e) ---------------------------------------------------- */
+.event-button { margin-top: 10px; }
+.event-result { margin-top: 4px; padding: 8px 10px; border-left: 4px solid var(--blue); background: var(--bg); }
+
+/* --- Ship report and scrap (M3 item 3) -------------------------------------- */
+.ship-tiles { display: grid; grid-template-columns: 1fr; gap: 10px; margin: 12px 0; }
+@media (min-width: 900px) {
+  .ship-tiles { grid-template-columns: repeat(3, 1fr); }   /* the three numbers side by side */
+}
+.ship-tile { padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+.ship-tile-label  { margin: 0; font-size: 14px; color: var(--muted); }
+.ship-tile-value  { margin: 2px 0; font: 600 30px/1.1 var(--cond); }
+.ship-tile-detail { margin: 0; font-size: 14px; color: var(--muted); }
+.verdict-shipped  { border-left: 6px solid var(--ok); }
+.verdict-rejected { border-left: 6px dashed var(--warn); }   /* dashed, so not told by colour alone */
+.verdict-scrapped { border-left: 6px double var(--bad); }
+.step-table { width: 100%; border-collapse: collapse; font-size: 15px; }
+.step-table th, .step-table td { padding: 6px 4px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+.step-table th:nth-child(n+3), .step-table td:nth-child(n+3) { text-align: right; white-space: nowrap; }
+.room-chip { display: inline-block; padding: 1px 6px; border-radius: 3px; background: var(--room-color); color: var(--on-fill); font-weight: 600; }
+.scrap-box { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--line); }
+.scrap-question { margin: 0 0 8px; font-weight: 600; }
+.scrap-confirm-button { background: var(--die-fail); color: var(--on-die-fail); }
+
+/* --- Diagnose panel and the route's SPC (M4 item 1) ------------------------- */
+.diagnose-panel .stop-list { margin-top: 8px; }
+.chip-known { background: var(--ok); border-color: var(--ok); color: var(--surface); font-weight: 600; }
+.route-spc { display: grid; grid-template-columns: 1fr; gap: 16px; }
+@media (min-width: 900px) {
+  .route-spc { grid-template-columns: repeat(3, 1fr); }
+}
+.route-spc-item .spc-title { margin: 6px 0 2px; }
+.diagnose-text { margin: 0 0 8px; font-size: 17px; }

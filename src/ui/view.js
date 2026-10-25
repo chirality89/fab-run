@@ -5,7 +5,7 @@
 // DOM, Node can test it (tests/view.test.js). render.js draws what this
 // returns.
 
-import { PRACTICES, EQUIPMENT, MATERIALS, ROOMS } from '../content/content.js';
+import { EQUIPMENT, MATERIALS, ROOMS } from '../content/content.js';
 import { LOT_TYPES } from '../content/lotTypes.js';
 import { SIDE_STOPS } from '../content/sideStops.js';
 import {
@@ -15,9 +15,11 @@ import { normalizeSeed } from '../engine/rng.js';
 import { lotYield, realizeRisks } from '../engine/lot.js';
 import { whyIllegal } from '../engine/run.js';
 import { whyCannotBuy, findShopItem } from '../engine/shop.js';
+import { cardInRun } from '../engine/doe.js';
+import { spcView } from './spcView.js';
 
 // A fraction (0..1) as a percent with one decimal, e.g. 0.913931 → 91.4.
-function toPercent(fraction) {
+export function toPercent(fraction) {
   return Math.round(fraction * 1000) / 10;
 }
 
@@ -45,7 +47,7 @@ export function siteBand(value) {
 }
 
 // One wafer map tile.
-function siteView(value) {
+export function siteView(value) {
   return { value, percent: sitePercent(value), band: siteBand(value) };
 }
 
@@ -61,7 +63,7 @@ export function yieldBand(fraction) {
 }
 
 // The legend under the wafer map, built from the balance numbers.
-function mapKeyText() {
+export function mapKeyText() {
   return `Each site: % of the 25 wafers still good there. Pass ${SITE_GOOD_PERCENT}%+, `
     + `warning ${SPEC_PERCENT}–${SITE_GOOD_PERCENT - 1}%, fail under ${SPEC_PERCENT}%.`;
 }
@@ -89,9 +91,10 @@ function friendlyReason(card, reason) {
 }
 
 // One card in the hand. The one-line summary is the card's own `tradeoff`
-// text from content.js, so the screen never invents physics.
+// text from content.js, so the screen never invents physics. An upgraded
+// card shows its DOE version (doe.js cardInRun).
 function cardView(state, cardId) {
-  const card = PRACTICES.find(item => item.id === cardId);
+  const card = cardInRun(state, cardId);
   const reason = whyIllegal(state, cardId);
   return {
     id: card.id,
@@ -99,6 +102,7 @@ function cardView(state, cardId) {
     minutes: card.cost.time ?? 0,
     cash: card.cost.cash ?? 0,
     summary: card.tradeoff,
+    doe: state.upgraded.includes(cardId),
     playable: reason === null,
     reason: reason === null ? null : friendlyReason(card, reason),
   };
@@ -138,7 +142,8 @@ export function roomView(state) {
     timeLeft: state.room.timeLeft,
     budget: state.room.budget,
     slots: slotsView(state, roomId),
-    toolHealth: state.tools[roomId].health,
+    toolHealth: state.tools[roomId].health,   // not shown: the screen shows SPC only (David)
+    spc: spcView(state, roomId),
     hand: state.hand.map(cardId => cardView(state, cardId)),
     expectedLossPoints: lossPoints,
     expectedLossText: `This room will cost about ${lossPoints.toFixed(1)} points of yield if nothing changes.`,
@@ -272,6 +277,8 @@ export function mapView(state) {
       roomId: step.room,
       roomName: ROOMS[step.room].name,
       status: bayStatus(index, nextIndex),
+      // The telegraph on the map: the tool of a room still ahead trips an SPC rule.
+      spcAlarm: index >= nextIndex && spcView(state, step.room)?.inControl === false,
     })),
     corridors: state.map.map((corridor, index) => ({
       afterStep: corridor.afterStep,
@@ -303,7 +310,7 @@ function continueText(route, corridorIndex) {
 }
 
 // The placeholder screen after taking a side stop that does nothing yet
-// (PM/DOE, metrology and events come later in M3). `before` is the state in
+// (metrology and events come later in M3). `before` is the state in
 // the corridor, `after` what walkCorridor returned.
 export function stopView(before, after, stopKind) {
   const info = SIDE_STOPS[stopKind];
@@ -313,7 +320,9 @@ export function stopView(before, after, stopKind) {
     name: info.name,
     what: info.what,
     minutes: after.cycleTime - before.cycleTime,
-    text: `${info.name} cost ${after.cycleTime - before.cycleTime} min of cycle time. What this stop does comes in the next update.`,
+    text: info.placeholder
+      ? `${info.name} cost ${after.cycleTime - before.cycleTime} min of cycle time. What this stop does comes in the next update.`
+      : `${info.name} cost ${after.cycleTime - before.cycleTime} min of cycle time. A quiet shift: nothing that matters for this lot comes up.`,
     goText: continueText(route, before.corridor),
   };
 }
@@ -322,7 +331,7 @@ export function stopView(before, after, stopKind) {
 
 // Where an item next acts: the first route step from `fromIndex` on that is
 // in the item's room.
-function nextUseText(route, fromIndex, roomId) {
+export function nextUseText(route, fromIndex, roomId) {
   const index = route.findIndex((step, i) => i >= fromIndex && step.room === roomId);
   return index === -1 ? 'Not used again on this route' : `Next used at step ${index + 1}: ${route[index].label}`;
 }

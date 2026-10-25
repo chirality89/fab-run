@@ -4,6 +4,7 @@
 // Run with: npm test
 
 import { test } from 'node:test';
+import { TOOL_MONITORS } from '../src/content/toolMonitors.js';
 import assert from 'node:assert/strict';
 import {
   ROOMS, PATTERNS, PRACTICES, EQUIPMENT, MATERIALS, CONSUMABLES,
@@ -99,6 +100,8 @@ test('every risk that enters bites later, and nothing bites before it enters', (
     const waiting = new Set(Object.keys(lotType.startRisks));
     lotType.route.forEach((step, i) => {
       for (const pattern of Object.keys(step.adds)) waiting.add(pattern);
+      // A drifted tool also adds risk to its pattern on entering (tools.js).
+      if (TOOL_MONITORS[step.room]) waiting.add(TOOL_MONITORS[step.room].pattern);
       for (const pattern of step.realizes) {
         assert.ok(waiting.has(pattern),
           `${lotType.id} step ${i + 1} realizes ${pattern}, which has not entered`);

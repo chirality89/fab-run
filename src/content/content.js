@@ -21,7 +21,9 @@
 //   { op: 'cashCost',   delta }              spend budget
 //   { op: 'setFlag',    flag }               mark the lot (e.g. it now has an etch stop)
 //   { op: 'reveal',     what }               show a hidden value (tool drift, all 25 sites…)
-//   { op: 'toolHealth', delta }              repair or wear the room's tool
+//   { op: 'toolHealth', delta, room? }       repair or wear the room's tool (`room` names
+//                                            another room's tool, e.g. from an event)
+//   { op: 'addRisk',    pattern, amount }    a risk enters the lot now (amount ≥ 0)
 //   { op: 'enables',    id }                 makes another card playable
 //   { op: 'decayPerUse', target, mult }      an item weakens each time it is used
 // Any effect can carry  when: { flag | equipment | material | lot }  to make it conditional.
@@ -43,6 +45,7 @@ export const ROOMS = {
 // Defect patterns a lot can accumulate. Each one shows on the wafer map its own way.
 export const PATTERNS = {
   particles:        'random dots across the wafer',
+  flakes:           'film flakes from the deposition chamber walls',
   residue:          'unetched film left in the bottom of features',
   underlayer_attack:'etch punched into the film below',
   depth_variation:  'etch depth differs center to edge',
@@ -60,33 +63,45 @@ export const PATTERNS = {
 // FAILURE MODES = the engineering notebook.
 // Diagnosing one (from the evidence on screen) writes it into the notebook,
 // which persists between runs, and unlocks its remedies for future runs.
+// `name` is what the diagnose panel calls it; `sig` is its signature, the
+// evidence that tells it apart.
+// An optional `when` (same shape as a card's) limits it to lots where its
+// cause was present: a pattern with several causes is only that failure
+// mode when the condition holds.
 // ---------------------------------------------------------------------------
 export const FAILURE_MODES = [
-  { id: 'fm_particles',      draft: true, pattern: 'particles',
-    sig: 'Random killed dies that move from lot to lot; particle counts rise after deposition.',
+  { id: 'fm_particles',      draft: true, name: 'Handling particles', pattern: 'particles',
+    sig: 'Random killed dies that move from lot to lot; particle adders climb on the wet clean SPC chart.',
     unlocks: ['preclean'] },
-  { id: 'fm_underlayer',     draft: true, pattern: 'underlayer_attack',
+  { id: 'fm_chamber_flakes', draft: true, name: 'Chamber flaking', pattern: 'flakes',
+    sig: 'Killed dies that appear at the deposition steps; particle adders on the deposition SPC chart climb between chamber cleans.',
+    unlocks: [] },
+  { id: 'fm_residue',        draft: true, name: 'Etch residue', pattern: 'residue',
+    sig: 'Opens spread evenly across the whole wafer after etch, while the etch rate falls on the etch SPC chart.',
+    unlocks: [] },
+  { id: 'fm_underlayer',     draft: true, name: 'Underlayer attack', pattern: 'underlayer_attack',
     sig: 'Leakage on the dies with the most over-etch; the cross-section shows a notch in the film below.',
     unlocks: ['etchStopLayer', 'oesEndpoint', 'endpointEtch'] },
-  { id: 'fm_edge_ring',      draft: true, pattern: 'edge_ring',
+  { id: 'fm_edge_ring',      draft: true, name: 'Edge ring', pattern: 'edge_ring',
     sig: 'Only the outer ring of sites fails; inner sites are clean.',
     unlocks: ['eChuckUpgrade'] },
-  { id: 'fm_dishing',        draft: true, pattern: 'dishing',
+  { id: 'fm_dishing',        draft: true, name: 'Dishing', pattern: 'dishing',
     sig: 'Wide lines are thin and high-resistance; narrow lines are fine.',
     unlocks: ['dummyFill'] },
-  { id: 'fm_rr_drift',       draft: true, pattern: 'rr_drift',
-    sig: 'Post-CMP thickness walks steadily lot to lot on the SPC chart.',
+  { id: 'fm_rr_drift',       draft: true, name: 'Removal-rate drift', pattern: 'rr_drift',
+    sig: 'The CMP removal rate walks steadily lot to lot on the SPC chart.',
     unlocks: ['padConditioner'] },
-  { id: 'fm_keyhole',        draft: true, pattern: 'void',
+  { id: 'fm_keyhole',        draft: true, name: 'Keyhole void', pattern: 'void',
     sig: 'Opens on narrow vias only; a seam or void sits in the middle of the fill.',
     unlocks: ['slowStartPlate', 'additiveBath', 'bathAnalysis'] },
-  { id: 'fm_qtime',          draft: true, pattern: 'qtime_oxide',
-    sig: 'High contact resistance only on lots that waited long after clean.',
+  { id: 'fm_qtime',          draft: true, name: 'Q-time oxide', pattern: 'qtime_oxide',
+    sig: 'High line resistance only on lots that waited long after clean.',
     unlocks: ['n2Storage'] },
-  { id: 'fm_implant_damage', draft: true, pattern: 'implant_damage',
+  { id: 'fm_implant_damage', draft: true, name: 'Unannealed implant damage', pattern: 'implant_damage',
     sig: 'Junction leakage after implant; a longer anneal fixes leakage but shifts the device.',
     unlocks: ['rta', 'spikeAnneal'] },
-  { id: 'fm_ped_ttop',       draft: true, pattern: 'cd_error',
+  { id: 'fm_ped_ttop',       draft: true, name: 'Post-exposure delay T-top', pattern: 'cd_error',
+    when: { lot: 'delayBeforeBake' },   // only this cause: CD error also comes from dose, focus and litho drift
     sig: 'Lines come out with a T-shaped top when the lot waited between expose and bake.',
     unlocks: ['resistCAR', 'freshResist'] },
 ];
@@ -103,6 +118,16 @@ export const PRACTICES = [
       { op: 'defectMult', pattern: 'underlayer_attack', mult: 1.5 },
       { op: 'defectMult', pattern: 'underlayer_attack', mult: 0.5, when: { flag: 'etch_stop' } },
     ],
+    upgrade: {
+      name: 'Timed over-etch, DOE-centred',
+      effects: [
+        { op: 'defectMult', pattern: 'residue', mult: 0.3 },
+        { op: 'defectMult', pattern: 'underlayer_attack', mult: 1.25 },
+        { op: 'defectMult', pattern: 'underlayer_attack', mult: 0.5, when: { flag: 'etch_stop' } },
+      ],
+      tradeoff: 'Still attacks the film below, but less: the DOE found the shortest over-etch that still clears.',
+      physicsNote: 'A designed experiment across over-etch times finds where residue is gone but punch-through has barely started, so less extra time is needed for the same clearing.',
+    },
     tradeoff: 'Clears residue but attacks the film below, unless an etch stop is there.',
     physicsNote: 'Extra etch time removes what is left in slow spots and keeps etching wherever the film has already cleared. Selectivity to the underlayer sets how much damage that does.' },
 
@@ -110,8 +135,14 @@ export const PRACTICES = [
     name: 'Measure all 25 sites', unlockedBy: null,
     cost: { time: 20, cash: 150 },
     effects: [ { op: 'reveal', what: 'allSites' } ],
+    upgrade: {
+      name: 'Measure all 25 sites, tuned recipe',
+      cost: { time: 12, cash: 150 },
+      tradeoff: 'Full information, faster, but still paid for.',
+      physicsNote: 'An optimized stage path and a tuned auto-focus and alignment recipe measure the same sites in less time.',
+    },
     tradeoff: 'Full information, but slow and paid for.',
-    physicsNote: 'The default sample is 3 of 25 wafers (FabSim rule). Measuring everything removes sampling risk at the cost of tool time.' },
+    physicsNote: 'The usual plan samples 3 of the 25 wafers and a few sites on each. This card measures all 25 sites on the sampled wafers, removing site-sampling risk at the cost of tool time.' },
 
   { id: 'reworkLitho', draft: true, kind: 'practice', room: 'litho', rarity: 'standard',
     name: 'Strip and re-expose', unlockedBy: null,
@@ -121,6 +152,15 @@ export const PRACTICES = [
       { op: 'defectMult', pattern: 'cd_error', mult: 0.2 },
       { op: 'defectMult', pattern: 'particles', mult: 1.2 },
     ],
+    upgrade: {
+      name: 'Strip and re-expose, gentle strip',
+      effects: [
+        { op: 'defectMult', pattern: 'cd_error', mult: 0.2 },
+        { op: 'defectMult', pattern: 'particles', mult: 1.1 },
+      ],
+      tradeoff: 'Saves a bad exposure, only before etch, with fewer handling particles than before.',
+      physicsNote: 'A tuned strip and gentler handling between strip and re-coat add fewer particles, but every extra pass still adds some.',
+    },
     tradeoff: 'Saves a bad exposure, but only before etch, and each strip adds handling particles.',
     physicsNote: 'Litho is the one step you can fully redo: strip the resist and pattern again. After etch the pattern is permanent.' },
 
@@ -128,6 +168,10 @@ export const PRACTICES = [
     name: 'Pre-deposition clean', unlockedBy: 'fm_particles',
     cost: { time: 10 },
     effects: [ { op: 'defectMult', pattern: 'particles', mult: 0.6 } ],
+    upgrade: { name: 'Pre-deposition clean, DOE-tuned', cost: { time: 7 },
+      effects: [ { op: 'defectMult', pattern: 'particles', mult: 0.65 } ],
+      tradeoff: 'Faster, but the shorter rinse and dry removes a little less, and the Q-time clock still starts.',
+      physicsNote: 'A DOE trades clean time against removal: shorter chemical and rinse steps save minutes but leave slightly more residual particles.' },
     tradeoff: 'Fewer particles, but it starts a Q-time clock.',
     physicsNote: 'Removing particles and native oxide before a film goes down; the clean surface starts re-oxidizing as soon as the lot waits.' },
 
@@ -138,6 +182,13 @@ export const PRACTICES = [
       { op: 'setFlag', flag: 'etch_stop' },
       { op: 'defectMult', pattern: 'depth_variation', mult: 0.4 },
     ],
+    upgrade: { name: 'Deposit SiN etch stop, DOE-thinned', cost: { time: 9, cash: 80 },
+      effects: [
+        { op: 'setFlag', flag: 'etch_stop' },
+        { op: 'defectMult', pattern: 'depth_variation', mult: 0.45 },
+      ],
+      tradeoff: 'Shorter deposition, but a thinner stop layer gives less margin if the etch is not very selective.',
+      physicsNote: 'Film thickness scales with deposition time. Etch selectivity is finite, so the etch eats the same amount of nitride either way; a thinner film just has less left before it breaks through, so it holds depth slightly less well.' },
     tradeoff: 'One more film and one more step, in exchange for etch depth set by the film and not by time.',
     physicsNote: 'An etch that is highly selective to nitride stops when it reaches it, so depth no longer depends on etch rate uniformity.' },
 
@@ -148,6 +199,13 @@ export const PRACTICES = [
       { op: 'defectMult', pattern: 'underlayer_attack', mult: 0.3 },
       { op: 'defectMult', pattern: 'residue', mult: 1.3 },
     ],
+    upgrade: { name: 'Stop on endpoint, DOE-centred',
+      effects: [
+        { op: 'defectMult', pattern: 'underlayer_attack', mult: 0.35 },
+        { op: 'defectMult', pattern: 'residue', mult: 1.15 },
+      ],
+      tradeoff: 'Less residue in slow spots, but the short extra etch after the signal attacks the film below a little more.',
+      physicsNote: 'A small fixed over-etch after the endpoint signal clears the last film in slow spots, while the underlayer is exposed a bit longer.' },
     tradeoff: 'Stops right when the film clears, so slow spots can keep a little residue.',
     physicsNote: 'Plasma emission changes when the etched film runs out; the tool stops on that signal instead of a fixed time.' },
 
@@ -155,6 +213,10 @@ export const PRACTICES = [
     name: 'Add dummy fill to the mask', unlockedBy: 'fm_dishing',
     cost: { time: 0, cash: 100 },
     effects: [ { op: 'defectMult', pattern: 'dishing', mult: 0.4 } ],
+    upgrade: { name: 'Dummy fill, DOE-tuned density', cost: { time: 0, cash: 130 },
+      effects: [ { op: 'defectMult', pattern: 'dishing', mult: 0.3 } ],
+      tradeoff: 'Flatter polish, but more fill shapes cost more mask data work and add still more metal capacitance.',
+      physicsNote: 'A DOE on fill size, spacing and target density evens the pattern density further, so the pad dishes wide features less; more fill metal couples more capacitance.' },
     tradeoff: 'Costs a mask change and adds metal capacitance.',
     physicsNote: 'Evening out metal density lets the polish pad see a flatter surface, so wide features dish less.' },
 
@@ -162,6 +224,10 @@ export const PRACTICES = [
     name: 'Low-current start step', unlockedBy: 'fm_keyhole',
     cost: { time: 8 },
     effects: [ { op: 'defectMult', pattern: 'void', mult: 0.5 } ],
+    upgrade: { name: 'Low-current start step, DOE-ramped', cost: { time: 10 },
+      effects: [ { op: 'defectMult', pattern: 'void', mult: 0.4 } ],
+      tradeoff: 'Fewer voids, but the longer low-current stage costs more plating time.',
+      physicsNote: 'A DOE on start current and ramp time finds a gentler start; the bottom gets more head start before the opening closes, at the price of a slower deposition rate.' },
     tradeoff: 'Slower plating for fewer voids in narrow features.',
     physicsNote: 'A gentle initial current density keeps the opening from pinching off before the bottom fills.' },
 
@@ -169,6 +235,10 @@ export const PRACTICES = [
     name: 'Nitrogen-purged storage', unlockedBy: 'fm_qtime',
     cost: { cash: 30 },
     effects: [ { op: 'defectMult', pattern: 'qtime_oxide', mult: 0.3 } ],
+    upgrade: { name: 'Nitrogen-purged storage, DOE-tuned flow', cost: { cash: 45 },
+      effects: [ { op: 'defectMult', pattern: 'qtime_oxide', mult: 0.2 } ],
+      tradeoff: 'More Q-time margin, but a higher purge flow uses more nitrogen per lot.',
+      physicsNote: 'A higher purge flow lowers residual oxygen and moisture around the wafers, which slows native oxide regrowth further; the gas used scales with flow.' },
     tradeoff: 'Small cost per lot to buy back Q-time margin.',
     physicsNote: 'Oxygen and moisture drive native oxide regrowth on a clean surface; an inert purge slows it.' },
 
@@ -179,6 +249,13 @@ export const PRACTICES = [
       { op: 'defectMult', pattern: 'implant_damage', mult: 0.4 },
       { op: 'defectMult', pattern: 'junction_spread', mult: 0.6 },
     ],
+    upgrade: { name: 'Spike anneal, DOE-centred', cost: { time: 12 },
+      effects: [
+        { op: 'defectMult', pattern: 'implant_damage', mult: 0.5 },
+        { op: 'defectMult', pattern: 'junction_spread', mult: 0.5 },
+      ],
+      tradeoff: 'Less diffusion and a shorter run, but less time at temperature repairs less of the implant damage.',
+      physicsNote: 'A spike anneal has no soak; a faster ramp up and down (or a slightly lower peak) cuts the thermal budget further, so dopants move less, but less time near peak temperature leaves more lattice damage unrepaired.' },
     tradeoff: 'Repairs damage with less diffusion, but single-wafer processing is slow for a 25-wafer lot.',
     physicsNote: 'High temperature for seconds activates dopants and repairs the lattice before they move far (thermal budget).' },
 ];

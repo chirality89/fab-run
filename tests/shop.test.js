@@ -36,7 +36,7 @@ function walkToCorridor(state, corridorIndex) {
 // before etch that sells the optical endpoint detector.
 function seedSellingEndpointBeforeEtch() {
   for (let seed = SEED; seed < SEED + 1000; seed++) {
-    const start = createRun({ seed, scatterStrength: 0 });
+    const start = createRun({ seed, scatterStrength: 0, toolDrift: false });
     for (let corridor = 0; corridor < ETCH; corridor++) {
       if (!start.map[corridor].offers.includes('procurement')) continue;
       const atShop = walkCorridor(walkToCorridor(start, corridor), 'procurement');
@@ -56,7 +56,7 @@ function seedWithShopInFirstCorridor() {
 
 function openFirstShop(changes = {}) {
   const seed = seedWithShopInFirstCorridor();
-  const start = createRun({ seed, scatterStrength: 0, ...changes });
+  const start = createRun({ seed, scatterStrength: 0, toolDrift: false, ...changes });
   return { seed, atShop: walkCorridor(idleRoomToCorridor(start), 'procurement') };
 }
 
@@ -86,7 +86,7 @@ test('same seed, same stock; the stock does not touch the lot\'s random numbers'
   const first = openFirstShop().atShop;
   const second = openFirstShop().atShop;
   assert.deepEqual(first.shop.stock, second.shop.stock);
-  const beforeShop = idleRoomToCorridor(createRun({ seed: first.seed, scatterStrength: 0 }));
+  const beforeShop = idleRoomToCorridor(createRun({ seed: first.seed, scatterStrength: 0, toolDrift: false }));
   assert.equal(first.rngState, beforeShop.rngState, `seed ${first.seed}`);
   assert.deepEqual(shopStock(beforeShop, 0), first.shop.stock, 'shopStock gives the stock walkCorridor opened');
 });
@@ -146,7 +146,7 @@ test('the shop closes when the lot enters the next room', () => {
 //   endpoint etch becomes legal.
 test('hand check: the endpoint detector bought before etch', () => {
   const { seed, corridor } = seedSellingEndpointBeforeEtch();
-  const start = createRun({ seed, scatterStrength: 0 });
+  const start = createRun({ seed, scatterStrength: 0, toolDrift: false });
 
   let withTool = buyItem(walkCorridor(walkToCorridor(start, corridor), 'procurement'), 'oesEndpoint');
   assert.equal(withTool.cash, 900, `seed ${seed}`);
