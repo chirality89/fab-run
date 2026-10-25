@@ -8,8 +8,9 @@
 //   random  plays random legal cards until none fits, then resolves the
 //           room; in each corridor picks a random side stop or straight on;
 //           at a procurement stop, buys each item it can afford on a coin flip;
-//           at a PM/DOE stop, PMs the tool whose SPC chart trips the most
-//           rules (a random one ahead if none trip)
+//           at a PM/DOE stop, on a coin flip either PMs the tool whose SPC
+//           chart trips the most rules (a random one ahead if none trip),
+//           or runs a DOE on a random offered practice it can afford
 //
 // The random policy has its OWN seeded generator, started from the run's
 // seed mixed with a fixed constant (BOT_SEED_MIX). So the bot's choices never
@@ -21,7 +22,8 @@ import { pathToFileURL } from 'node:url';
 import { normalizeSeed, pick } from '../src/engine/rng.js';
 import { lotYield } from '../src/engine/lot.js';
 import {
-  createRun, enterStep, legalCards, playCard, resolveStep, walkCorridor, buyItem, pmTool, starterDeck, fullPool,
+  createRun, enterStep, legalCards, playCard, resolveStep, walkCorridor, buyItem, pmTool, doeCard, whyCannotDoe,
+  starterDeck, fullPool,
 } from '../src/engine/run.js';
 import { spcRules, pointsSinceLastPm } from '../src/engine/tools.js';
 import { whyCannotBuy } from '../src/engine/shop.js';
@@ -83,13 +85,26 @@ function shop(state, policy, botRng) {
   return { state: current, botRng: rng, bought, lowestCash };
 }
 
-// At an open PM stop, PMs the tool ahead whose recent SPC points trip the
-// most rules; if none trips any, a random one. Returns the state, the bot's
-// generator number and the room PM'd (or null).
-function doPm(state, policy, botRng) {
-  if (policy === 'idle' || state.pm === null || state.pm.choices.length === 0) {
-    return { state, botRng, pmRoom: null };
+// At an open PM/DOE stop, a coin flip picks a DOE or a PM. The DOE takes a
+// random offered practice it can afford. The PM takes the tool ahead whose
+// recent SPC points trip the most rules (if none trips any, a random one).
+// Returns the state, the bot's generator number, the room PM'd and the card
+// upgraded (each null if not done).
+function doPmOrDoe(state, policy, botRng) {
+  const nothing = { state, botRng, pmRoom: null, doeCardId: null };
+  if (policy === 'idle' || state.pm === null) return nothing;
+  const coin = pick(botRng, ['pm', 'doe']);
+  const affordable = state.pm.doeOffers.filter(cardId => whyCannotDoe(state, cardId) === null);
+  if (coin.value === 'doe' && affordable.length > 0) {
+    const choice = pick(coin.rngState, affordable);
+    return { state: doeCard(state, choice.value), botRng: choice.rngState, pmRoom: null, doeCardId: choice.value };
   }
+  return { ...doPm(state, coin.rngState), doeCardId: null };
+}
+
+// The PM half of doPmOrDoe.
+function doPm(state, botRng) {
+  if (state.pm.choices.length === 0) return { state, botRng, pmRoom: null };
   // The same points the screen's rules look at: the latest, since the last PM.
   const alarms = roomId => spcRules(pointsSinceLastPm(state.tools[roomId])).length;
   const most = Math.max(...state.pm.choices.map(alarms));
@@ -111,6 +126,7 @@ export function playRun(seed, policy = 'idle', options = {}) {
   const sideStops = [];
   const itemsBought = [];
   const toolsPmd = [];
+  const cardsUpgraded = [];
   let lowestCashAfterBuying = state.cash;   // starting cash, until something is bought
   while (state.status === 'running') {
     state = enterStep(state);
@@ -128,16 +144,17 @@ export function playRun(seed, policy = 'idle', options = {}) {
       itemsBought.push(...shopping.bought);
       lowestCashAfterBuying = Math.min(lowestCashAfterBuying, shopping.lowestCash);
       state = shopping.state;
-      const pm = doPm(state, policy, botRng);
+      const pm = doPmOrDoe(state, policy, botRng);
       botRng = pm.botRng;
       if (pm.pmRoom !== null) toolsPmd.push(pm.pmRoom);
+      if (pm.doeCardId !== null) cardsUpgraded.push(pm.doeCardId);
       state = pm.state;
     }
   }
 
   const summary = {
     seed, policy, status: state.status, yield: lotYield(state.lot), cash: state.cash,
-    minutesUsed: state.minutesUsed, cycleTime: state.cycleTime, cardsPlayed, sideStops, itemsBought, toolsPmd, lowestCashAfterBuying,
+    minutesUsed: state.minutesUsed, cycleTime: state.cycleTime, cardsPlayed, sideStops, itemsBought, toolsPmd, cardsUpgraded, lowestCashAfterBuying,
   };
   return { state, summary };
 }
@@ -161,6 +178,7 @@ function printSummary(summary) {
   console.log(`Side stops:    ${summary.sideStops.length} (${summary.sideStops.join(', ') || 'none'})`);
   console.log(`Items bought:  ${summary.itemsBought.length} (${summary.itemsBought.join(', ') || 'none'})`);
   console.log(`Tools PM'd:    ${summary.toolsPmd.length} (${summary.toolsPmd.join(', ') || 'none'})`);
+  console.log(`DOEs run:      ${summary.cardsUpgraded.length} (${summary.cardsUpgraded.join(', ') || 'none'})`);
 }
 
 // Only runs when started from the command line, not when a test imports it.

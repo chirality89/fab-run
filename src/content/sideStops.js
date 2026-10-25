@@ -13,7 +13,7 @@
 
 export const SIDE_STOPS = {
   metrology:   { name: 'Metrology',   short: 'MET', what: 'Measure: reveals hidden values', placeholder: true },
-  pm:          { name: 'PM / DOE',    short: 'PM',  what: 'PM one tool on the route ahead (DOE comes later)', placeholder: false },
+  pm:          { name: 'PM / DOE',    short: 'PM',  what: 'PM one tool, or DOE one practice', placeholder: false },
   procurement: { name: 'Procurement', short: 'BUY', what: 'Spend cash on equipment and materials', placeholder: false },
   event:       { name: 'Event',       short: 'EVT', what: 'A choice with a tradeoff', placeholder: true },
 };

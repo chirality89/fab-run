@@ -249,19 +249,55 @@ function drawPmChoice(choice, actions) {
   return box;
 }
 
-// The PM screen. `actions` holds onPm(roomId) and onContinue().
-// `justPmd` is the room just PM'd, if any: focus then moves to Continue.
-export function renderPm(container, view, actions, justPmd = null) {
+// One practice a DOE could upgrade: now → after, and a DOE button.
+function drawDoeOffer(offer, actions) {
+  const box = el('li', offer.done ? 'card shop-item shop-item-bought' : 'card shop-item');
+  const top = el('div', 'card-top');
+  top.append(el('span', 'card-name', offer.name), el('span', 'card-cost', offer.roomName));
+  box.append(top);
+  box.append(el('span', 'shop-next', `Now: ${offer.nowText}`));
+  box.append(el('span', 'shop-next doe-after', `After the DOE (${offer.afterName}): ${offer.afterText}`));
+  box.append(el('span', 'card-summary', offer.afterTradeoff));
+  if (offer.done) {
+    box.append(el('span', 'shop-bought', 'DOE done: this card plays its tuned recipe from now on'));
+  } else if (offer.canDoe) {
+    const button = actionButton('Run this DOE', 'doe-button', () => actions.onDoe(offer.cardId));
+    button.setAttribute('aria-label', `Run a DOE on ${offer.name}`);
+    box.append(button);
+  } else if (!offer.choiceUsed) {
+    box.append(el('span', 'card-reason', `Can't run: ${offer.reason}`));
+  }
+  return box;
+}
+
+// The PM/DOE screen: a DOE section (short), then the PM section (one card
+// per tool), then Continue. `actions` holds onPm(roomId), onDoe(cardId) and
+// onContinue(). `justChose` is true right after a PM or DOE: focus then
+// moves to Continue instead of the title.
+export function renderPm(container, view, actions, justChose = false) {
   const header = el('header', 'room-band map-band');
   header.append(el('h1', 'room-name', view.name), el('p', 'room-step', view.what));
-  header.append(el('p', 'room-facts', `Seed ${view.seed}`));
-  const box = panel('Tools on the route ahead', 'pm-panel');
-  box.append(el('p', 'outcome-text', view.text));
+  const facts = el('p', 'room-facts');
+  facts.append(el('span', 'seed', `Seed ${view.seed}`), el('span', 'cash pm-cash', `Cash ${view.cash}`));
+  header.append(facts);
+
+  const doe = panel('DOE a practice', 'doe-panel');
+  doe.append(el('p', 'outcome-text', view.doeText));
+  const doeList = el('ul', 'shop-list');
+  doeList.setAttribute('role', 'list');
+  for (const offer of view.doeOffers) doeList.append(drawDoeOffer(offer, actions));
+  if (view.doeOffers.length === 0) doe.append(el('p', 'slot-empty', 'No practice in your deck can be tuned here.'));
+  doe.append(doeList);
+
+  const pm = panel('Or PM a tool on the route ahead', 'pm-panel');
+  pm.append(el('p', 'outcome-text', view.text));
   const list = el('ul', 'shop-list');
   list.setAttribute('role', 'list');
   for (const choice of view.choices) list.append(drawPmChoice(choice, actions));
-  box.append(list, actionButton(view.goText, 'go-button', actions.onContinue));
-  container.replaceChildren(header, box);
-  if (justPmd === null) showFromTop(container);
-  else container.querySelector('.go-button').focus({ preventScroll: true });
+  pm.append(list);
+
+  const go = actionButton(view.goText, 'go-button', actions.onContinue);
+  container.replaceChildren(header, doe, pm, go);
+  if (justChose) go.focus({ preventScroll: true });
+  else showFromTop(container);
 }

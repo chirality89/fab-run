@@ -7,12 +7,12 @@
 //
 // The whole run lives in one variable, `state`. The screen never changes it
 // directly: every button calls an engine function (enterStep, playCard,
-// resolveStep, walkCorridor, buyItem, pmTool), stores the new state that comes back, and
+// resolveStep, walkCorridor, buyItem, pmTool, doeCard), stores the new state that comes back, and
 // redraws.
 
 import { normalizeSeed } from '../engine/rng.js';
 import {
-  createRun, enterStep, resolveStep, playCard, walkCorridor, buyItem, pmTool, starterDeck, defaultLoadout,
+  createRun, enterStep, resolveStep, playCard, walkCorridor, buyItem, pmTool, doeCard, starterDeck, defaultLoadout,
 } from '../engine/run.js';
 import { roomView, resultView, mapView, stopView, shopView, parseSeed } from './view.js';
 import { renderRoom, renderResult, renderError, focusNextAction, showFromTop } from './render.js';
@@ -84,7 +84,7 @@ function onTakeStop(stopKind) {
     const before = state;
     state = walkCorridor(state, stopKind);
     if (state.shop !== null) showShop(null);
-    else if (state.pm !== null) showPm(null);
+    else if (state.pm !== null) showPm(JUST_OPENED);
     else renderStop(app, stopView(before, state, stopKind), { onContinue: () => safely(enterRoom) });
   });
 }
@@ -92,7 +92,14 @@ function onTakeStop(stopKind) {
 function onPm(roomId) {
   safely(() => {
     state = pmTool(state, roomId);
-    showPm(roomId);
+    showPm(AFTER_CHOICE);
+  });
+}
+
+function onDoe(cardId) {
+  safely(() => {
+    state = doeCard(state, cardId);
+    showPm(AFTER_CHOICE);
   });
 }
 
@@ -139,9 +146,12 @@ function showShop(justBought) {
   renderShop(app, shopView(state), { onBuy, onContinue: () => safely(enterRoom) }, justBought);
 }
 
-// The PM screen. `justPmd` is the room PM'd a moment ago, or null.
-function showPm(justPmd) {
-  renderPm(app, pmView(state), { onPm, onContinue: () => safely(enterRoom) }, justPmd);
+// The PM/DOE screen, either just opened or right after a PM or a DOE (then
+// keyboard focus goes to Continue).
+const JUST_OPENED = false;
+const AFTER_CHOICE = true;
+function showPm(justChose) {
+  renderPm(app, pmView(state), { onPm, onDoe, onContinue: () => safely(enterRoom) }, justChose);
 }
 
 function enterRoom() {

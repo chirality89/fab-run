@@ -206,3 +206,15 @@ I built "PM restores to 75–95" literally as "set to 75–95" and never tested 
 ### Rule to Prevent
 ✅ For any "restore" or "repair" action, test it on something already in good shape. Repairing must never make a thing worse unless David asked for that as a side effect.
 ✅ When a rule moves a value into a range, write down what happens to values already above and below the range
+
+## The double-click window caught a new screen test again
+
+### What Happened
+The phone DOE screen test failed every time on "Continue to the corridor". Its "Run litho" tap landed where "Continue to step 3" had been tapped a moment before, so the double-tap guard ignored it. My own run of the suite had passed once by timing luck.
+
+### Root Cause
+The rule from the earlier lessons (wait out the double-click window) lives in each spec file, not in one shared helper, so a new spec didn't have it.
+
+### Rule to Prevent
+✅ Every screen test that taps twice across a screen change waits `DOUBLE_CLICK_WINDOW_MS` between the taps. When a new spec chains screens, add the wait at each screen change.
+✅ Run a new screen test with `--repeat-each=5` on the phone before calling it done

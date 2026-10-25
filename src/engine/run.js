@@ -10,7 +10,7 @@
 //   resolveStep  → the room's risks bite; scrap, move on, or ship
 //   walkCorridor → between two rooms: take one side stop, or go straight on
 //   buyItem      → zero or more times, while a procurement stop's shop is open
-//   pmTool       → once at most, while a PM/DOE stop is open
+//   pmTool or doeCard → one of the two at most, while a PM/DOE stop is open
 //
 // Order inside enterStep (lotTypes.js): add the step's risks and the room
 // tool's drift risk (tools.js), set the room's time budget, apply the
@@ -26,7 +26,7 @@ import { TOOL_MONITORS } from '../content/toolMonitors.js';
 import { LOT_TYPES } from '../content/lotTypes.js';
 import {
   STARTING_CASH, HAND_SIZE, SCRAP_LINE, CUSTOMER_SPEC, SCATTER_STRENGTH, TIME_BUDGETS,
-  SIDE_STOP_MINUTES, PM_TOOLS_PER_STOP, QTIME_RISK_PER_MINUTE,
+  SIDE_STOP_MINUTES, PM_DOE_CHOICES_PER_STOP, DOE_CASH_COST, QTIME_RISK_PER_MINUTE,
 } from '../content/balance.js';
 import { normalizeSeed, shuffle } from './rng.js';
 import { createLot, addRisk, realizeRisks, rollScatter, lotYield } from './lot.js';
@@ -34,6 +34,7 @@ import { conditionMet, applyEffects } from './resolve.js';
 import { buildMap } from './map.js';
 import { shopStock, whyCannotBuy, findShopItem } from './shop.js';
 import { startingTools, driftRisk, useTool, pmChoices, restoreTool } from './tools.js';
+import { cardInRun, doeOffers } from './doe.js';
 
 // Looks up a content item by id, or throws naming it.
 function findItem(list, id, kind) {
@@ -112,7 +113,8 @@ export function createRun({
     map: buildMap(seed, lotType.route),   // the corridors (map.js), known from the start
     corridor: null,         // index of the corridor the lot stands in, or null
     shop: null,             // { corridor, stock, bought } while a procurement stop is open
-    pm: null,               // { corridor, choices, done } while a PM/DOE stop is open
+    pm: null,               // { corridor, choices, done, doeOffers, doeDone } while a PM/DOE stop is open
+    upgraded: [],           // practices a DOE has upgraded for this run (doe.js)
     tools,                  // per room: { health, spc: [points in sigma] } (tools.js)
     toolDrift,
     toolRngState,           // the tools' own generator, for SPC noise
@@ -189,7 +191,7 @@ export function enterStep(state) {
   next = { ...next, room: { ...next.room, budget }, cycleTime: next.cycleTime + budget };
 
   // 4. Deal a hand from the deck's cards for this room (seeded shuffle).
-  const roomCards = next.deck.filter(id => findCard(id).room === step.room);
+  const roomCards = next.deck.filter(id => cardInRun(next, id).room === step.room);
   const dealt = shuffle(next.rngState, roomCards);
   next = { ...next, rngState: dealt.rngState, hand: dealt.value.slice(0, HAND_SIZE) };
   return addLog(next, `Step ${state.stepIndex + 1} ${step.label}: ${budget} min, hand ${next.hand.join(', ') || '(none)'}`);
@@ -199,7 +201,7 @@ export function enterStep(state) {
 // screen can say why a card is greyed out (src/ui/view.js).
 export function whyIllegal(state, cardId) {
   if (!state.hand.includes(cardId)) return 'not in hand';
-  const card = findCard(cardId);
+  const card = cardInRun(state, cardId);   // the DOE version, if upgraded
   if (card.room !== state.room.id) return `belongs in ${card.room}, not ${state.room.id}`;
   if (!conditionMet(state, card.when)) return 'its condition is not met';
   if (GATED_CARDS.has(cardId) && !state.enabled.includes(cardId)) return 'not enabled yet';
@@ -222,7 +224,7 @@ export function playCard(state, cardId) {
   const reason = whyIllegal(state, cardId);
   if (reason) throw new Error(`Cannot play ${cardId}: ${reason}`);
 
-  const card = findCard(cardId);
+  const card = cardInRun(state, cardId);
   const timeLeft = state.room.timeLeft - (card.cost.time ?? 0);
   let next = { ...state, room: { ...state.room, timeLeft }, cash: state.cash - (card.cost.cash ?? 0) };
   next = applyEffects(next, card);
@@ -288,7 +290,11 @@ export function walkCorridor(state, stopKind) {
     ? { corridor: state.corridor, stock: shopStock(state, state.corridor), bought: [] }
     : null;
   const pm = stopKind === 'pm'
-    ? { corridor: state.corridor, choices: pmChoices(state, state.corridor), done: [] }
+    ? {
+      corridor: state.corridor,
+      choices: pmChoices(state, state.corridor), done: [],
+      doeOffers: doeOffers(state, state.corridor), doeDone: [],
+    }
     : null;
   const next = { ...state, lot, map, shop, pm, corridor: null, cycleTime: state.cycleTime + minutes };
   if (stopKind === null) return addLog(next, '  corridor: straight on');
@@ -296,18 +302,23 @@ export function walkCorridor(state, stopKind) {
   return addLog(next, `  corridor: ${stopKind} (${minutes} min${stockText})`);
 }
 
+// Has this PM/DOE stop's one choice (a PM or a DOE) been used?
+function stopUsed(pm) {
+  return pm.done.length + pm.doeDone.length >= PM_DOE_CHOICES_PER_STOP;
+}
+
 // Why this room's tool can't be PM'd right now, or null if it can.
 // Exported so the screen can say why a PM button is missing.
 export function whyCannotPm(state, roomId) {
   if (state.pm === null) return 'no PM stop open';
-  if (state.pm.done.length >= PM_TOOLS_PER_STOP) return 'already used this stop\'s PM';
+  if (stopUsed(state.pm)) return 'already used this stop\'s one choice';
   if (!state.pm.choices.includes(roomId)) return 'not a tool on the route ahead';
   return null;
 }
 
 // PMs one tool at an open PM/DOE stop (M3 item 2c). Its health goes back
 // to a seeded 75–95 (tools.js restoreTool), so drift and wear start again
-// from there. One PM per stop (PM_TOOLS_PER_STOP).
+// from there. One choice per stop: a PM or a DOE (PM_DOE_CHOICES_PER_STOP).
 export function pmTool(state, roomId) {
   checkRunning(state, 'pmTool');
   const reason = whyCannotPm(state, roomId);
@@ -316,6 +327,32 @@ export function pmTool(state, roomId) {
   let next = restoreTool(state, roomId);
   next = { ...next, pm: { ...next.pm, done: [...next.pm.done, roomId] } };
   return addLog(next, `  PM ${roomId}: health ${before} → ${next.tools[roomId].health}`);
+}
+
+// Why this practice can't be upgraded by a DOE right now, or null if it can.
+// Exported so the screen can say why.
+export function whyCannotDoe(state, cardId) {
+  if (state.pm === null) return 'no PM/DOE stop open';
+  if (stopUsed(state.pm)) return 'already used this stop\'s one choice';
+  if (!state.pm.doeOffers.includes(cardId)) return 'not offered at this stop';
+  if (DOE_CASH_COST > state.cash) return 'not enough cash';
+  return null;
+}
+
+// Runs a DOE on one practice at an open PM/DOE stop (M3 item 2d): it plays
+// as its DOE version (content.js `upgrade`) for the rest of the run, and
+// the DOE costs DOE_CASH_COST.
+export function doeCard(state, cardId) {
+  checkRunning(state, 'doeCard');
+  const reason = whyCannotDoe(state, cardId);
+  if (reason) throw new Error(`Cannot DOE ${cardId}: ${reason}`);
+  const next = {
+    ...state,
+    cash: state.cash - DOE_CASH_COST,
+    upgraded: [...state.upgraded, cardId],
+    pm: { ...state.pm, doeDone: [...state.pm.doeDone, cardId] },
+  };
+  return addLog(next, `  DOE ${cardId} (${DOE_CASH_COST})`);
 }
 
 // Buys one item from the open shop and pays its cash price. Equipment joins

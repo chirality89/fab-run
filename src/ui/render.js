@@ -123,7 +123,9 @@ function drawCard(card, actions) {
   if (card.playable) onSingleClick(node, () => actions.onPlay(card.id));
   const top = el('div', 'card-top');
   top.append(el('span', 'card-name', card.name), el('span', 'card-cost', costText(card)));
-  node.append(top, el('span', 'card-summary', card.summary));
+  node.append(top);
+  if (card.doe) node.append(el('span', 'chip chip-doe', 'DOE'));   // upgraded at a DOE stop
+  node.append(el('span', 'card-summary', card.summary));
   if (!card.playable) node.append(el('span', 'card-reason', `Can't play: ${card.reason}`));
   return node;
 }
