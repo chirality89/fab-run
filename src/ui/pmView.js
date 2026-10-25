@@ -4,7 +4,7 @@
 import { ROOMS } from '../content/content.js';
 import { LOT_TYPES } from '../content/lotTypes.js';
 import { SIDE_STOPS } from '../content/sideStops.js';
-import { SIDE_STOP_MINUTES } from '../content/balance.js';
+import { SIDE_STOP_MINUTES, PM_RESTORE_MIN, PM_RESTORE_MAX } from '../content/balance.js';
 import { TOOL_MONITORS } from '../content/toolMonitors.js';
 import { whyCannotPm } from '../engine/run.js';
 import { spcView } from './spcView.js';
@@ -31,7 +31,7 @@ export function pmView(state) {
     what: stop.what,
     text: choices.length === 0
       ? `${stop.name} cost ${SIDE_STOP_MINUTES.pm} min of cycle time. No tool on the route ahead can be PM'd here.`
-      : `${stop.name} cost ${SIDE_STOP_MINUTES.pm} min of cycle time. PM one tool: it comes back to between 75 and 95 percent health, never perfect. Read the SPC charts to choose.`,
+      : `${stop.name} cost ${SIDE_STOP_MINUTES.pm} min of cycle time. PM one tool: it comes back to between ${PM_RESTORE_MIN} and ${PM_RESTORE_MAX} percent health, never perfect (a tool already healthier stays as it is). Read the SPC charts to choose.`,
     choices,
     goText: `Continue to step ${nextIndex + 1}: ${route[nextIndex].label}`,
   };

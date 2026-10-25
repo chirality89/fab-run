@@ -59,8 +59,10 @@ test('a PM restores a tool to 75–95, marks the SPC history, and leaves the lot
     if (stop === -1) continue;
     let state = resolveStep(enterStep(start));
     while (state.corridor < stop) state = resolveStep(enterStep(walkCorridor(state, null)));
+    const before = state.tools.cmp.health;
     const health = pmTool(walkCorridor(state, 'pm'), 'cmp').tools.cmp.health;
-    assert.ok(health >= 75 && health <= 95, `health ${health} (seed ${seed})`);
+    // 75–95, or unchanged if the tool was already healthier than that.
+    assert.ok(health >= Math.max(75, before) && health <= Math.max(95, before), `health ${before} → ${health} (seed ${seed})`);
   }
 });
 
@@ -69,7 +71,7 @@ test('pmTool refuses a second PM, a tool not ahead, metrology, and no stop open'
   const done = pmTool(atStop, 'cmp');
   assert.match(whyCannotPm(done, 'etch'), /already used/);
   assert.throws(() => pmTool(done, 'etch'), /already used/);
-  assert.throws(() => pmTool(atStop, 'diff'), /not a tool on the route ahead/);
+  assert.throws(() => pmTool(atStop, 'diff'), /not a tool on the route ahead/, 'not on this route at all');
   assert.throws(() => pmTool(atStop, 'metro'), /not a tool on the route ahead/);
   const straightOn = walkCorridor(resolveStep(enterStep(handCheckRun())), null);
   assert.equal(straightOn.pm, null);
@@ -92,4 +94,26 @@ test('hand check: a PM on a CMP tool at 60 brings the loss from × 0.977312 to �
   close(lotYield(noPm.lot) / lotYield(healthy.lot), 0.977312, `no PM (seed ${SEED})`);
   close(lotYield(withPm.lot) / lotYield(healthy.lot), 0.999375, `PM to health 84 (seed ${SEED})`);
   assert.equal(withPm.cycleTime, noPm.cycleTime + 40, `the stop costs 40 min (seed ${SEED})`);
+});
+
+test('a tool behind the lot cannot be PM\'d', () => {
+  // The first seed from SEED up with PM offered after step 7 (plating):
+  // deposition is behind the lot there and never visited again.
+  for (let seed = SEED; seed < SEED + 200; seed++) {
+    const start = createRun({ seed });
+    if (!start.map[6].offers.includes('pm')) continue;
+    let state = resolveStep(enterStep(start));
+    while (state.corridor < 6) state = resolveStep(enterStep(walkCorridor(state, null)));
+    const atStop = walkCorridor(state, 'pm');
+    assert.deepEqual(atStop.pm.choices, ['cmp'], `seed ${seed}`);
+    assert.throws(() => pmTool(atStop, 'dep'), /not a tool on the route ahead/, `seed ${seed}`);
+    return;
+  }
+  assert.fail('no seed offers PM after step 7');
+});
+
+test('a PM never lowers a tool already healthier than its roll', () => {
+  // Drift off: every tool is at 100. Seed 123456's PM roll is 84 (above).
+  const atStop = openPmStop(createRun({ seed: SEED, scatterStrength: 0, toolDrift: false }));
+  assert.equal(pmTool(atStop, 'cmp').tools.cmp.health, 100, `seed ${SEED}`);
 });

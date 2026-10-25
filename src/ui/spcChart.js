@@ -49,12 +49,13 @@ function xOfMark(index, count) {
 function drawPmMark(index, count) {
   const x = xOfMark(index, count);
   const group = svgEl('g', { class: 'spc-pm' });
-  group.append(
-    svgEl('line', { x1: x, x2: x, y1: PAD + 8, y2: HEIGHT - 2, class: 'spc-pm-line' }),
-    // At an edge, the label hangs inwards so it is not cut off.
-    svgEl('text', { x, y: PAD + 4, 'text-anchor': index >= count ? 'end' : index <= 0 ? 'start' : 'middle', class: 'spc-pm-label' }),
-  );
-  group.lastChild.textContent = 'PM';
+  // At an edge, the label hangs inwards so it is not cut off.
+  let anchor = 'middle';
+  if (index >= count) anchor = 'end';
+  if (index <= 0) anchor = 'start';
+  const label = svgEl('text', { x, y: PAD + 4, 'text-anchor': anchor, class: 'spc-pm-label' });
+  label.textContent = 'PM';
+  group.append(svgEl('line', { x1: x, x2: x, y1: PAD + 8, y2: HEIGHT - 2, class: 'spc-pm-line' }), label);
   return group;
 }
 

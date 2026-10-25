@@ -23,8 +23,7 @@ import { lotYield } from '../src/engine/lot.js';
 import {
   createRun, enterStep, legalCards, playCard, resolveStep, walkCorridor, buyItem, pmTool, starterDeck, fullPool,
 } from '../src/engine/run.js';
-import { spcRules } from '../src/engine/tools.js';
-import { SPC_HISTORY } from '../src/content/balance.js';
+import { spcRules, pointsSinceLastPm } from '../src/engine/tools.js';
 import { whyCannotBuy } from '../src/engine/shop.js';
 
 const BOT_SEED_MIX = 0x9E3779B9;   // any fixed number works; this one is a common "mixing" constant
@@ -91,7 +90,8 @@ function doPm(state, policy, botRng) {
   if (policy === 'idle' || state.pm === null || state.pm.choices.length === 0) {
     return { state, botRng, pmRoom: null };
   }
-  const alarms = roomId => spcRules(state.tools[roomId].spc.slice(-SPC_HISTORY)).length;
+  // The same points the screen's rules look at: the latest, since the last PM.
+  const alarms = roomId => spcRules(pointsSinceLastPm(state.tools[roomId])).length;
   const most = Math.max(...state.pm.choices.map(alarms));
   const candidates = most > 0 ? state.pm.choices.filter(roomId => alarms(roomId) === most) : state.pm.choices;
   const choice = pick(botRng, candidates);

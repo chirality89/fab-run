@@ -150,15 +150,27 @@ export function pmChoices(state, corridorIndex) {
 
 // A PM on one room's tool: its health goes to a seeded value from
 // PM_RESTORE_MIN to PM_RESTORE_MAX, and the SPC history gets a PM mark
-// before its next point.
+// before its next point. A PM restores, so it never LOWERS a tool that was
+// already healthier than the roll: it keeps the higher of the two.
+// (A PM that makes things worse is a later side effect: NEEDS NEW LOGIC.)
 export function restoreTool(state, roomId) {
   const roll = randomInt(state.toolRngState, PM_RESTORE_MIN, PM_RESTORE_MAX);
   const tool = state.tools[roomId];
+  const health = Math.max(tool.health, roll.value);
   return {
     ...state,
     toolRngState: roll.rngState,
-    tools: { ...state.tools, [roomId]: { ...tool, health: roll.value, pmAt: [...tool.pmAt, tool.spc.length] } },
+    tools: { ...state.tools, [roomId]: { ...tool, health, pmAt: [...tool.pmAt, tool.spc.length] } },
   };
+}
+
+// The SPC points the rules look at: the latest SPC_HISTORY points, and of
+// those only the ones measured since the last PM. After a PM the tool is a
+// new process, so an engineer restarts the chart.
+export function pointsSinceLastPm(tool) {
+  const firstShown = Math.max(0, tool.spc.length - SPC_HISTORY);
+  const lastPm = tool.pmAt.length > 0 ? tool.pmAt[tool.pmAt.length - 1] : 0;
+  return tool.spc.slice(Math.max(firstShown, lastPm));
 }
 
 // --- SPC rules -------------------------------------------------------------
