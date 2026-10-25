@@ -128,10 +128,10 @@ export const PRACTICES = [
     cost: { time: 20, cash: 150 },
     effects: [ { op: 'reveal', what: 'allSites' } ],
     upgrade: {
-      name: 'Measure all 25 sites, tuned sampling',
+      name: 'Measure all 25 sites, tuned recipe',
       cost: { time: 12, cash: 150 },
       tradeoff: 'Full information, faster, but still paid for.',
-      physicsNote: 'A tuned sampling plan measures fewer points per wafer while still covering every wafer in the lot.',
+      physicsNote: 'An optimized stage path and a tuned auto-focus and alignment recipe measure the same sites in less time.',
     },
     tradeoff: 'Full information, but slow and paid for.',
     physicsNote: 'The default sample is 3 of 25 wafers (FabSim rule). Measuring everything removes sampling risk at the cost of tool time.' },
@@ -180,7 +180,7 @@ export const PRACTICES = [
         { op: 'defectMult', pattern: 'depth_variation', mult: 0.45 },
       ],
       tradeoff: 'Shorter deposition, but a thinner stop layer gives less margin if the etch is not very selective.',
-      physicsNote: 'Film thickness scales with deposition time. A thinner nitride is consumed more by finite selectivity, so it stops depth variation slightly less well.' },
+      physicsNote: 'Film thickness scales with deposition time. Etch selectivity is finite, so the etch eats the same amount of nitride either way; a thinner film just has less left before it breaks through, so it holds depth slightly less well.' },
     tradeoff: 'One more film and one more step, in exchange for etch depth set by the film and not by time.',
     physicsNote: 'An etch that is highly selective to nitride stops when it reaches it, so depth no longer depends on etch rate uniformity.' },
 
@@ -246,8 +246,8 @@ export const PRACTICES = [
         { op: 'defectMult', pattern: 'implant_damage', mult: 0.5 },
         { op: 'defectMult', pattern: 'junction_spread', mult: 0.5 },
       ],
-      tradeoff: 'Less diffusion and a shorter run, but the briefer soak repairs less of the implant damage.',
-      physicsNote: 'A faster ramp and shorter soak cut the thermal budget, so dopants move less; less time at temperature also leaves more lattice damage unrepaired.' },
+      tradeoff: 'Less diffusion and a shorter run, but less time at temperature repairs less of the implant damage.',
+      physicsNote: 'A spike anneal has no soak; a faster ramp up and down (or a slightly lower peak) cuts the thermal budget further, so dopants move less, but less time near peak temperature leaves more lattice damage unrepaired.' },
     tradeoff: 'Repairs damage with less diffusion, but single-wafer processing is slow for a 25-wafer lot.',
     physicsNote: 'High temperature for seconds activates dopants and repairs the lattice before they move far (thermal budget).' },
 ];

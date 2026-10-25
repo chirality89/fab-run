@@ -1,14 +1,57 @@
 // pmView.js — display data for the PM screen (M3 item 2c). No DOM and no
 // game rules: it only reads the state and the content.
 
-import { ROOMS } from '../content/content.js';
+import { ROOMS, PRACTICES } from '../content/content.js';
 import { LOT_TYPES } from '../content/lotTypes.js';
 import { SIDE_STOPS } from '../content/sideStops.js';
-import { SIDE_STOP_MINUTES, PM_RESTORE_MIN, PM_RESTORE_MAX } from '../content/balance.js';
+import { SIDE_STOP_MINUTES, PM_RESTORE_MIN, PM_RESTORE_MAX, DOE_CASH_COST } from '../content/balance.js';
 import { TOOL_MONITORS } from '../content/toolMonitors.js';
-import { whyCannotPm } from '../engine/run.js';
+import { whyCannotPm, whyCannotDoe } from '../engine/run.js';
+import { cardInRun } from '../engine/doe.js';
 import { spcView } from './spcView.js';
 import { nextUseText } from './view.js';
+
+// A pattern name in words: 'underlayer_attack' → 'underlayer attack'.
+const words = pattern => pattern.replace(/_/g, ' ');
+
+// A card's cost and effects in one line, e.g.
+// "4 min · residue ×0.3 · underlayer attack ×1.5 · underlayer attack ×0.5 with etch_stop".
+function recipeText(card) {
+  const parts = [`${card.cost.time ?? 0} min`];
+  if (card.cost.cash) parts.push(`${card.cost.cash} cash`);
+  for (const effect of card.effects) {
+    if (effect.op !== 'defectMult') continue;   // flags and reveals read the same before and after
+    const condition = effect.when?.flag ? ` with ${words(effect.when.flag)}` : '';
+    parts.push(`${words(effect.pattern)} ×${effect.mult}${condition}`);
+  }
+  return parts.join(' · ');
+}
+
+// The engine's short reason, in words for the screen.
+const DOE_REASON_TEXT = {
+  'not enough cash': 'Not enough cash',
+  "already used this stop's one choice": 'This stop\'s one choice is used',
+};
+
+// One practice a DOE could upgrade: the card now and its DOE version.
+function doeOfferView(state, cardId) {
+  const now = cardInRun(state, cardId);
+  const card = PRACTICES.find(entry => entry.id === cardId);
+  const after = { ...card, ...card.upgrade };
+  const reason = whyCannotDoe(state, cardId);
+  return {
+    cardId,
+    name: card.name,   // the card as written, so it keeps its title after the DOE
+    roomName: ROOMS[card.room].name,
+    nowText: recipeText(now),
+    afterName: after.name,
+    afterText: recipeText(after),
+    afterTradeoff: after.tradeoff,
+    done: state.pm.doeDone.includes(cardId),
+    canDoe: reason === null,
+    reason: reason === null ? null : (DOE_REASON_TEXT[reason] ?? reason),
+  };
+}
 
 // Everything the PM screen shows, while a PM/DOE stop is open.
 export function pmView(state) {
@@ -27,12 +70,15 @@ export function pmView(state) {
   }));
   return {
     seed: state.seed,
+    cash: state.cash,
     name: stop.name,
     what: stop.what,
     text: choices.length === 0
       ? `${stop.name} cost ${SIDE_STOP_MINUTES.pm} min of cycle time. No tool on the route ahead can be PM'd here.`
       : `${stop.name} cost ${SIDE_STOP_MINUTES.pm} min of cycle time. PM one tool: it comes back to between ${PM_RESTORE_MIN} and ${PM_RESTORE_MAX} percent health, never perfect (a tool already healthier stays as it is). Read the SPC charts to choose.`,
     choices,
+    doeText: `A DOE tunes one practice's recipe for the rest of the run. It costs ${DOE_CASH_COST} cash. You can do a PM or a DOE here, not both.`,
+    doeOffers: state.pm.doeOffers.map(cardId => doeOfferView(state, cardId)),
     goText: `Continue to step ${nextIndex + 1}: ${route[nextIndex].label}`,
   };
 }

@@ -346,3 +346,9 @@
 @media (min-width: 900px) {
   .pm-panel .shop-list { grid-template-columns: repeat(3, 1fr); }   /* tool cards side by side */
 }
+
+/* --- DOE (M3 item 2d) ------------------------------------------------------- */
+.chip-doe { display: inline-block; margin-top: 4px; background: var(--ink); border-color: var(--ink); color: var(--surface); font-weight: 600; }
+.doe-after { font-weight: 600; }
+.doe-button { margin-top: 10px; }
+.go-button + .go-button, .pm-panel + .go-button { margin-bottom: 12px; }

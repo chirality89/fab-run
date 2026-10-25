@@ -67,6 +67,9 @@
   - random 2–3 offers (`DOE_OFFER_MIN`/`MAX`, drawn with the DOE's own generator).
 - There are 10 practices, not 11: content-drafter drafted the 7 non-starter upgrades. All are drafts inside their card entries; physics-reviewer is next.
 - Engine built: doe.js (`cardInRun`, `doeOffers`) and `doeCard`/`whyCannotDoe` in run.js, with one choice per stop shared with PM. The bot flips a coin between PM and DOE. Hand check × 1.012578 passes as computed (seed 123456, DOE after step 2, offers: timed over-etch, measure all).
+- physics-reviewer on the 10 DOE versions: 4 pass as they are. Fixed: the tuned measure-all now saves time through its stage path and auto-focus, not by sampling less (it still reveals all 25 sites); the spike anneal note no longer says "soak"; the etch-stop note wording.
+  - Questions for David: the base measure-all note says "3 of 25 wafers" on a card about 25 sites; should dummy fill fight dishing or erosion (slotting is the textbook dishing fix); and should the thinner etch stop weaken underlayer protection (it can't today without a new op: NEEDS NEW LOGIC)?
+- Screen built: a DOE section first on the PM/DOE screen (now → after, the tuned tradeoff, Run this DOE), then the PM section; cash in the header; a DOE tag on upgraded cards in the hand.
 
 **Result:**
 

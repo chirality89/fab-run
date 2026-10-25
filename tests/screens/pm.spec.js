@@ -86,3 +86,35 @@ test('the PM stop lists the tools ahead with their charts; PM one, then continue
   await expect(title(page)).toHaveText('Litho bay');
   expect(errors, `console errors (seed ${SEED})`).toEqual([]);
 });
+
+const doeOffer = (page, name) =>
+  page.locator('.doe-panel .shop-item').filter({ has: page.locator('.card-name', { hasText: name }) });
+
+test('the DOE section offers 2 practices; a DOE costs 100 and the card shows its tuned recipe', async ({ page }) => {
+  const errors = watchForErrors(page);
+  await walkToPm(page);
+  await expect(page.locator('.doe-panel .shop-item')).toHaveCount(2);
+  const overEtch = doeOffer(page, 'Timed over-etch (+20%)');
+  await expect(overEtch).toContainText('Now: 4 min · residue ×0.3 · underlayer attack ×1.5');
+  await expect(overEtch).toContainText('underlayer attack ×1.25');
+  await expect(page.locator('.pm-cash')).toHaveText('Cash 1500');
+  await expectNoSidewaysScroll(page);
+  await screenshot(page, '13-doe');
+
+  await press(page, overEtch.locator('.doe-button'));
+  await expect(page.locator('.pm-cash')).toHaveText('Cash 1400');
+  await expect(overEtch).toContainText('DOE done');
+  await expect(page.locator('.doe-button')).toHaveCount(0);
+  await expect(page.locator('.pm-button')).toHaveCount(0);   // one choice per stop
+
+  // On to etch (litho in between, doing nothing): the card is tuned.
+  await press(page, goButton(page));
+  await press(page, page.locator('.run-button'));
+  await press(page, continueButton(page));
+  await press(page, goButton(page));
+  await expect(title(page)).toHaveText('Etch');
+  const card = page.locator('.card-button', { hasText: 'Timed over-etch, DOE-centred' });
+  await expect(card.locator('.chip-doe')).toHaveText('DOE');
+  await screenshot(page, '14-doe-card');
+  expect(errors, `console errors (seed ${SEED})`).toEqual([]);
+});

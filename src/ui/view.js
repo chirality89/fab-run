@@ -15,6 +15,7 @@ import { normalizeSeed } from '../engine/rng.js';
 import { lotYield, realizeRisks } from '../engine/lot.js';
 import { whyIllegal } from '../engine/run.js';
 import { whyCannotBuy, findShopItem } from '../engine/shop.js';
+import { cardInRun } from '../engine/doe.js';
 import { spcView } from './spcView.js';
 
 // A fraction (0..1) as a percent with one decimal, e.g. 0.913931 → 91.4.
@@ -90,9 +91,10 @@ function friendlyReason(card, reason) {
 }
 
 // One card in the hand. The one-line summary is the card's own `tradeoff`
-// text from content.js, so the screen never invents physics.
+// text from content.js, so the screen never invents physics. An upgraded
+// card shows its DOE version (doe.js cardInRun).
 function cardView(state, cardId) {
-  const card = PRACTICES.find(item => item.id === cardId);
+  const card = cardInRun(state, cardId);
   const reason = whyIllegal(state, cardId);
   return {
     id: card.id,
@@ -100,6 +102,7 @@ function cardView(state, cardId) {
     minutes: card.cost.time ?? 0,
     cash: card.cost.cash ?? 0,
     summary: card.tradeoff,
+    doe: state.upgraded.includes(cardId),
     playable: reason === null,
     reason: reason === null ? null : friendlyReason(card, reason),
   };
