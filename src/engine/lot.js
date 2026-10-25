@@ -57,7 +57,7 @@ export function shapeOf(pattern) {
 
 // A fresh lot: every site fully good, no risks, no flags.
 export function createLot() {
-  return { sites: Array(SITE_COUNT).fill(1), risks: {}, flags: [] };
+  return { sites: Array(SITE_COUNT).fill(1), risks: {}, flags: [], lost: {} };
 }
 
 // Adds risk to a pattern. Negative amounts are refused (no healing).
@@ -99,20 +99,43 @@ export function siteWeights(pattern) {
 // Turns the named patterns' risks into yield loss, then clears those risks.
 // `scatter` (optional, from rollScatter) nudges each site's weight; without
 // it every nudge is 1, which is what the hand-computed tests use.
+//
+// It also adds up `lost`: per pattern, the yield fraction (0..1 of the lot)
+// that pattern took. At each site the drop (before minus after) is shared
+// between the patterns in proportion to what each put in that site's
+// exponent, so a pattern that hits only some sites is credited only there,
+// and the patterns' shares always add up to the whole drop. The ship
+// report's diagnosis (notebook.js) reads them.
 export function realizeRisks(lot, patterns, scatter = null) {
+  const lost = { ...(lot.lost ?? {}) };
   const sites = lot.sites.map((survival, site) => {
-    let exponent = 0;
-    for (const pattern of patterns) {
+    const parts = patterns.map(pattern => {
       const risk = lot.risks[pattern] ?? 0;
       const weight = siteWeights(pattern)[site];
       const nudge = scatter?.[pattern]?.[site] ?? 1;
-      exponent += risk * weight * nudge;
-    }
-    return survival * Math.exp(-exponent);   // exponent ≥ 0, so never goes up
+      return risk * weight * nudge;
+    });
+    const exponent = parts.reduce((sum, part) => sum + part, 0);
+    const after = survival * Math.exp(-exponent);   // exponent ≥ 0, so never goes up
+    patterns.forEach((pattern, index) => {
+      const share = exponent > 0 ? parts[index] / exponent : 0;
+      lost[pattern] = (lost[pattern] ?? 0) + ((survival - after) * share) / SITE_COUNT;
+    });
+    return after;
   });
   const risks = { ...lot.risks };
   for (const pattern of patterns) risks[pattern] = 0;
-  return { ...lot, sites, risks };
+  return { ...lot, sites, risks, lost };
+}
+
+// Yield points (0..100) each pattern cost the lot so far. They add up to
+// the points lost in all. Patterns that cost nothing are left out.
+export function pointsLostByPattern(lot) {
+  const points = {};
+  for (const [pattern, value] of Object.entries(lot.lost ?? {})) {
+    if (value > 0) points[pattern] = value * 100;
+  }
+  return points;
 }
 
 // Rolls the per-site nudges for each pattern: max(0, 1 + s × bell-curve).

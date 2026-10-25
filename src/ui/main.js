@@ -21,6 +21,7 @@ import { renderMap, renderStop, renderShop, renderPm, renderEvent } from './floo
 import { eventView } from './eventView.js';
 import { pmView } from './pmView.js';
 import { shipView } from './shipView.js';
+import { emptyNotebook, diagnoseLot } from '../engine/notebook.js';
 
 const LOT_TYPE_ID = 'cuLine';
 
@@ -51,6 +52,8 @@ function chooseSeed() {
 
 const app = document.getElementById('app');
 let state = null;   // the whole run; replaced, never edited
+let notebook = emptyNotebook();   // diagnosed failure modes; kept across runs (in memory until M4 item 2)
+let diagnosis = null;   // this lot's diagnose result (notebook.js), or null before the guess
 
 // Runs a screen-drawing step and shows any error in a visible box.
 function safely(draw) {
@@ -162,7 +165,19 @@ function showMap() {
 // The ship report: the one screen every finished run ends on, whether the
 // lot shipped, was rejected or was scrapped.
 function showShipReport() {
-  renderShip(app, shipView(state), { onReplay, onNewSeed });
+  renderShip(app, shipView(state, notebook, diagnosis), { onDiagnose, onReplay, onNewSeed });
+}
+
+// The player names a failure mode on the ship report (M4 item 1). The
+// notebook lives in memory for now; M4 item 2 saves it under its own key.
+function onDiagnose(failureModeId) {
+  safely(() => {
+    const done = diagnoseLot(state, notebook, failureModeId);
+    state = done.state;
+    notebook = done.notebook;
+    diagnosis = done.result;
+    showShipReport();
+  });
 }
 
 // The procurement screen. `justBought` is the item bought a moment ago, or
@@ -193,6 +208,7 @@ function enterRoom() {
 // A fresh run for the seed: starter deck, default loadout (i-line resist in
 // litho), normal scatter. It starts on the floor plan.
 function startRun(seed) {
+  diagnosis = null;
   state = createRun({ seed, lotTypeId: LOT_TYPE_ID, deck: starterDeck(), loadout: defaultLoadout() });
   showMap();
 }

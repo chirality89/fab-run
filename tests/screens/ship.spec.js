@@ -6,6 +6,8 @@
 // Screenshots go to screenshots/desktop/ and screenshots/phone/.
 
 import { test, expect } from '@playwright/test';
+import { createRun, enterStep, resolveStep, walkCorridor } from '../../src/engine/run.js';
+import { emptyNotebook, diagnosisFor, findFailureMode } from '../../src/engine/notebook.js';
 
 const SEED = 123456;
 const PAGE = `/?seed=${SEED}`;
@@ -106,5 +108,57 @@ test('scrap the lot in a corridor: asks once, Keep goes back, Yes ends the run',
   await expect(page.locator('.steps-panel')).toContainText(`${STEP_COUNT - 1} later steps were not run`);
   await expectNoSidewaysScroll(page);
   await screenshot(page, '18-ship-scrapped');
+  expect(errors, `console errors (seed ${SEED})`).toEqual([]);
+});
+
+// The diagnose choices for seed 123456 played straight through, worked out
+// by the engine itself, so the test knows which button is right.
+function idleDiagnosis() {
+  let state = createRun({ seed: SEED });
+  while (state.status === 'running') {
+    state = resolveStep(enterStep(state));
+    if (state.status === 'running') state = walkCorridor(state, null);
+  }
+  const { rightIds, candidates } = diagnosisFor(state, emptyNotebook());
+  const nameOf = id => findFailureMode(id).name;
+  return {
+    right: nameOf(candidates.find(id => rightIds.includes(id))),
+    wrong: nameOf(candidates.find(id => !rightIds.includes(id))),
+  };
+}
+
+async function walkToShipReport(page) {
+  await page.goto(PAGE);
+  await press(page, goButton(page));
+  for (let step = 1; step < STEP_COUNT; step++) {
+    await runRoomAndContinue(page);
+    await pressAfterChange(page, goButton(page));
+  }
+  await pressAfterChange(page, runButton(page));
+  await pressAfterChange(page, button(page, 'See the ship report'));
+  await expect(title(page)).toHaveText('Ship report');
+}
+
+test('diagnose: four choices; the right one is written in the notebook', async ({ page }) => {
+  const errors = watchForErrors(page);
+  const { right } = idleDiagnosis();
+  await walkToShipReport(page);
+  await expect(page.locator('.diagnose-button')).toHaveCount(4);
+  await expect(page.locator('.route-spc-item')).toHaveCount(6);   // the six monitored tools
+  await expectNoSidewaysScroll(page);
+  await screenshot(page, '19-diagnose-choices');
+  await pressAfterChange(page, page.locator('.diagnose-button', { hasText: right }));
+  await expect(page.locator('.diagnose-text')).toHaveText(`Diagnosed: ${right}. Written in your notebook.`);
+  await expect(page.locator('.diagnose-button')).toHaveCount(0);   // one guess per lot
+  await screenshot(page, '20-diagnose-right');
+  expect(errors, `console errors (seed ${SEED})`).toEqual([]);
+});
+
+test('diagnose: a wrong guess writes nothing and names what did hurt the lot', async ({ page }) => {
+  const errors = watchForErrors(page);
+  const { wrong } = idleDiagnosis();
+  await walkToShipReport(page);
+  await pressAfterChange(page, page.locator('.diagnose-button', { hasText: wrong }));
+  await expect(page.locator('.diagnose-text')).toHaveText(/^Not this one\. What did hurt this lot: .+ It is not written in your notebook/);
   expect(errors, `console errors (seed ${SEED})`).toEqual([]);
 });

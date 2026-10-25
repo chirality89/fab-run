@@ -24,12 +24,9 @@ Settled decisions first, then open ones. Each open decision has a proposed answe
 | O6 | Cards to hand (23 Oct 2026) | Draw a hand of 5 (size in `balance.js`) from the room-legal cards in the deck, using the seeded generator |
 | O8 | Name (23 Oct 2026) | "Fab Run" |
 | O3 | Map form (25 Oct 2026) | Cleanroom floor plan (bays are rooms, corridors are paths) that plays like Slay the Spire: the route's process rooms are fixed and in order; between them you pick 1 side stop from 2–3 offered (metrology, PM/DOE, procurement, event). Each side stop costs cycle time |
+| O1 | What earns an unlock (25 Oct 2026) | Diagnosing a failure mode from the evidence on screen writes it into the notebook and earns its unlocks |
 
 ## Open
-
-**O1 — What earns an unlock** (blocks M4)
-- A: Finishing a run with a lot type. B: Diagnosing a failure mode.
-- **Proposed: B.** Meta-progression becomes knowledge, and each unlock is the remedy for a problem you just understood.
 
 **O9 — Unexpected tool down** (raised by David 25 Oct 2026; design once PM/DOE and events exist)
 - A tool can go down without warning: a low chance on each visit, rising as its health falls (a wear-out hazard), and never zero for a healthy tool.

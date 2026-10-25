@@ -126,6 +126,7 @@ export function createRun({
     stepYields: [],         // after each room: { stepIndex, roomId, yieldAfter } (the ship report)
     status: 'running',      // 'running' | 'scrapped' | 'shipped' | 'rejected'
     scrappedBy: null,       // 'scrapLine' | 'player' once scrapped
+    diagnosed: null,        // the failure mode named on the ship report (notebook.js), once
     log: [],
   };
 }

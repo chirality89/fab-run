@@ -63,39 +63,45 @@ export const PATTERNS = {
 // FAILURE MODES = the engineering notebook.
 // Diagnosing one (from the evidence on screen) writes it into the notebook,
 // which persists between runs, and unlocks its remedies for future runs.
+// `name` is what the diagnose panel calls it; `sig` is its signature, the
+// evidence that tells it apart.
+// An optional `when` (same shape as a card's) limits it to lots where its
+// cause was present: a pattern with several causes is only that failure
+// mode when the condition holds.
 // ---------------------------------------------------------------------------
 export const FAILURE_MODES = [
-  { id: 'fm_particles',      draft: true, pattern: 'particles',
+  { id: 'fm_particles',      draft: true, name: 'Handling particles', pattern: 'particles',
     sig: 'Random killed dies that move from lot to lot; particle adders climb on the wet clean SPC chart.',
     unlocks: ['preclean'] },
-  { id: 'fm_chamber_flakes', draft: true, pattern: 'flakes',
+  { id: 'fm_chamber_flakes', draft: true, name: 'Chamber flaking', pattern: 'flakes',
     sig: 'Killed dies that appear at the deposition steps; particle adders on the deposition SPC chart climb between chamber cleans.',
     unlocks: [] },
-  { id: 'fm_residue',        draft: true, pattern: 'residue',
+  { id: 'fm_residue',        draft: true, name: 'Etch residue', pattern: 'residue',
     sig: 'Opens spread evenly across the whole wafer after etch, while the etch rate falls on the etch SPC chart.',
     unlocks: [] },
-  { id: 'fm_underlayer',     draft: true, pattern: 'underlayer_attack',
+  { id: 'fm_underlayer',     draft: true, name: 'Underlayer attack', pattern: 'underlayer_attack',
     sig: 'Leakage on the dies with the most over-etch; the cross-section shows a notch in the film below.',
     unlocks: ['etchStopLayer', 'oesEndpoint', 'endpointEtch'] },
-  { id: 'fm_edge_ring',      draft: true, pattern: 'edge_ring',
+  { id: 'fm_edge_ring',      draft: true, name: 'Edge ring', pattern: 'edge_ring',
     sig: 'Only the outer ring of sites fails; inner sites are clean.',
     unlocks: ['eChuckUpgrade'] },
-  { id: 'fm_dishing',        draft: true, pattern: 'dishing',
+  { id: 'fm_dishing',        draft: true, name: 'Dishing', pattern: 'dishing',
     sig: 'Wide lines are thin and high-resistance; narrow lines are fine.',
     unlocks: ['dummyFill'] },
-  { id: 'fm_rr_drift',       draft: true, pattern: 'rr_drift',
+  { id: 'fm_rr_drift',       draft: true, name: 'Removal-rate drift', pattern: 'rr_drift',
     sig: 'The CMP removal rate walks steadily lot to lot on the SPC chart.',
     unlocks: ['padConditioner'] },
-  { id: 'fm_keyhole',        draft: true, pattern: 'void',
+  { id: 'fm_keyhole',        draft: true, name: 'Keyhole void', pattern: 'void',
     sig: 'Opens on narrow vias only; a seam or void sits in the middle of the fill.',
     unlocks: ['slowStartPlate', 'additiveBath', 'bathAnalysis'] },
-  { id: 'fm_qtime',          draft: true, pattern: 'qtime_oxide',
+  { id: 'fm_qtime',          draft: true, name: 'Q-time oxide', pattern: 'qtime_oxide',
     sig: 'High line resistance only on lots that waited long after clean.',
     unlocks: ['n2Storage'] },
-  { id: 'fm_implant_damage', draft: true, pattern: 'implant_damage',
+  { id: 'fm_implant_damage', draft: true, name: 'Unannealed implant damage', pattern: 'implant_damage',
     sig: 'Junction leakage after implant; a longer anneal fixes leakage but shifts the device.',
     unlocks: ['rta', 'spikeAnneal'] },
-  { id: 'fm_ped_ttop',       draft: true, pattern: 'cd_error',
+  { id: 'fm_ped_ttop',       draft: true, name: 'Post-exposure delay T-top', pattern: 'cd_error',
+    when: { lot: 'delayBeforeBake' },   // only this cause: CD error also comes from dose, focus and litho drift
     sig: 'Lines come out with a T-shaped top when the lot waited between expose and bake.',
     unlocks: ['resistCAR', 'freshResist'] },
 ];

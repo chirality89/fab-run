@@ -2,7 +2,7 @@
 
 Work top to bottom, one checkbox per session. Plan in `tasks/todo.md` first (see `PROJECT.md`). Tick the box here when done. Before starting a milestone, settle the `docs/decisions.md` items it depends on.
 
-Current milestone: **M3 — The run**
+Current milestone: **M4 — Notebook and unlocks** (M3's last item, save and resume, is in Lane B)
 
 ## M0 — Move in
 - [x] Turn on GitHub Pages (Settings → Pages → Deploy from a branch → `main` / root); confirm the placeholder page loads at `https://chirality89.github.io/fab-run/` on desktop and phone
@@ -33,7 +33,7 @@ Current milestone: **M3 — The run**
 - [ ] Save and resume a run (`SAVE_KEY`, storage-blocked safe)
 
 ## M4 — Notebook and unlocks (needs O1)
-- [ ] Diagnose screen: name a failure mode from the evidence; right answer writes the notebook
+- [x] Diagnose screen: name a failure mode from the evidence; right answer writes the notebook
 - [ ] Notebook saved in its own localStorage key; survives a run-state version bump
 - [ ] Starter pool vs unlocked pool; unlocked remedies appear in drafts and procurement
 

@@ -242,3 +242,16 @@ I wrote the labels for the shipped case and tested numbers, not words. Text buil
 ### Rule to Prevent
 ✅ Every label on an end screen is checked once for each end state (shipped, rejected, scrapped by the line, scrapped by the player)
 ✅ When text joins two content fields, check the screenshot for the case where both say the same thing
+
+## Splitting yield loss by the wafer average under-credited a pattern
+
+### What Happened
+To say how many yield points each pattern cost, I took each pattern's exponent averaged over the wafer and split the total loss in that ratio. physics-reviewer showed it was wrong when one pattern saturates some sites: an edge ring that kills the outer sites takes almost all the credit, and particles that cost about 6.5 points were credited about 1.2. A right diagnosis would then be graded wrong.
+
+### Root Cause
+Yield is the average of the sites' survivals, not e to the power of the average exponent. A ratio of averaged exponents is not a ratio of yield lost.
+
+### Rule to Prevent
+✅ Split a yield loss where it happens: per site, then add the sites up. Check that the parts add up to the whole.
+✅ Test an attribution with a pattern that saturates some sites next to one that is spread evenly
+✅ A failure mode is a right answer only if its cause was present, not just its pattern (several causes can make the same pattern)
