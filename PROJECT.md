@@ -5,9 +5,10 @@ How a working session runs, start to finish. The rules themselves live in `CLAUD
 ## 1. Start
 
 1. Read `tasks/lessons.md` in full. These are rules learned the hard way.
-2. Read `tasks/todo.md` for work in progress and the `NEEDS NEW LOGIC` list.
-3. In `ROADMAP.md`, find the first unticked box in the current milestone. That is this session's item unless David names another.
-4. Read only the parts of `DESIGN.md` and `docs/` that this item touches.
+2. Check open pull requests and remote branches (`git fetch`, `git branch -r`). If one holds roadmap work that isn't on `main` yet, tell David and bring it in before picking an item.
+3. Read `tasks/todo.md` for work in progress and the `NEEDS NEW LOGIC` list.
+4. In `ROADMAP.md`, find the first unticked box in the current milestone. That is this session's item unless David names another.
+5. Read only the parts of `DESIGN.md` and `docs/` that this item touches.
 
 ## 2. Plan
 
