@@ -1,6 +1,70 @@
 # Fab Run — Task Tracker
 
-## Current: M3 item 2d — DOE stop: upgrade one practice for the run
+## Current: M3 item 2e — three events with a tradeoff each
+
+### Task: the event side stop draws one of three events; you pick one of its two options
+
+**What you'll see**
+- Picking **Event** in a corridor (10 min, as now) opens an event screen. It shows a short situation in fab words, then two option buttons. Each button says what happens in plain numbers: cash, minutes, the risk it adds or the tool it changes.
+- After you choose, a result line and **Continue to step N**.
+- The event is drawn by the seed from those not seen yet this run (no repeat until all three have come up), with its own generator, so the lot's random numbers are untouched.
+
+**Proposed events** (drafts: David, please rewrite anything that isn't how a fab works)
+
+| Event | Option A | Option B |
+|---|---|---|
+| **Hot lot request**: a customer wants this lot early for a demo | **Run it hot**: −30 min cycle time and +150 cash (expedite fee), but +0.02 particle risk (rushed handling and skipped buffer waits) | **Keep its place**: nothing changes |
+| **Quality audit**: an auditor is on the floor this shift | **Walk them through now**: +30 min (the lot waits; it counts as Q-time in a Q-time corridor), and the wet bench they flag gets serviced: clean tool +15 health | **Ask to come back later**: −100 cash (a finding written up for the missing records) |
+| **Supplier change**: purchasing offers a cheaper CMP slurry | **Switch now**: +150 cash, but +0.03 polish-rate drift risk (a new slurry lot, not yet characterized on this tool) | **Keep the qualified slurry**: nothing changes |
+
+Each option has a `tradeoff` and a `physicsNote`, as every content entry does.
+
+**Engine (`src/engine/`) — an engine change; this is the ask (CLAUDE.md §6)**
+- [ ] One new effect operation, **`addRisk { pattern, amount }`**: a risk enters the lot now and bites when its room realizes it. (The existing `defectMult` only scales risk already there, and between rooms most risks are 0.) `amount` may not be negative: yield only goes down (rule 2).
+- [ ] `toolHealth` gets an optional `room`, so an event outside a room can name the tool. Today it always means the room the lot is in.
+- [ ] An option's `minutes` (negative allowed for the hot lot) changes cycle time. In a Q-time corridor, positive minutes also grow the Q-time pattern, like a side stop's wait. Cycle time never goes below 0.
+- [ ] New `src/engine/events.js`: `drawEvent(state, corridorIndex)`. `run.js`: the event stop opens `state.event = { corridor, eventId, chosen: null }`; new `chooseEventOption(state, optionIndex)` applies the option once, then the stop is done. Refused: no event open, already chosen, or a bad index.
+- [ ] Bot: the random bot picks an option at random.
+
+**Content (`src/content/`)**
+- [ ] New `src/content/events.js`: the three events as data (`draft: true`).
+- [ ] content.js header: document `addRisk` and `toolHealth`'s `room`. `content.test.js` knows the new op.
+- [ ] `sideStops.js`: Event is no longer a placeholder.
+
+**Screen (`src/ui/`)**
+- [ ] Event screen: the situation, two option cards with their effects in words and the tradeoff, then the result and Continue.
+
+**Tests**
+- [ ] `tests/events.test.js`:
+  - draws are seeded, with no repeat until all three are seen, and `rngState` is untouched;
+  - each option applies its effects exactly once;
+  - the refusals above;
+  - `addRisk` refuses a negative amount;
+  - `toolHealth` with `room` works outside a room.
+- [ ] **Hand check** (scatter off, drift off): take **Switch now** at an event before CMP.
+  - Cash +150.
+  - rr_drift reaches CMP at 0.04 + 0.03 = 0.07, so final yield = the idle run × e^(−0.03) = × **0.970446**.
+  - The test finds the first seed from 123456 up that draws the supplier event before CMP.
+- [ ] Screen tests at both sizes, run 5 times on the phone (lessons.md); screenshots checked.
+- [ ] `physics-reviewer` on the events; `code-explainer`; `playtester`.
+
+**Size:** content, engine and screen, about 300 lines plus 3 events. This plan is the ask, including the new op.
+
+**Questions for David**
+1. Are these three events and their options how it really goes? Rewrite freely.
+2. OK to add the `addRisk` operation and `toolHealth`'s `room`?
+3. Should an event's minutes count as Q-time waiting, as a side stop's do?
+4. Seeded, with no repeat until all three are seen?
+- Still open from the DOE item (see tasks/todo.md, M3 item 2d): starter DOE versions strictly better (OK?); the measure-all "3 of 25 wafers" wording; dummy fill against dishing or erosion; a thinner etch stop weakening underlayer protection (later).
+
+**NEEDS NEW LOGIC (noted, not built):** the disposition desk event (Later in ROADMAP); events with three options or a delayed consequence; events that change a material.
+
+**Progress notes:**
+- 2026-10-25: plan written; waiting for David's OK.
+
+**Result:**
+
+## Done: M3 item 2d — DOE stop: upgrade one practice for the run
 
 ### Task: at a PM/DOE stop, choose a PM **or** a DOE that upgrades one practice
 
