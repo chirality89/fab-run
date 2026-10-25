@@ -152,6 +152,19 @@ That makes 24 + 5 + ~5 + ~6 = **about 40 items**, plus new failure modes. Every 
   - step 12 adds channeling_tail, junction_spread and implant_damage;
   - step 13 realizes those.
   - Reviewer, for David: should step 7's qtime_oxide be small (an SC1/SC2 chemical oxide end)?
+- 2026-10-25: rebased on main (PM, DOE, tool drift). Conflicts resolved:
+  - fm_particles keeps main's new sig plus the megasonicClean unlock;
+  - cuLine step 6 keeps main's `flakes` realize plus void entering there;
+  - endpointEtch keeps main's DOE upgrade, which also gets the thinGateOxide line.
+- Main now needs a DOE `upgrade` on every practice, so Lane C's 9 new practices got one. physics-reviewer fixes applied:
+  - send-ahead: the DOE is the measurement plan only;
+  - ionized seed: wording (coil power builds deposits);
+  - seasoning: plasma clean + thin coat, time 5;
+  - tilt: larger tilt, so four rotations;
+  - soft land: a later switch;
+  - HF-last: same concentration;
+  - low-pressure polish: cash 40.
+  168/168.
 
 ## Result
 - (open)
