@@ -1,8 +1,45 @@
 # Fab Run — Task Tracker
 
-## Next: M2 item 3 — Playwright set up; screenshots at 1280×800 and 375×812
+## Next: M3 item 1 — map of the Cu line route with side stops (needs O3)
 
 Not planned yet.
+
+## Done: M2 item 3 — Playwright set up; screenshots at 1280×800 and 375×812
+
+### Task: screen tests and screenshots with Playwright
+- [x] Add `@playwright/test` as a **dev dependency** (pre-approved in CLAUDE.md §2), pinned to exactly `1.63.0`, the version whose browser is already installed here. Commit `package-lock.json`. It is only for checking the screen. The game itself still loads nothing from npm.
+- [x] `npm test` stays as it is: Node only, no install needed. A new `npm run screens` runs the screen tests.
+- [x] `playwright.config.js` (repo root):
+  - It starts `python3 -m http.server 8000` by itself.
+  - It runs every test at two sizes: **desktop** 1280×800, and **phone** with an explicit 375×812, touch on. No device-preset names (lesson: a wrong preset name silently gave desktop size).
+  - Chromium only.
+- [x] `tests/screens/etch.spec.js`, seed 123456, at both sizes:
+  - The etch room loads with no console errors and no sideways scroll.
+  - A tap on timed over-etch leaves 4 of 8 min, the hand empties, and Run etch is still there.
+  - **Run etch** shows the result screen. **Replay this seed** brings back the same starting numbers (same expected-loss line as the first load).
+  - A fast double tap on the card plays it once and does **not** run etch.
+  - Screenshots at each stage go to `screenshots/desktop/` and `screenshots/phone/`. The test checks each image's pixel width (1280 or 375) before anyone looks at it (lesson).
+- [x] Screenshots are files for looking at, not compared pixel by pixel against saved ones. Fonts render differently from machine to machine, and that would make tests fail for no reason. `screenshots/` is already in `.gitignore`, so they aren't committed.
+- [x] CLAUDE.md §11: one line saying `npm run screens` runs the screen tests. On a new computer it needs `npm install` and `npx playwright install chromium` first.
+- [x] Run it, look at every screenshot, then run `playtester`. Commit.
+
+No game code changes.
+
+**Decisions settled:** none needed.
+
+**Acceptance criteria:**
+- `npm run screens` passes: 2 sizes × the checks above, and every screenshot has the right width.
+- `npm test` still passes with no `node_modules` present.
+- The tap and Run etch buttons are now tested automatically, not only by eye.
+
+**Progress notes:**
+- 2026-10-25: plan OK'd by David; built.
+- The phone double-tap test first failed because a raw tap landed below the screen (test bug, lesson added).
+- With the double-click guard switched off, the desktop double-tap test fails, as it should. On the phone the card wraps taller, so Run etch lands below the tap and can't be hit by a double tap there.
+- `npm test` checked with `node_modules` moved away: 102/102. (A folder renamed `node_modules.off` gets scanned by `node --test`; only the exact name `node_modules` is skipped.)
+- Screenshots at 1280 and 375 checked by eye: room, after a tap, result. Nothing broken.
+
+**Result:** `npm run screens`: 8 of 8 pass (4 checks × 2 sizes). `npm test`: 102 of 102.
 
 ## Done: M2 item 2 — playing a card calls the engine and redraws
 

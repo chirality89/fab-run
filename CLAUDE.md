@@ -116,6 +116,7 @@ New cards, equipment, materials, consumables, failure modes, lot types and event
 2. Engine tests use hand-computed expected values. Never edit an expected value to make a test pass; ask.
 3. Bot runs (from M1): seeded runs through the engine with no UI. Pass if no exception and no `NaN`/`Infinity` in state.
 4. Screenshots (from M2, Playwright): desktop 1280×800 and phone with an explicit `viewport: {width: 375, height: 812}`. Look at them and report anything broken.
+   `npm run screens` runs the screen tests in `tests/screens/` (sizes in `playwright.config.js`) and saves the shots to `screenshots/` (not committed). On a new computer, run `npm install` and `npx playwright install chromium` once first.
 
 A change is **done** when tests pass, screenshots are checked (if UI changed), `tasks/todo.md` is updated, `tasks/lessons.md` has any new rule, the `ROADMAP.md` box is ticked, and David gets a **3-bullet summary**: what changed, why, how to see it in the game.
 

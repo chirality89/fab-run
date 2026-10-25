@@ -2,7 +2,7 @@
 
 Work top to bottom, one checkbox per session. Plan in `tasks/todo.md` first (see `PROJECT.md`). Tick the box here when done. Before starting a milestone, settle the `docs/decisions.md` items it depends on.
 
-Current milestone: **M2 — One room you can play**
+Current milestone: **M3 — The run**
 
 ## M0 — Move in
 - [x] Turn on GitHub Pages (Settings → Pages → Deploy from a branch → `main` / root); confirm the placeholder page loads at `https://chirality89.github.io/fab-run/` on desktop and phone
@@ -20,7 +20,7 @@ Current milestone: **M2 — One room you can play**
 ## M2 — One room you can play
 - [x] `src/ui/`: a single process room (etch) on screen: hand, time budget, slots, tool health, yield bar, wafer map
 - [x] Playing a card calls the engine and redraws; seed shown on screen
-- [ ] Playwright set up; screenshots at 1280×800 and 375×812; checked by eye
+- [x] Playwright set up; screenshots at 1280×800 and 375×812; checked by eye
 
 ## M3 — The run (needs O3)
 - [ ] Map of the Cu line route with side-stop branches (metrology, PM/DOE, procurement, event)
