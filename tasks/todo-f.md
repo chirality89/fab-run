@@ -26,7 +26,7 @@ Each file has: who the persona is, what it knows and doesn't, what it watches fo
 - [x] `persona-spire-veteran.md`: a Slay the Spire veteran with no fab knowledge. Plays desktop. Checks whether choices are real, looks for a dominant card or route, an always-right side stop, or a do-nothing option that wins.
 - [x] `persona-phone-5min.md`: a phone player with 5 minutes. Plays at 375×812 only. First-minute clarity, tap targets, scrolling to find things, the exact moment it would put the phone down. Notes how many taps and screens a full run takes.
 - [x] `persona-student.md`: a curious student. Plays desktop and phone. Does the game explain itself; lists each term it met without an explanation (Q-time, SPC, CD, CMP, dishing…) and where.
-- [x] `persona-exploit-hunter.md`: an exploit hunter. Plays desktop. Economy and shop (buy-everything runs, cash going negative, free options), seed abuse (reload, back button, changing `?seed=` mid-run, re-rolling for a good start), double taps.
+- [x] `persona-min-max-gamer.md`: a min-max gamer (was "exploit hunter"; renamed by David 25 Oct). Plays desktop. Strongest strategy, economy and shop value (cash running low or below zero, free choices), what reload, back, another `?seed=` and Replay do mid-run, double taps.
 
 Every persona plays seeds **123456, 42 and 777**, one full run each (to ship or scrap), and takes a screenshot at every decision.
 
@@ -72,6 +72,8 @@ Every persona plays seeds **123456, 42 and 777**, one full run each (to ship or 
 **Progress notes:**
 - 25 Oct 2026: plan written. Checked that `?seed=42` loads, the seed shows on screen and the first screen's button can be found by its label.
 
-- 25 Oct 2026: David OK'd the plan and all three questions (shots: only cited ones committed; driver in docs/playtest/; prompt rule + grep for code names). Driver checked on seed 42 at both sizes (1280×800 and 375×812 confirmed from the PNG headers); added a `doubletap` action for the exploit hunter.
+- 25 Oct 2026: David OK'd the plan and all three questions (shots: only cited ones committed; driver in docs/playtest/; prompt rule + grep for code names). Driver checked on seed 42 at both sizes (1280×800 and 375×812 confirmed from the PNG headers); added a `doubletap` action for the min-max gamer.
+- 25 Oct 2026: on Opus, all six persona launches (five, then one retry) were stopped at their first reply by the platform's safety filter, before any tool ran. David chose option 1: this pass runs the personas on **Sonnet** (model override at launch only); the agent files keep `model: opus` for later passes.
+- 25 Oct 2026: on Sonnet, all five launches were stopped the same way. David renamed the exploit hunter to a **min-max gamer**; its file now asks about strategy and value, not abuse.
 
 **Result:**
