@@ -30,3 +30,8 @@ Settled decisions first, then open ones. Each open decision has a proposed answe
 **O1 — What earns an unlock** (blocks M4)
 - A: Finishing a run with a lot type. B: Diagnosing a failure mode.
 - **Proposed: B.** Meta-progression becomes knowledge, and each unlock is the remedy for a problem you just understood.
+
+**O9 — Unexpected tool down** (raised by David 25 Oct 2026; design once PM/DOE and events exist)
+- A tool can go down without warning: a low chance on each visit, rising as its health falls (a wear-out hazard), and never zero for a healthy tool.
+- Open: what a down tool does. A: the lot waits for repair (cycle time, and Q-time if in a window). B: reroute to a backup tool with worse SPC. C: a spare part (consumable) fixes it on the spot.
+- **Proposed: A, with C as the way out**, and the chance shown on screen (rule 5: chaos is announced, even when the timing is not).

@@ -1,6 +1,81 @@
 # Fab Run — Task Tracker
 
-## Current: M3 item 2a — procurement stop: buy equipment and materials with cash
+## Current: M3 item 2b — tool drift and wear, shown on SPC
+
+(David, 25 Oct 2026: plan tool wear before the PM/DOE stop, as drift shown on SPC. An unexpected tool-down mechanic is wanted too, low chance but possible. It is designed later, once more of the framework exists: decision O9.)
+
+### Task: every room's tool drifts and wears; SPC shows the drift before it bites
+
+**The model, in fab terms (David to confirm; placeholders until M7)**
+- Each room's tool has one **monitored parameter** with a target, a process sigma and a drift direction. Each one feeds one defect pattern the room already realizes:
+
+  | Room | SPC parameter (proposed) | Drifts | Feeds pattern | Why |
+  |---|---|---|---|---|
+  | Wet clean | particle adders per wafer | up | particles | the bath loads up with contamination |
+  | Deposition | particle adders per wafer | up | particles | film builds up on the chamber walls and flakes |
+  | Litho | CD on the monitor wafer | up | cd_error | dose and focus drift |
+  | Etch | etch rate | down | depth_variation | polymer builds up on the chamber walls (seasoning drift) |
+  | Plating | fill (seam) inspection rate | up | void | the bath's additives break down |
+  | CMP | removal rate | down | rr_drift | the pad glazes (matches fm_rr_drift: "walks steadily lot to lot on the SPC chart") |
+  | Metrology | none | | | the gauge is the reference here |
+
+- **Tool health → mean shift.** Health 100 means on target. Every `HEALTH_PER_SIGMA = 20` health lost shifts the mean by one sigma: health 80 = 1σ, 60 = 2σ, 40 = 3σ.
+- **Shift → yield**, by process capability (textbook Cpk). Spec limits sit at ±4σ (`SPEC_LIMIT_SIGMA = 4`, a Cp 1.33 process). The fraction out of spec is P(δ) = Φ(−4−δ) + Φ(δ−4). The extra risk added to the pattern on entering the room is −ln[(1 − P(δ)) / (1 − P(0))]. That is zero for a healthy tool, so the yield factor is exactly (1 − P(δ)) / (1 − P(0)):
+
+  | shift δ | health | yield factor in that room |
+  |---|---|---|
+  | 0 | 100 | 1 |
+  | 1σ | 80 | 0.998713 |
+  | 2σ | 60 | 0.977312 |
+  | 2.5σ | 50 | 0.933252 |
+  | 3σ | 40 | 0.841398 |
+
+  So a small shift is cheap and a big one is expensive, as in a real fab.
+- **Wear:** each time the lot runs a room, its tool loses `WEAR_PER_RUN = 5` health. The Cu line visits clean and deposition twice.
+- **Starting health from the seed:** every tool starts a run at 50–100. That is the chaos: some runs begin with a tool overdue for PM. It is announced, because the SPC chart shows it from the first room.
+- **Cards and equipment still act on the pattern.** Drift risk enters the pattern before items act, so the pad conditioner's ×0.4 on rr_drift also damps CMP drift, which is its physics.
+- **Yield uses the true shift; SPC shows noisy measurements of it.** Laws are fixed and the situation is random (rule 4).
+
+**SPC chart (the telegraph, rule 5)**
+- Each tool has 12 points: 11 earlier lots plus this lot once it runs. Each point = target + (shift + noise) × sigma. The noise is a bell curve with spread 1, drawn from the tool's own seeded generator, so the lot's random numbers (`rngState`) are untouched. Earlier lots ran on a healthier tool (health + `WEAR_PER_RUN` per lot back, capped at 100), so the points walk towards the drift.
+- Lines on the chart: centre (target), control limits ±3σ, spec limits ±4σ.
+- **Western Electric rules**, flagged on the chart in words (proposed: these three):
+  1. one point beyond 3σ;
+  2. 2 of 3 in a row beyond 2σ on the same side;
+  3. 8 in a row on one side of the centre.
+
+  A small shift trips rule 3 first, then rule 2, then rule 1: an early warning that gets louder.
+
+**Engine (`src/engine/`)**
+- [ ] New `src/engine/tools.js` (pure): `startingTools(seed)`, `driftShift(health)`, `outOfSpecFraction(shift)`, `driftRisk(health)`, `spcPoints(state, roomId)`, `spcRules(points)`; Φ by a standard textbook approximation (Abramowitz–Stegun 7.1.26, error under 1e-7).
+- [ ] `run.js`: `createRun` sets tools from the seed. `enterStep` adds the drift risk to the room's pattern. `resolveStep` wears the tool and records this lot's SPC point.
+- [ ] `createRun` option `toolDrift` (default on). Off, every tool stays at 100 and never wears, so drift adds nothing: the "hand-check mode", like `scatterStrength: 0`. The test helpers that turn scatter off also turn drift off. **No expected value changes**, but about 6 test setups change, and the assertion "tools start at 100" becomes "with drift off, tools start at 100". Option `startingHealth: { cmp: 60 }` lets a test fix one tool.
+
+**Content (`src/content/`)**
+- [ ] `src/content/tools.js`: the table above as data (room, parameter name, unit, target, sigma, direction, pattern, tradeoff/physics note).
+- [ ] `balance.js`: `HEALTH_PER_SIGMA`, `SPEC_LIMIT_SIGMA`, `CONTROL_LIMIT_SIGMA = 3`, `WEAR_PER_RUN`, `STARTING_HEALTH_MIN = 50`, `SPC_HISTORY = 12`.
+
+**Screen (`src/ui/`)**
+- [ ] In each room, an **SPC chart** (inline SVG drawn with tokens) takes the place of the "Tool health" meter. It shows the points, centre, control and spec lines, and the rules tripped in words ("8 in a row below centre: the removal rate is shifting").
+- [ ] Question for David: show the tool health number too, or only SPC? (Proposed: SPC only. Health becomes a hidden value the metrology stop can reveal later, as engineers read SPC, not a health bar.)
+- [ ] Screen tests at both sizes; screenshots checked.
+
+**Tests**
+- [ ] `tests/tools.test.js`: Φ against table values; the yield-factor table above; rules on hand-made point lists (each rule trips, and does not trip just short); same seed → same starting health and points; the lot's `rngState` untouched.
+- [ ] **Hand check:** scatter off, nothing played, every tool at 100 except CMP at 60. The final yield is the all-at-100 run × **0.977312**, CMP's 2σ factor. rr_drift is an even pattern realized only at CMP, and the other tools wear identically in both runs.
+- [ ] Bot: no NaN; idle and random over seeds 1–50 still finish.
+- [ ] `physics-reviewer` on the model and the table, `code-explainer` on the diff, `playtester` before done.
+
+**Size:** content, engine and screen folders, about 500 lines with tests: the biggest item yet. This plan is the ask. Three commits: engine and tests, the SPC screen, then docs.
+
+**Not in this item (decision O9, NEEDS NEW LOGIC):** unexpected tool down; the PM/DOE stop that restores health (the next box); the metrology stop revealing health; the M6 amber lamp.
+
+**Progress notes:**
+- 2026-10-25: plan written; waiting for David's OK.
+
+**Result:**
+
+## Done: M3 item 2a — procurement stop: buy equipment and materials with cash
 
 (M3 item 2 is split into three boxes in ROADMAP.md: procurement, PM/DOE, events. David, 25 Oct 2026.)
 
