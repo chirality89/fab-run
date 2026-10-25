@@ -1,14 +1,20 @@
-// main.js — starts the page: builds a seeded run, walks it to etch, draws it.
+// main.js — starts the page: builds a seeded run, walks it to etch, draws it,
+// and answers the buttons.
 //
-// For now (M2 item 1) the screen only shows the etch room. The lot walks the
-// steps before etch with nothing played, then enters etch.
+// For now (M2) the screen only shows the etch room. The lot walks the steps
+// before etch with nothing played, then enters etch. Tapping a card plays it;
+// "Run etch" ends the room and shows the result.
+//
+// The whole run lives in one variable, `state`. The screen never changes it
+// directly: every button calls an engine function (playCard, resolveStep),
+// stores the new state that comes back, and redraws.
 
 import { normalizeSeed } from '../engine/rng.js';
 import { lotYield } from '../engine/lot.js';
-import { createRun, enterStep, resolveStep, starterDeck, defaultLoadout } from '../engine/run.js';
+import { createRun, enterStep, resolveStep, playCard, starterDeck, defaultLoadout } from '../engine/run.js';
 import { LOT_TYPES } from '../content/lotTypes.js';
-import { roomView, parseSeed } from './view.js';
-import { renderRoom, renderMessage, renderError } from './render.js';
+import { roomView, resultView, parseSeed } from './view.js';
+import { renderRoom, renderResult, renderMessage, renderError, focusNextAction } from './render.js';
 
 const LOT_TYPE_ID = 'cuLine';
 const SHOWN_ROOM = 'etch';   // the room this screen shows
@@ -21,15 +27,20 @@ function seedFromClock() {
   return normalizeSeed(Date.now() % 2 ** 32);
 }
 
-// The seed for this page. A clock seed is also written into the address
-// (?seed=…) without reloading, so a reload or a shared link replays the run.
+// Puts the seed in the page address (?seed=…) without reloading, so a
+// reload or a shared link replays the run.
+function writeSeedToAddress(seed) {
+  const params = new URLSearchParams(window.location.search);
+  params.set('seed', String(seed));
+  window.history.replaceState(null, '', `${window.location.pathname}?${params}`);
+}
+
+// The seed for this page: from the address, or a fresh one from the clock.
 function chooseSeed() {
   const fromAddress = parseSeed(window.location.search, null);
   if (fromAddress !== null) return fromAddress;
   const seed = seedFromClock();
-  const params = new URLSearchParams(window.location.search);
-  params.set('seed', String(seed));
-  window.history.replaceState(null, '', `${window.location.pathname}?${params}`);
+  writeSeedToAddress(seed);
   return seed;
 }
 
@@ -50,20 +61,64 @@ function runToRoom(seed, roomId) {
   return state.status === 'running' ? enterStep(state) : state;
 }
 
-function start() {
-  const app = document.getElementById('app');
+const app = document.getElementById('app');
+let state = null;   // the whole run; replaced, never edited
+
+// Runs a screen-drawing step and shows any error in a visible box.
+function safely(draw) {
   try {
-    const state = runToRoom(chooseSeed(), SHOWN_ROOM);
-    if (state.status === 'scrapped') {
-      const percent = (lotYield(state.lot) * 100).toFixed(1);
-      renderMessage(app, `Lot scrapped at step ${state.stepIndex + 1} (yield ${percent}%). Seed ${state.seed}.`);
-      return;
-    }
-    renderRoom(app, roomView(state));
+    draw();
   } catch (error) {
     renderError(app, error);
     console.error(error);
   }
 }
 
-start();
+// --- what the buttons do -------------------------------------------------
+
+function onPlay(cardId) {
+  safely(() => {
+    state = playCard(state, cardId);
+    showRoom();
+    focusNextAction(app);
+  });
+}
+
+function onRunRoom() {
+  safely(() => {
+    const before = state;
+    state = resolveStep(state);
+    renderResult(app, resultView(before, state), { onReplay, onNewSeed });
+  });
+}
+
+function onReplay() {
+  safely(() => startRun(state.seed));
+}
+
+function onNewSeed() {
+  safely(() => {
+    const seed = seedFromClock();
+    writeSeedToAddress(seed);
+    startRun(seed);
+  });
+}
+
+// --- drawing -------------------------------------------------------------
+
+function showRoom() {
+  renderRoom(app, roomView(state), { onPlay, onRunRoom });
+}
+
+// Builds a fresh run for the seed and shows the room (or the scrap message).
+function startRun(seed) {
+  state = runToRoom(seed, SHOWN_ROOM);
+  if (state.status === 'scrapped') {
+    const percent = (lotYield(state.lot) * 100).toFixed(1);
+    renderMessage(app, `Lot scrapped at step ${state.stepIndex + 1} (yield ${percent}%). Seed ${state.seed}.`);
+    return;
+  }
+  showRoom();
+}
+
+safely(() => startRun(chooseSeed()));
