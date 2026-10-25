@@ -104,6 +104,8 @@ That makes 24 + 5 + ~5 + ~6 = **about 40 items**, plus new failure modes. Every 
 - **Gate-foot profile cost** (batch 2): soft landing's real cost includes footing or notching (a CD cost), but cd_error is not on the lot during etch.
 - **Evidence views for NMOS diagnosis** (batch 2): electrical test (Vt, junction leakage, ramped-voltage breakdown, C-V thickness), a dopant depth profile, and post-etch oxide thickness. Diagnosis must use the route step or lot type to tell apart failure modes that share a pattern: underlayer_attack, qtime_oxide, void and cd_error.
 - **Monitor wafers reveal values nothing models** (batch 2): oxideThickness and implantDose. These need a consumable engine and a dose or thickness risk. implantMonitor is unlocked by fm_channeling, which it cannot see; move it to a future dose failure mode.
+- **Shop sells only items that can act on this lot** (batch 3): the shop ignores an item's top-level `when`, so the NMOS-only ceria slurry is sold on the Cu line.
+- **BARC etch cost** (batch 3): opening the BARC in etch (time, residue) needs an effect that carries over to a later room.
 - **Low-pressure polish copper residue** (batch 1, optional): a slower polish can leave copper residue (shorts). No pattern fits today.
 
 ## Proposed lessons (for whoever merges into tasks/lessons.md)
@@ -165,6 +167,15 @@ That makes 24 + 5 + ~5 + ~6 = **about 40 items**, plus new failure modes. Every 
   - HF-last: same concentration;
   - low-pressure polish: cash 40.
   168/168.
+- David's rulings:
+  - ionized seed flaking costs flakes ×1.2 (×1.3 on the DOE version) plus dep toolHealth −5. Checked in a run: flakes 0.041 → 0.049, dep health 55 → 50, void 0.08 → 0.048.
+  - Lane C may fix the 2 shop tests. Done: tests/shopSeed.js searches for the seed whose step-2 shop sells pad conditioner, DUV resist and thick resist. view.test.js and shop.spec.js use it. Still 123456; no expected value changed.
+- 2026-10-25: batch 3 drafted (ceriaSlurry, barc, parallelBeamStation, verticalFurnace, pulseReversePlating, shieldKit): 41 items. 168/168; screens 28/28; bot clean.
+  **Waiting on physics-reviewer** (the review run hit the session limit; rerun after the reset).
+  Open for David:
+  1. ceriaSlurry is NMOS-only (when siliconFrontEnd) but the shop sells it on the Cu line, where it does nothing (seed 123456 corridor 0). This breaks the shop lesson. Hold it back, or have the shop check an item's `when` (engine, NEEDS NEW LOGIC)?
+  2. Unlocks: ceriaSlurry from fm_dishing (a Cu sig); barc from fm_dose_offset (a reflection CD swing may need its own failure mode).
+  3. NMOS step 6 (CMP) must add dishing and particles for the slurry to act.
 
 ## Result
 - (open)
