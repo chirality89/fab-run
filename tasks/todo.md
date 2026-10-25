@@ -72,7 +72,9 @@
 - The screen also says what a material would replace ("Replaces the i-line positive resist"), since a material swap is otherwise invisible until litho.
 - A phone etch screen test broke because the map buttons got shorter (lessons.md). The walk-to-etch helper now waits out the double-click window.
 - playtester: pass. 131/131 tests; 20 random-bot seeds and 4 full-deck seeds ran with no errors and never went below 0 cash; 22/22 screens, with no overflow and no sideways scroll.
-- view.js is now 384 lines, close to the ~400 split line. The map and shop views could move to their own file in M3 item 2b.
+- code-explainer: one must-fix. The shop could sell items for rooms the lot had already left (a resist after litho). The stock now only includes rooms still ahead, so a late shop may offer fewer than 3 (after CMP, only inline metrology). A new test covers it. Readability splits were also done in shop.js and floorPlan.js.
+- The bot test asserted cash ≥ 0, but O4 lets running costs go below 0: seed 17 (random, full deck) ended at −20 after the pad conditioner charged at CMP. David chose to change the test. It now checks that cash is never below 0 right after a purchase.
+- - view.js is now 384 lines, close to the ~400 split line. The map and shop views could move to their own file in M3 item 2b.
 
 **Result:**
 

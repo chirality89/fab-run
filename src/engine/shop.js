@@ -31,25 +31,34 @@ export function findShopItem(itemId) {
 // corridor its own start. Neighbouring starts give unrelated numbers
 // (rng.js). `>>> 0` keeps it a positive 32-bit whole number.
 function shopSeed(seed, corridorIndex) {
-  return normalizeSeed((((seed ^ SHOP_SEED_MIX) >>> 0) + corridorIndex) >>> 0);
+  const mixed = (seed ^ SHOP_SEED_MIX) >>> 0;
+  return normalizeSeed((mixed + corridorIndex) >>> 0);
 }
 
 // Could this item be on sale for this run right now? Not if it is already
-// owned, not if it is the material already in its slot, and not if its room
-// is never visited on this lot's route (it could never act).
-function isForSale(state, item, routeRooms) {
+// owned, not if it is the material already in its slot, and not if the lot
+// never enters its room again on this route (it could never act).
+function isForSale(state, item, roomsAhead) {
   if (!SHOP_SELLS_LOCKED_ITEMS && item.unlockedBy !== null) return false;
-  if (!routeRooms.has(item.room)) return false;
+  if (!roomsAhead.has(item.room)) return false;
   if (item.kind === 'equipment') return !state.equipment.includes(item.id);
   return state.slots[item.slot]?.id !== item.id;
 }
 
+// The rooms the lot still has ahead of it after corridor `corridorIndex`.
+// Corridor i sits after route step i, so the next room is step i + 1.
+function roomsAheadOf(state, corridorIndex) {
+  const stepsAhead = LOT_TYPES[state.lotTypeId].route.slice(corridorIndex + 1);
+  return new Set(stepsAhead.map(step => step.room));
+}
+
 // The ids a procurement stop in corridor `corridorIndex` sells: up to
 // SHOP_OFFER_COUNT items picked at random from those for sale, listed in
-// content order.
+// content order. Late in the route fewer items can still act, so a shop
+// there may offer fewer than SHOP_OFFER_COUNT.
 export function shopStock(state, corridorIndex) {
-  const routeRooms = new Set(LOT_TYPES[state.lotTypeId].route.map(step => step.room));
-  const forSale = SHOP_ITEMS.filter(item => isForSale(state, item, routeRooms)).map(item => item.id);
+  const roomsAhead = roomsAheadOf(state, corridorIndex);
+  const forSale = SHOP_ITEMS.filter(item => isForSale(state, item, roomsAhead)).map(item => item.id);
   const mixed = shuffle(shopSeed(state.seed, corridorIndex), forSale);
   const chosen = mixed.value.slice(0, SHOP_OFFER_COUNT);
   return forSale.filter(id => chosen.includes(id));

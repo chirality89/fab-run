@@ -147,3 +147,27 @@ The shorter map buttons moved "go straight on" to about where the etch card appe
 
 ### Rule to Prevent
 ✅ A helper that ends on a tap and hands over to a test that taps again waits out the double-click window itself, once, so no test depends on where the last button happened to sit
+
+## The shop sold items for rooms the lot had already left
+
+### What Happened
+code-explainer found that a shop after litho could offer a resist, which could never act again. The plan only said "rooms not on the route at all", and I built exactly that.
+
+### Root Cause
+"On the route" was checked against the whole route, not the part still ahead. The screen's "Not used again on this route" line hid the gap instead of showing it as a bug.
+
+### Rule to Prevent
+✅ Anything offered to the player must be able to matter from where the lot stands now. Check against the route still ahead, not the whole route.
+✅ When a screen needs a "this does nothing" message, ask first whether the thing should be offered at all
+
+## A bot test said "cash ≥ 0", but decision O4 allows running costs below 0
+
+### What Happened
+Once the bot could buy the pad conditioner, seed 17 (random, full deck) ended at −20 cash: it spent down to 0, then CMP charged 20 for pads. The bot test failed.
+
+### Root Cause
+The test's check was stricter than the agreed rule (O4: buying is blocked below 0, running costs may still go below). Until buying existed, nothing could reach that case.
+
+### Rule to Prevent
+✅ A test's limits come from the written decision, not from what the engine happens to do today. Read the decision before writing the limit.
+✅ When a check fails, ask David which is right, the check or the rule. Never loosen it silently (David chose to change the test, 25 Oct 2026).

@@ -163,3 +163,21 @@ test('hand check: the endpoint detector bought before etch', () => {
   close(lotYield(resolveStep(etchWithTool).lot), 0.701607, `yield after etch with the detector (seed ${seed})`);
   close(lotYield(resolveStep(enterStep(without)).lot), 0.685321, `yield after etch without it (seed ${seed})`);
 });
+
+// The rooms each route step is in, for the test below.
+const ROUTE = ['clean', 'dep', 'litho', 'etch', 'clean', 'dep', 'plate', 'cmp', 'metro'];
+
+test('a shop only sells items whose room is still ahead on the route', () => {
+  for (let seed = SEED; seed < SEED + 20; seed++) {
+    const state = createRun({ seed });
+    for (let corridor = 0; corridor < ROUTE.length - 1; corridor++) {
+      const roomsAhead = ROUTE.slice(corridor + 1);
+      for (const id of shopStock(state, corridor)) {
+        const item = ALL_ITEMS.find(entry => entry.id === id);
+        assert.ok(roomsAhead.includes(item.room), `${id} after step ${corridor + 1} (seed ${seed})`);
+      }
+    }
+  }
+  // After CMP only metrology is left, so only the inline metrology tool is sold.
+  assert.deepEqual(shopStock(createRun({ seed: SEED }), 7), ['inlineMetrology']);
+});

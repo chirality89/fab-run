@@ -59,22 +59,25 @@ function chooseSideStop(state, policy, botRng) {
 }
 
 // At an open shop, goes through the stock in order and buys each item it can
-// afford on a coin flip. Returns the state, the bot's generator number and
-// the ids bought.
+// afford on a coin flip. Returns the state, the bot's generator number, the
+// ids bought, and the least cash left right after any purchase (Infinity
+// if it bought nothing).
 function shop(state, policy, botRng) {
   let current = state;
   let rng = botRng;
   const bought = [];
-  if (policy === 'idle' || current.shop === null) return { state: current, botRng: rng, bought };
+  let lowestCash = Infinity;   // the least cash left right after a purchase (none yet)
+  if (policy === 'idle' || current.shop === null) return { state: current, botRng: rng, bought, lowestCash };
   for (const itemId of current.shop.stock) {
     const coin = pick(rng, [true, false]);
     rng = coin.rngState;
     if (coin.value && whyCannotBuy(current, itemId) === null) {
       current = buyItem(current, itemId);
       bought.push(itemId);
+      lowestCash = Math.min(lowestCash, current.cash);
     }
   }
-  return { state: current, botRng: rng, bought };
+  return { state: current, botRng: rng, bought, lowestCash };
 }
 
 // Plays a run to the end. options.deck is 'starter' (default), 'full' or a
@@ -89,6 +92,7 @@ export function playRun(seed, policy = 'idle', options = {}) {
   const cardsPlayed = [];
   const sideStops = [];
   const itemsBought = [];
+  let lowestCashAfterBuying = state.cash;   // starting cash, until something is bought
   while (state.status === 'running') {
     state = enterStep(state);
     const room = playRoom(state, policy, botRng);
@@ -103,13 +107,14 @@ export function playRun(seed, policy = 'idle', options = {}) {
       const shopping = shop(state, policy, botRng);
       botRng = shopping.botRng;
       itemsBought.push(...shopping.bought);
+      lowestCashAfterBuying = Math.min(lowestCashAfterBuying, shopping.lowestCash);
       state = shopping.state;
     }
   }
 
   const summary = {
     seed, policy, status: state.status, yield: lotYield(state.lot), cash: state.cash,
-    minutesUsed: state.minutesUsed, cycleTime: state.cycleTime, cardsPlayed, sideStops, itemsBought,
+    minutesUsed: state.minutesUsed, cycleTime: state.cycleTime, cardsPlayed, sideStops, itemsBought, lowestCashAfterBuying,
   };
   return { state, summary };
 }

@@ -186,7 +186,8 @@ function drawShopItem(item, actions) {
     buy.setAttribute('aria-label', `Buy ${item.name} for ${item.price} cash`);
     box.append(buy);
   } else {
-    box.append(el('span', item.bought ? 'shop-bought' : 'card-reason', item.bought ? 'Bought' : `Can't buy: ${item.reason}`));
+    if (item.bought) box.append(el('span', 'shop-bought', 'Bought'));
+    else box.append(el('span', 'card-reason', `Can't buy: ${item.reason}`));
   }
   return box;
 }
@@ -217,9 +218,11 @@ export function renderShop(container, view, actions, keepFocusOn = null) {
     showFromTop(container);
     return;
   }
-  // After a purchase: focus the next Buy button, or else Continue.
+  // After a purchase: focus the next Buy button from the item just bought
+  // on, or else Continue.
   const position = view.items.findIndex(item => item.id === keepFocusOn);
-  const later = [...container.querySelectorAll('.shop-item')].slice(position).map(node => node.querySelector('.buy-button'));
-  const target = later.find(button => button !== null) ?? container.querySelector('.go-button');
+  const itemsFromHere = [...container.querySelectorAll('.shop-item')].slice(position);
+  const buyButtons = itemsFromHere.map(node => node.querySelector('.buy-button')).filter(button => button !== null);
+  const target = buyButtons.length > 0 ? buyButtons[0] : container.querySelector('.go-button');
   target.focus({ preventScroll: true });
 }
