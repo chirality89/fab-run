@@ -351,4 +351,4 @@
 .chip-doe { display: inline-block; margin-top: 4px; background: var(--ink); border-color: var(--ink); color: var(--surface); font-weight: 600; }
 .doe-after { font-weight: 600; }
 .doe-button { margin-top: 10px; }
-.go-button + .go-button, .pm-panel + .go-button { margin-bottom: 12px; }
+.pm-panel + .go-button { margin-bottom: 12px; }

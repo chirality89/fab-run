@@ -264,7 +264,7 @@ function drawDoeOffer(offer, actions) {
     const button = actionButton('Run this DOE', 'doe-button', () => actions.onDoe(offer.cardId));
     button.setAttribute('aria-label', `Run a DOE on ${offer.name}`);
     box.append(button);
-  } else if (offer.reason !== 'This stop\'s one choice is used') {
+  } else if (!offer.choiceUsed) {
     box.append(el('span', 'card-reason', `Can't run: ${offer.reason}`));
   }
   return box;

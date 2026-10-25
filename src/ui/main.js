@@ -84,7 +84,7 @@ function onTakeStop(stopKind) {
     const before = state;
     state = walkCorridor(state, stopKind);
     if (state.shop !== null) showShop(null);
-    else if (state.pm !== null) showPm(false);
+    else if (state.pm !== null) showPm(JUST_OPENED);
     else renderStop(app, stopView(before, state, stopKind), { onContinue: () => safely(enterRoom) });
   });
 }
@@ -92,14 +92,14 @@ function onTakeStop(stopKind) {
 function onPm(roomId) {
   safely(() => {
     state = pmTool(state, roomId);
-    showPm(true);
+    showPm(AFTER_CHOICE);
   });
 }
 
 function onDoe(cardId) {
   safely(() => {
     state = doeCard(state, cardId);
-    showPm(true);
+    showPm(AFTER_CHOICE);
   });
 }
 
@@ -146,7 +146,10 @@ function showShop(justBought) {
   renderShop(app, shopView(state), { onBuy, onContinue: () => safely(enterRoom) }, justBought);
 }
 
-// The PM/DOE screen. `justChose` is true right after a PM or a DOE.
+// The PM/DOE screen, either just opened or right after a PM or a DOE (then
+// keyboard focus goes to Continue).
+const JUST_OPENED = false;
+const AFTER_CHOICE = true;
 function showPm(justChose) {
   renderPm(app, pmView(state), { onPm, onDoe, onContinue: () => safely(enterRoom) }, justChose);
 }

@@ -10,6 +10,7 @@ import { test, expect } from '@playwright/test';
 
 const SEED = 123456;
 const PAGE = `/?seed=${SEED}`;
+const DOUBLE_CLICK_WINDOW_MS = 600;   // a little more than Chrome's 500 ms (see etch.spec.js)
 
 async function press(page, locator) {
   if (test.info().project.use.hasTouch) await locator.tap();
@@ -107,8 +108,11 @@ test('the DOE section offers 2 practices; a DOE costs 100 and the card shows its
   await expect(page.locator('.doe-button')).toHaveCount(0);
   await expect(page.locator('.pm-button')).toHaveCount(0);   // one choice per stop
 
-  // On to etch (litho in between, doing nothing): the card is tuned.
+  // On to etch (litho in between, doing nothing): the card is tuned. On a
+  // phone "Run litho" sits where Continue was; wait out the double-click
+  // window so the guard doesn't swallow the tap (tasks/lessons.md).
   await press(page, goButton(page));
+  await page.waitForTimeout(DOUBLE_CLICK_WINDOW_MS);
   await press(page, page.locator('.run-button'));
   await press(page, continueButton(page));
   await press(page, goButton(page));

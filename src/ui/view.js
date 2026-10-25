@@ -5,7 +5,7 @@
 // DOM, Node can test it (tests/view.test.js). render.js draws what this
 // returns.
 
-import { PRACTICES, EQUIPMENT, MATERIALS, ROOMS } from '../content/content.js';
+import { EQUIPMENT, MATERIALS, ROOMS } from '../content/content.js';
 import { LOT_TYPES } from '../content/lotTypes.js';
 import { SIDE_STOPS } from '../content/sideStops.js';
 import {

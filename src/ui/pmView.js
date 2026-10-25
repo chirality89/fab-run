@@ -49,6 +49,8 @@ function doeOfferView(state, cardId) {
     afterTradeoff: after.tradeoff,
     done: state.pm.doeDone.includes(cardId),
     canDoe: reason === null,
+    // Once the stop's one choice is used, the screen shows no reason at all.
+    choiceUsed: reason === "already used this stop's one choice",
     reason: reason === null ? null : (DOE_REASON_TEXT[reason] ?? reason),
   };
 }

@@ -96,3 +96,21 @@ test('every practice has a DOE version that keeps a tradeoff and changes somethi
     }
   }
 });
+
+test('a DOE version keeps every cost field and every flag or enables of its card', () => {
+  for (const card of PRACTICES) {
+    const upgrade = card.upgrade;
+    if (upgrade.cost) {
+      for (const field of Object.keys(card.cost)) {
+        assert.ok(field in upgrade.cost, `${card.id} upgrade drops cost.${field} (the whole cost is replaced)`);
+      }
+    }
+    if (upgrade.effects) {
+      for (const effect of card.effects.filter(e => e.op === 'setFlag' || e.op === 'enables')) {
+        const kept = upgrade.effects.some(e => e.op === effect.op && (e.flag ?? e.id) === (effect.flag ?? effect.id));
+        assert.ok(kept, `${card.id} upgrade drops ${effect.op} ${effect.flag ?? effect.id}`);
+      }
+      assert.ok(!upgrade.effects.some(e => e.op === 'enables'), `${card.id} upgrade adds an enables (run.js GATED_CARDS reads base cards only)`);
+    }
+  }
+});

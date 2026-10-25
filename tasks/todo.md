@@ -18,34 +18,34 @@
 | Strip and re-expose | 30 min, 150 cash; CD error ×0.2, particles ×1.2 | particles ×1.1 | A tuned strip with gentler handling |
 
 **The stop**
-- [ ] The PM/DOE screen gets two sections: **PM a tool** (as now) and **DOE a practice**.
-- [ ] One choice per stop: doing a PM closes the DOE section, and the other way round.
-- [ ] DOE lists every practice in your deck that has a DOE version, isn't upgraded yet, and whose room is still ahead. No random pick: the starter deck has only 3 practices.
-- [ ] Each DOE card shows the card now → after the DOE (cost and effects in words, plus the new tradeoff), and a **Run this DOE** button.
+- [x] The PM/DOE screen gets two sections: **PM a tool** (as now) and **DOE a practice**.
+- [x] One choice per stop: doing a PM closes the DOE section, and the other way round.
+- [x] DOE lists every practice in your deck that has a DOE version, isn't upgraded yet, and whose room is still ahead. No random pick: the starter deck has only 3 practices.
+- [x] Each DOE card shows the card now → after the DOE (cost and effects in words, plus the new tradeoff), and a **Run this DOE** button.
 
 **Engine (`src/engine/`)**
-- [ ] `run.js`:
+- [x] `run.js`:
   - `state.upgraded = []`;
   - a card lookup that applies the `upgrade` when the card's id is in `state.upgraded`, used by `whyIllegal`, `playCard` and the dealing filter;
   - new `doeCard(state, cardId)` that refuses a card not in the deck, one already upgraded, one without a DOE version, one whose room is behind the lot, a stop already used, or no stop open;
   - `pmTool` and `doeCard` share the one-choice-per-stop rule (`state.pm.done`).
-- [ ] Bot: at a PM/DOE stop the random bot picks PM or DOE on a coin flip, then uses its PM rule or a random DOE.
+- [x] Bot: at a PM/DOE stop the random bot picks PM or DOE on a coin flip, then uses its PM rule or a random DOE.
 
 **Content (`src/content/`)**
-- [ ] `upgrade` fields on the practices (all `draft: true` as part of their card).
-- [ ] `content.test.js`: every `upgrade` keeps a tradeoff and a physicsNote, uses only known effect ops and patterns, and changes something.
-- [ ] `sideStops.js`: PM / DOE says "PM one tool, or DOE one practice".
+- [x] `upgrade` fields on the practices (all `draft: true` as part of their card).
+- [x] `content.test.js`: every `upgrade` keeps a tradeoff and a physicsNote, uses only known effect ops and patterns, and changes something.
+- [x] `sideStops.js`: PM / DOE says "PM one tool, or DOE one practice".
 
 **Screen (`src/ui/`)**
-- [ ] The PM/DOE screen's DOE section; the DOE tag on cards in the hand.
+- [x] The PM/DOE screen's DOE section; the DOE tag on cards in the hand.
 
 **Tests**
-- [ ] `tests/doe.test.js`: the refusals above; one choice per stop; an upgraded card plays its DOE numbers; the lot's `rngState` is untouched.
-- [ ] **Hand check** (scatter off, drift off), seed 123456: DOE timed over-etch at the stop after step 2, then play it at etch.
+- [x] `tests/doe.test.js`: the refusals above; one choice per stop; an upgraded card plays its DOE numbers; the lot's `rngState` is untouched.
+- [x] **Hand check** (scatter off, drift off), seed 123456: DOE timed over-etch at the stop after step 2, then play it at etch.
   - Underlayer attack is 0.05 × 1.25 = 0.0625 instead of 0.05 × 1.5 = 0.075. That is an even pattern, so yield after etch = the non-DOE result × e^(0.0125) = × **1.012578**.
   - Everything else is the same, residue ×0.3 included.
-- [ ] Screen tests at both sizes; screenshots checked.
-- [ ] `content-drafter` for the 8 other upgrades; `physics-reviewer` on all 11; `code-explainer` and `playtester` before done.
+- [x] Screen tests at both sizes; screenshots checked.
+- [x] `content-drafter` for the 8 other upgrades; `physics-reviewer` on all 11; `code-explainer` and `playtester` before done.
 
 **Size:** content, engine and screen, about 300 lines plus 11 data entries. This plan is the ask.
 
@@ -70,8 +70,15 @@
 - physics-reviewer on the 10 DOE versions: 4 pass as they are. Fixed: the tuned measure-all now saves time through its stage path and auto-focus, not by sampling less (it still reveals all 25 sites); the spike anneal note no longer says "soak"; the etch-stop note wording.
   - Questions for David: the base measure-all note says "3 of 25 wafers" on a card about 25 sites; should dummy fill fight dishing or erosion (slotting is the textbook dishing fix); and should the thinner etch stop weaken underlayer protection (it can't today without a new op: NEEDS NEW LOGIC)?
 - Screen built: a DOE section first on the PM/DOE screen (now → after, the tuned tradeoff, Run this DOE), then the PM section; cash in the header; a DOE tag on upgraded cards in the hand.
+- playtester: the engine and bot are clean (DOEs in 10 of 20 random runs). The phone DOE screen test failed every time: the double-click window again (lessons.md). Fixed with the wait and checked 5 of 5 with `--repeat-each=5`.
+- code-explainer fixes:
+  - content tests that a DOE version keeps every cost field and every flag/enables of its card, and adds no `enables`;
+  - the "Can't run" line keys on the engine's reason, not the display text;
+  - an unused import and a CSS selector removed;
+  - named arguments for showPm.
+- code-explainer raised that the three starter DOE versions are strictly better than the card as written. Their cost is paid at the stop (40 min + 100 cash), and David approved them, so they stay. Noted for David.
 
-**Result:**
+**Result:** a PM/DOE stop offers one choice: PM a tool, or a DOE on one of 2–3 seeded practices for 100 cash. The DOE'd card plays its tuned recipe for the rest of the run, with a DOE tag. All 10 practices have a DOE version. `npm test` 168/168, `npm run screens` 28/28.
 
 ## Done: M3 item 2c — PM/DOE stop, part 1: PM restores one tool
 

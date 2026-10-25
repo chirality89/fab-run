@@ -27,7 +27,7 @@ Current milestone: **M3 — The run**
 - [x] Procurement stop: buy equipment and materials with cash
 - [x] Tool drift and wear: each room's tool drifts, shown on its SPC chart before it bites yield
 - [x] PM stop: restore one tool on the route ahead
-- [ ] DOE stop: upgrade one practice for the run (upgrades as data)
+- [x] DOE stop: upgrade one practice for the run (upgrades as data)
 - [ ] Three events with a tradeoff each
 - [ ] Ship screen: yield against spec, cost per good die, cycle time; scrap and reject end states
 - [ ] Save and resume a run (`SAVE_KEY`, storage-blocked safe)
