@@ -65,6 +65,38 @@
 
 **What you'll see:** in the same run on seed 123456, etch costs about 10 points instead of 22, and litho about 3 instead of 7. The ship report's step breakdown shows it. A worn etch tool (red SPC flag) now visibly costs more than a fresh one.
 
+**Answers (David, 26 Oct 2026):** Q1 keep all the screenshots; Q2 the numbers are fine (0.04 / 0.03 / 0.03 / 0.03); Q3 other rooms stay for now.
+
+**Measured (scratch script, 200 seeds 1000–1199 plus seeds 123456 / 42 / 777). "Greedy" plays every legal card in every room, no side stops.**
+
+| Play | Before | After |
+|---|---|---|
+| Do nothing (200 seeds, mean / best) | 46.4% / 54.1% | 52.7% / 61.0% |
+| Do nothing, seeds 123456 / 42 / 777 | 51.8 / 47.9 / 50.6 | 58.5 / 54.8 / 57.3 |
+| Greedy, starter deck (mean) | 48.9% | 53.8% |
+| Greedy, full pool (mean, lots at or over 70%) | 62.0%, 2 of 200 | 67.0%, 53 of 200 |
+| Random play, full pool (mean, lots at or over 70%) | 58.9%, 1 of 200 | 63.7%, 27 of 200 |
+
+- Do-nothing still fails (best of 200 is 61%). The best and worst strategies are now about 14 points apart (52.7 vs 67.0), up from 0.7 to 3 points on the starter deck. **With the starter deck alone nothing reaches 70%** (best 62%), because the starter pool has almost no cards outside etch and litho. That is the "decision in every room" item, not this one.
+- **Correction to the plan:** I wrote that etch would cost "about 10 points instead of 22". By hand it is **16.2 points** (from 22.9). Depth variation (0.08, latent, shared with the etch-stop item) and handling particles are still there. Litho goes from 7 to 3 points.
+
+**Test values that change (hand-computed first, then checked against the engine).** I rebuilt the model by hand in a separate script. It gives the *old* numbers exactly (0.517954, 0.685321, 0.716865, 0.701607, 22.8610, 19.7066), so I trust it for the new ones.
+
+| Test | Old expected | New expected | Hand working |
+|---|---|---|---|
+| lotTypes: idle route, centre / inner / outer sites | 0.588605 / 0.559898 / 0.492567 | 0.657047 / 0.625002 / 0.567295 | even exponent 0.42 (was 0.53); inner adds depth 0.08 × 0.625; outer adds depth 0.08 × 1.25 + edge ring 0.03 × 1.5625 |
+| lotTypes, run, events, tools, run Q-time: whole idle yield | 0.517954 | 0.589352 | (1 × centre + 8 × inner + 16 × outer) / 25 |
+| run: residue / underlayer attack on entering etch | 0.10 / 0.05 | 0.04 / 0.03 | the new sizes |
+| run: after timed over-etch | residue 0.03, underlayer 0.075 | residue 0.012, underlayer 0.045 | ×0.3 and ×1.5 of the new sizes |
+| doe: underlayer attack before playing | 0.05 | 0.03 | the new size |
+| doe: DOE-centred over-etch yield ratio | × 1.012578 | × 1.007528 | e^(0.03 × (1.5 − 1.25)) |
+| shop: yield after etch, with / without the detector | 0.701607 / 0.685321 | 0.798418 / 0.779789 | detector: depth 0.056 instead of 0.08 |
+| view: yield on entering etch | 0.913931, shown 91.4 | 0.941765, shown 94.2 | e^(−0.06) |
+| view: loss at etch, idle / after over-etch | 22.8610 / 19.7066 points (22.9 / 19.7) | 16.1976 / 15.1772 (16.2 / 15.2) | before minus after |
+| view: yield after etch, idle / over-etch | 68.5% / 71.7% | 78.0% / 79.0% | 0.779789 / 0.789992 |
+| events, tools: slurry / worn-CMP ratio | × 0.977312 | unchanged | only the idle yield beside it changes |
+| run Q-time: ratio e^(−0.04) | 0.960789 | unchanged | unchanged |
+
 **Q2 (the numbers).** Are 0.04 / 0.03 / 0.03 / 0.03 right, or do you want smaller (0.02 each) so that the tool state decides almost everything? This is your fab call.
 
 **Q3 (other rooms).** Plating, CMP, barrier and strip also carry fixed risk (about 0.28 together). Lane F measured +11–15 points after etch with no decision. Do they stay for now (my proposal; the cards for those rooms come with the "decision in every room" item), or shrink in this same change?
