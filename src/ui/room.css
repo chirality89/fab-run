@@ -83,6 +83,7 @@
   color: var(--muted);
 }
 .expected-loss { margin: 0; font-weight: 500; }
+.carried-in { margin: 0; }
 
 /* --- Wafer map: 5 × 5 square tiles ---------------------------------------- */
 .wafer-map {

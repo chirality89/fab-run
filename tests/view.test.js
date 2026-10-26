@@ -204,7 +204,7 @@ test('map in the corridor after step 1: its offers, bay 1 done, bay 2 next', () 
   assert.deepEqual(view.offers.map(offer => offer.kind), inCorridor.map[0].offers, `seed ${SEED}`);
   assert.deepEqual(view.bays.slice(0, 3).map(bay => bay.status), ['done', 'next', 'ahead']);
   assert.equal(view.corridors[0].here, true);
-  assert.equal(view.goText, 'Go straight to step 2: Deposition (SiN + oxide)');
+  assert.equal(view.goText, 'Go straight to step 2: Deposition (oxide)');
   for (const offer of view.offers) assert.equal(offer.qtimeRisk, 0, 'not a Q-time corridor');
 });
 
@@ -226,7 +226,7 @@ test('stopView: names the stop and its minutes, and the step that comes next', (
   const minutes = { metrology: 20, pm: 40, procurement: 10, event: 10 }[kind];
   assert.equal(view.minutes, minutes, `${kind}, seed ${SEED}`);
   assert.match(view.text, new RegExp(`cost ${minutes} min`));
-  assert.equal(view.goText, 'Continue to step 2: Deposition (SiN + oxide)');
+  assert.equal(view.goText, 'Continue to step 2: Deposition (oxide)');
 });
 
 test('mapView refuses to draw while the lot is in a room', () => {
@@ -379,7 +379,7 @@ test('eventView: consequences in words, tool health said as a service, Q-time wa
 test('a card in the hand shows its effects and how much it saves in this room', () => {
   const [card] = roomView(idleToEtch()).hand;
   assert.equal(card.id, 'timedOveretch', `seed ${SEED}`);
-  assert.equal(card.effectsText, 'residue ×0.3 · underlayer attack ×1.5 · underlayer attack ×0.5 with etch stop');
+  assert.equal(card.effectsText, 'residue ×0.3 · underlayer attack ×1.5 · underlayer attack ×0.7 with etch stop');
   assert.ok(Math.abs(card.pointsChange - 1.0204) < 1e-4, `points change: got ${card.pointsChange} (seed ${SEED})`);
   assert.equal(card.pointsText, 'About 1.0 point less lost in this room.');
 });
@@ -463,4 +463,53 @@ test('a PM/DOE stop: "Leave without a PM or DOE" until something is chosen, then
   const atStop = walkCorridor(state, 'pm');
   assert.equal(pmView(atStop).goText, 'Leave without a PM or DOE: on to step 3, Litho (trench)', `seed ${SEED}`);
   assert.equal(pmView(pmTool(atStop, 'etch')).goText, 'Continue to step 3: Litho (trench)');
+});
+
+// --- M4.5 item 3: etch-stop logic, and what the etch forecast carries in --
+// Hand check in tasks/todo.md (M4.5 item 3), from an independent model of
+// the 5 × 5 rings: with the stop, depth variation is 0.08 × 0.4 = 0.032 and
+// etch's underlayer attack 0.03 × 0.3 = 0.009 (the route step's effect).
+
+// Seed 123456, scatter and drift off: lay down the etch stop in the first
+// deposition room (the only card played), then idle into etch.
+function stopToEtch() {
+  let state = createRun({ seed: SEED, scatterStrength: 0, toolDrift: false, deck: ['timedOveretch', 'etchStopLayer'] });
+  state = idleRoom(state);                       // step 1, wet clean
+  state = resolveStep(playCard(enterStep(state), 'etchStopLayer'));
+  state = walkCorridor(state, null);             // step 2 done, with the stop
+  while (state.stepIndex < ETCH) state = idleRoom(state);
+  return enterStep(state);
+}
+
+test('etch stop: etch adds 0.009 underlayer attack with it, 0.03 without', () => {
+  close(stopToEtch().lot.risks.underlayer_attack, 0.009, 'with the stop');
+  close(idleToEtch().lot.risks.underlayer_attack, 0.03, 'without the stop');
+});
+
+test('etch stop, nothing played at etch: 10.6861 points, yield after 0.834904', () => {
+  const before = stopToEtch();
+  assert.ok(Math.abs(roomView(before).expectedLossPoints - 10.6861) < 1e-4,
+    `expected loss: got ${roomView(before).expectedLossPoints}, expected 10.6861 (seed ${SEED})`);
+  close(lotYield(resolveStep(before).lot), 0.834904, 'yield after etch, stop');
+});
+
+test('etch stop, timed over-etch: 8.3540 points, yield after 0.858225 (attack ×1.05)', () => {
+  const before = playCard(stopToEtch(), 'timedOveretch');
+  close(before.lot.risks.underlayer_attack, 0.00945, 'attack 0.009 × 1.5 × 0.7');
+  assert.ok(Math.abs(roomView(before).expectedLossPoints - 8.3540) < 1e-4,
+    `expected loss: got ${roomView(before).expectedLossPoints}, expected 8.3540 (seed ${SEED})`);
+  close(lotYield(resolveStep(before).lot), 0.858225, 'yield after etch, stop and over-etch');
+});
+
+test('etch forecast says how much is carried in: 6.8 of 16.2 points, 2.8 with the stop', () => {
+  const carried = 'The lot brought this in from earlier steps; it was not added in this room.';
+  assert.equal(roomView(idleToEtch()).carriedInText,
+    `About 6.8 of these points come from depth variation (etch depth differs center to edge). ${carried}`);
+  assert.equal(roomView(stopToEtch()).carriedInText,
+    `About 2.8 of these points come from depth variation (etch depth differs center to edge). ${carried}`);
+});
+
+test('a room that realizes nothing carried in has no carried-in sentence', () => {
+  const inClean = enterStep(createRun({ seed: SEED, scatterStrength: 0, toolDrift: false }));
+  assert.equal(roomView(inClean).carriedInText, null);
 });

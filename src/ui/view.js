@@ -5,7 +5,7 @@
 // DOM, Node can test it (tests/view.test.js). render.js draws what this
 // returns.
 
-import { EQUIPMENT, MATERIALS, ROOMS } from '../content/content.js';
+import { EQUIPMENT, MATERIALS, ROOMS, PATTERNS } from '../content/content.js';
 import { LOT_TYPES } from '../content/lotTypes.js';
 import { SIDE_STOPS } from '../content/sideStops.js';
 import {
@@ -18,7 +18,7 @@ import { whyIllegal, playCard } from '../engine/run.js';
 import { whyCannotBuy, findShopItem } from '../engine/shop.js';
 import { cardInRun } from '../engine/doe.js';
 import { spcView } from './spcView.js';
-import { effectsLine, itemName } from './effectsText.js';
+import { effectsLine, itemName, words } from './effectsText.js';
 
 // A fraction (0..1) as a percent with one decimal, e.g. 0.913931 → 91.4.
 export function toPercent(fraction) {
@@ -148,6 +148,26 @@ function expectedLossPoints(lot, step) {
   return (lotYield(lot) - lotYield(after)) * 100;
 }
 
+// How much of this room's forecast comes from risk the lot brought in, not
+// risk added here (physics review: say what is carried in from the stack;
+// David, 26 Oct 2026). "Brought in" means the lot type's startRisks
+// patterns (set by the film stack and the layout), so etch names depth
+// variation and CMP names dishing. E.g. "About 6.8 of these points come
+// from depth variation (etch depth differs center to edge). The lot brought
+// this in from earlier steps; it was not added in this room."
+// Null when that share is under 0.05 points.
+export function carriedInText(lot, step, lotType) {
+  const after = realizeRisks(lot, step.realizes);
+  const parts = Object.keys(lotType.startRisks)
+    .filter(pattern => step.realizes.includes(pattern))
+    .map(pattern => ({ pattern, points: ((after.lost[pattern] ?? 0) - (lot.lost?.[pattern] ?? 0)) * 100 }))
+    .filter(part => part.points.toFixed(1) !== '0.0');
+  if (parts.length === 0) return null;
+  return parts.map(({ pattern, points }) =>
+    `About ${points.toFixed(1)} of these points come from ${words(pattern)} (${PATTERNS[pattern]}). `
+    + 'The lot brought this in from earlier steps; it was not added in this room.').join(' ');
+}
+
 // What the room's equipment and materials did to cash as the lot came in,
 // e.g. "On entering, In-situ pad conditioner took 20 cash." Null if
 // nothing changed cash (Lane F issue 9: cash went with no message).
@@ -190,6 +210,7 @@ export function roomView(state) {
     hand: state.hand.map(cardId => cardView(state, step, cardId)),
     expectedLossPoints: lossPoints,
     expectedLossText: `This room will cost about ${lossPoints.toFixed(1)} points of yield if nothing changes.`,
+    carriedInText: carriedInText(state.lot, step, LOT_TYPES[state.lotTypeId]),
   };
 }
 

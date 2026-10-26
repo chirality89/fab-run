@@ -8,11 +8,14 @@
 //   • startRisks  risk the lot carries before the first step. It is set by
 //                 the film stack and the layout, and waits for the room
 //                 where it shows up.
+//                 A step may also carry `effects`: ordinary content effects
+//                 (content.js operations) applied right after its risks
+//                 enter, e.g. scaling a risk when an earlier room set a flag.
 //   • traits      facts about this lot that cards check with when: { lot }
 //                 (content.js). Only static traits belong here.
 //
-// Order inside a step (run.js will follow it): add the step's risks, then
-// apply equipment and material effects, then the cards played; on resolving,
+// Order inside a step (run.js follows it): add the step's risks, apply the
+// step's own effects, then apply equipment and material effects, then the cards played; on resolving,
 // realize the step's patterns.
 //
 // Every room must be a key of ROOMS and every pattern a key of PATTERNS
@@ -40,7 +43,7 @@ export const LOT_TYPES = {
       { room: 'clean', label: 'Wet clean',
         adds: { particles: 0.01 },
         realizes: ['particles'] },
-      { room: 'dep', label: 'Deposition (SiN + oxide)',
+      { room: 'dep', label: 'Deposition (oxide)',
         adds: { particles: 0.01 },
         realizes: ['particles', 'flakes'] },
       { room: 'litho', label: 'Litho (trench)',
@@ -48,6 +51,12 @@ export const LOT_TYPES = {
         realizes: ['particles', 'cd_error'] },
       { room: 'etch', label: 'Etch (trench)',
         adds: { particles: 0.01, residue: 0.04, underlayer_attack: 0.03, edge_ring: 0.03 },
+        // An etch stop under the oxide (the "Deposit SiN etch stop" card):
+        // the etch reaches the nitride and almost stops, so it attacks far
+        // less of the film below (David, 26 Oct 2026: ×0.3).
+        effects: [
+          { op: 'defectMult', pattern: 'underlayer_attack', mult: 0.3, when: { flag: 'etch_stop' } },
+        ],
         realizes: ['particles', 'residue', 'underlayer_attack', 'edge_ring', 'depth_variation'] },
       // The oxide grows while the lot waits here, but only bites in the
       // next step, once the barrier traps it. `qtime` marks the corridor

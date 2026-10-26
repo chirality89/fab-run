@@ -42,8 +42,9 @@ import { normalizeSeed } from '../engine/rng.js';
 // 2 (26 Oct 2026): the save also holds the run's unlocked list (M4 item 4).
 // 3 (26 Oct 2026): the etch and litho risk sizes changed (M4.5 item 2), so an old save would replay to a different yield.
 // 4 (26 Oct 2026): the map no longer offers metrology and the deck no longer holds measure all (M4.5 item 5), so an old save's side stops and cards would not match.
-export const SAVE_VERSION = 4;
-export const SAVE_KEY = 'fabrun.run.v4';   // bump the v4 together with SAVE_VERSION
+// 5 (26 Oct 2026): an etch stop now cuts etch's underlayer attack, and over-etch on a stop is ×1.05 (M4.5 item 3), so an old save with the stop would replay to a different yield.
+export const SAVE_VERSION = 5;
+export const SAVE_KEY = 'fabrun.run.v5';   // bump the v5 together with SAVE_VERSION
 
 // The browser's localStorage, or null. Even LOOKING it up throws in some
 // browsers when storage is blocked, hence the try. Node has none.

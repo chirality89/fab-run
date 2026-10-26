@@ -12,7 +12,7 @@ const entry = id => [...PRACTICES, ...EQUIPMENT, ...MATERIALS].find(item => item
 
 test('a starter card: timed over-etch, with its etch-stop condition', () => {
   assert.equal(effectsLine(entry('timedOveretch').effects),
-    'residue ×0.3 · underlayer attack ×1.5 · underlayer attack ×0.5 with etch stop');
+    'residue ×0.3 · underlayer attack ×1.5 · underlayer attack ×0.7 with etch stop');
 });
 
 test('equipment: endpoint detector (enables a card) and pad conditioner (costs cash each use)', () => {

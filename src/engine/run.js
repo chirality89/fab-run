@@ -13,8 +13,8 @@
 //   (sideStops.js)
 //   scrapLot     → at any point between rooms, the player may scrap the lot
 //
-// Order inside enterStep (lotTypes.js): add the step's risks and the room
-// tool's drift risk (tools.js), set the room's time budget, apply the
+// Order inside enterStep (lotTypes.js): add the step's risks, apply the
+// step's own effects (if any), add the room tool's drift risk (tools.js), set the room's time budget, apply the
 // equipment and materials for this room, then deal. resolveStep then records
 // the tool's SPC point for this lot and wears the tool.
 //
@@ -189,6 +189,10 @@ export function enterStep(state) {
   // 1. The step's own risks enter the lot.
   let lot = state.lot;
   for (const [pattern, amount] of Object.entries(step.adds)) lot = addRisk(lot, pattern, amount);
+  // A step may scale those risks by what earlier rooms left in the lot,
+  // e.g. an etch stop laid down at deposition cuts the attack at etch
+  // (lotTypes.js `effects`). Ordinary content effects, checked like a card's.
+  if (step.effects) lot = applyEffects({ ...state, lot }, { id: step.label, effects: step.effects }).lot;
   // A drifted tool adds risk to the pattern it feeds (0 for a healthy tool).
   const monitor = TOOL_MONITORS[step.room];
   const drift = monitor ? driftRisk(state.tools[step.room].health, monitor.oneSided) : 0;

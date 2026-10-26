@@ -78,7 +78,7 @@ test('between rooms the corridor offers 2–3 side stops or straight on', async 
   expect(offers === 2 || offers === 3, `${offers} offers (seed ${SEED})`).toBe(true);
   await expect(page.locator('.corridor-here')).toHaveCount(1);
   await expect(page.locator('.bay-done')).toHaveCount(1);
-  await expect(goButton(page)).toHaveText('Go straight to step 2: Deposition (SiN + oxide)');
+  await expect(goButton(page)).toHaveText('Go straight to step 2: Deposition (oxide)');
   await expectNoSidewaysScroll(page);
   await screenshot(page, '5-map-corridor');
   expect(errors, `console errors (seed ${SEED})`).toEqual([]);

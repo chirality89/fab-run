@@ -63,6 +63,7 @@ function drawYield(view) {
     barMark(view.spec, `Spec ${view.spec}%`, 'mark-spec'));
   box.append(bar);
   box.append(el('p', 'expected-loss', view.expectedLossText));
+  if (view.carriedInText) box.append(el('p', 'carried-in', view.carriedInText));
   return box;
 }
 
