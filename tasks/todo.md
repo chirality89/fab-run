@@ -1,5 +1,90 @@
 # Fab Run — Task Tracker
 
+## Current: M4 item 4 — starter pool vs unlocked pool; unlocked remedies appear in the deck and at procurement
+
+**Status: plan, waiting for David's OK.**
+
+**Decisions settled:** O1 (diagnosing earns unlocks) is already settled. Q1–Q4 below need David's answers.
+
+### Task: a diagnosed failure mode's remedies join every later run
+
+**What it is today**
+- Every item has `unlockedBy`: `null` for the starter pool, or the failure mode that unlocks it. Content and failure modes agree in both directions (checked: no mismatches).
+- The starter pool is small: 3 practices (timed over-etch, measure all 25 sites, strip and re-expose), 1 piece of equipment (inline metrology), 2 resists, and 2 consumables.
+- Every run's deck is the starter deck, so only etch and litho rooms ever deal cards.
+- The shop sells **every** equipment and material, because `SHOP_SELLS_LOCKED_ITEMS = true` was set "until the notebook exists".
+
+**What you'll see after this item**
+- Diagnose Keyhole void. On every later run, the **Low-current start step** card is in your deck and turns up in the plating room's hand. The **additive bath** can be on sale at a procurement stop.
+- Before any diagnosis, procurement only sells starter items (see Q3).
+- The Notebook page now shows each entry's remedies: "Unlocks: Low-current start step, Additive bath". It lists only remedies the game can use (see Q4).
+
+**Engine (`src/engine/`)**
+- [ ] `notebook.js`: `unlockedIds(notebook)` gives the ids that the notebook's failure modes unlock, in content order. Unknown ids are skipped.
+- [ ] `run.js`:
+  - `createRun({ …, unlocked = [] })` keeps the list in `state.unlocked`.
+  - `runDeck(unlocked)` gives the starter practices plus the unlocked practices, in content order (Q1).
+  - The default stays `[]`, so the bot and the existing tests play exactly as before.
+- [ ] `shop.js`: an item is for sale if it is a starter item **or** is in `state.unlocked`. `SHOP_SELLS_LOCKED_ITEMS` becomes `false` in `balance.js`.
+
+**Why the run keeps its own list (and a save-version bump)**
+- A run's pool is fixed **when the run starts**. A diagnosis made in another tab mid-run must not change this run's deck. If it did, the same seed and the same actions would no longer give the same run (CLAUDE.md §8), and a resumed save would replay differently.
+- So the run save stores the list: `{ version: 2, seed, unlocked, actions }`.
+- `SAVE_VERSION` goes 1 → 2, so a run in progress when this ships is dropped once and starts fresh. **The notebook is not touched**: it has its own key, which is exactly what M4 item 2 was for.
+
+**UI (`src/ui/`)**
+- [ ] `main.js`: `newRun(seed)` uses `unlockedIds(notebook)` for the deck and the shop. A resumed run uses the list saved with it.
+- [ ] `storage.js`: `saveRun` and `loadRun` carry `unlocked` (a list of text ids, else the save is junk).
+- [ ] `notebookView.js` and `notebookPage.js`: "Unlocks: …" under each entry, or "No remedy yet." for etch residue.
+
+**Tests**
+- [ ] Hand-checked:
+  - `unlockedIds` of {keyhole, edge ring} is `['slowStartPlate', 'eChuckUpgrade', 'additiveBath', …]` in content order;
+  - an empty notebook unlocks nothing;
+  - an unknown id is skipped.
+- [ ] `runDeck([])` equals the starter deck, and `runDeck` of the keyhole unlocks adds `slowStartPlate` only (the bath isn't a practice).
+- [ ] Shop:
+  - with `unlocked: []`, no locked item is ever in stock (100 seeds, every corridor);
+  - an unlocked item can be in stock.
+  - `shopSeed.js` passes `unlocked` for its 3 test items, so the shop tests' expected items stay the same. Only the seed it finds may move, as its header comment already allows.
+- [ ] Saves:
+  - `unlocked` round-trips;
+  - a v1 save is ignored;
+  - a resumed run uses its saved list even after the notebook grew.
+- [ ] Screens, desktop and phone:
+  - with a stored notebook holding keyhole void, the plating room deals Low-current start;
+  - with an empty one, it deals nothing there.
+  - The shop screen tests store the notebook entries their items need (via `addInitScript`).
+  - The phone tests run with `--repeat-each=5`.
+- [ ] Bot runs clean (unchanged default: `unlocked: []`).
+
+**Size:** about 30 lines in `src/engine/`, 1 line in `balance.js`, about 40 in `src/ui/`, and about 180 lines of tests. **It touches `src/engine/`, `src/content/` and `src/ui/`, so this plan is the ask (CLAUDE.md §3).**
+
+### Questions for David
+- **Q1 how unlocked practices reach the deck.** The roadmap says "appear in drafts", but there is no draft yet.
+  - **A (proposed):** every unlocked practice joins the deck of every later run, automatically. The hand is already drawn only from the cards legal in that room, so a bigger deck means more choice in that room, not clutter.
+  - **B:** at the start of a run, pick a few of your unlocked practices (a new screen and a new action).
+  - **C:** Spire-style: after a room, pick 1 of 3 cards to add. That's a new mechanic, better as its own roadmap item later.
+- **Q2 the save-version bump:** a run in progress when this ships is dropped once; the notebook is kept. Proposed: OK.
+- **Q3 procurement will be thin at first.** The only starter items it can sell are inline metrology and the thick resist (the i-line resist is already loaded). A first-run shop may offer 1–2 items, and late on the route, none. Options:
+  - accept it, since diagnosing is how the shop fills up (proposed);
+  - or move a few equipment items into the starter pool. That's a content call for you.
+- **Q4 unlocked consumables** (bath analysis, fresh resist, implant monitor, oxide monitor) **can't be used anywhere yet**. No engine code plays consumables, not even the starter qual wafer and spare part.
+  - Proposed: leave them out of "Unlocks: …" until consumables are in the game, and list them in NEEDS NEW LOGIC.
+
+**For David (found while planning, not blocking)**
+- On the Cu line, two items can never be unlocked:
+  - **i-line → DUV resist (`resistCAR`)**: post-exposure delay T-top is never a right answer there, since no step waits before bake.
+  - **fresh resist**: same reason.
+- Other items wait on NMOS-only failure modes. That is fine, since NMOS is M5.
+
+### Acceptance criteria
+- After a right diagnosis, the next run's deck holds that failure mode's practices, and procurement can sell its equipment and materials. Before any diagnosis, neither does.
+- A resumed run replays exactly, even if the notebook changed meanwhile.
+- `npm test`, `npm run screens` and the bot pass; the phone tests pass 5 runs in a row; screenshots are checked.
+
+---
+
 ## Done: M4 item 3 — Notebook page: your diagnosed failure modes, their signatures and the seed each was found on
 
 **Status: done. David answered Q1–Q4 (26 Oct 2026): Q1, Q2 and Q4 as proposed; Q3 changed: remedies stay hidden until the unlock pool (M4 item 4) makes them real. Built the same day.**
