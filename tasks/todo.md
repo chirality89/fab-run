@@ -97,7 +97,7 @@
 - Diagnosed failure modes add their practices to every later run's deck, and their equipment and materials to the shop.
 - Each run keeps its unlocked list, and the run save stores it (`SAVE_VERSION` 2).
 - The Notebook page shows "Unlocks: …".
-- npm test 233/233, npm run screens 72/72, the changed phone tests passed 5 runs in a row, the bot ran clean, and the screenshots were checked.
+- npm test 233/233, npm run screens 74/74, the changed phone tests passed 5 runs in a row, the bot ran clean, and the screenshots were checked.
 
 ---
 
