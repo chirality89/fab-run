@@ -446,3 +446,16 @@ test('a good ?seed= or none at all shows no note', () => {
 test('the floor-plan legend lists only the stops the map offers (no metrology since M4.5 item 5)', () => {
   assert.equal(stopKeyText(), 'PM PM / DOE · BUY Procurement · EVT Event');
 });
+
+// --- M4.5 small fixes: the PM stop's exit says what you leave with (issue 8)
+
+test('a PM/DOE stop: "Leave without a PM or DOE" until something is chosen, then Continue', async () => {
+  const { pmView } = await import('../src/ui/pmView.js');
+  const { pmTool } = await import('../src/engine/run.js');
+  // Seed 123456: the corridor after step 2 offers PM/DOE (doe.test.js).
+  let state = resolveStep(enterStep(createRun({ seed: SEED, scatterStrength: 0, toolDrift: false })));
+  state = resolveStep(enterStep(walkCorridor(state, null)));
+  const atStop = walkCorridor(state, 'pm');
+  assert.equal(pmView(atStop).goText, 'Leave without a PM or DOE: on to step 3, Litho (trench)', `seed ${SEED}`);
+  assert.equal(pmView(pmTool(atStop, 'etch')).goText, 'Continue to step 3: Litho (trench)');
+});

@@ -261,8 +261,9 @@ function drawPmChoice(choice, actions) {
   if (choice.done) {
     box.append(el('span', 'shop-bought', 'PM done: the next lots run on a restored tool'));
   } else if (choice.canPm) {
-    const button = actionButton('PM this tool', 'pm-button', () => actions.onPm(choice.roomId));
-    button.setAttribute('aria-label', `PM the ${choice.roomName} tool`);
+    // The button names its tool: six identical "PM this tool" buttons led a
+    // player to PM the wrong one (Lane F issue 8).
+    const button = actionButton(`PM the ${choice.roomName} tool`, 'pm-button', () => actions.onPm(choice.roomId));
     box.append(button);
   }
   return box;
