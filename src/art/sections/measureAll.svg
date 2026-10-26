@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 140" role="img">
+  <title>Measure all 25 sites: a finished trench in oxide over SiN, with a width bar across its top and a depth bar inside it.</title>
+  <!-- Stack, top to bottom: oxide, SiN underlayer, Si. -->
+  <rect class="mat-si"      x="0"   y="108" width="260" height="32"/>
+  <rect class="mat-nitride" x="0"   y="94"  width="260" height="14"/>
+  <!-- Oxide on both sides of the trench (the gap between them is the trench). -->
+  <rect class="mat-oxide"   x="0"   y="52"  width="110" height="42"/>
+  <rect class="mat-oxide"   x="150" y="52"  width="110" height="42"/>
+  <!-- Width (CD) bar across the top of the trench. -->
+  <path class="mat-measure" d="M110 44h40M110 40v8M150 40v8"/>
+  <text class="art-label-on-dark" x="130" y="34" text-anchor="middle">CD</text>
+  <!-- Depth bar inside the trench, top of the oxide to the SiN. -->
+  <path class="mat-measure" d="M130 54v38M126 54h8M126 92h8"/>
+  <text class="art-label" x="156" y="77">depth</text>
+  <text class="art-label" x="6" y="77">oxide</text>
+  <text class="art-label" x="6" y="105">SiN</text>
+  <text class="art-label" x="6" y="128">Si</text>
+  <!-- Scale bar. Thin films are drawn at least 6 px thick, so it is a guide, not a ruler. -->
+  <path class="mat-measure" d="M208 16h44M208 12v8M252 12v8"/>
+  <text class="art-label-on-dark" x="252" y="9" text-anchor="end">200 nm</text>
+</svg>

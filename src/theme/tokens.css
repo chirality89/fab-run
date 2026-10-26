@@ -2,7 +2,10 @@
    Every color in the UI comes from here. No hard-coded colors elsewhere.
    Contrast checked: ink on every room fill is 6.7:1 or better; text colors
    are 4.5:1 or better on both --bg and --surface. Room fills are BACKGROUNDS
-   behind --ink text, never text colors themselves. */
+   behind --ink text, never text colors themselves.
+   Night shift: the room tints turn dark (78% toward the night --surface) so
+   night --ink text on them stays about 7.4:1 or better. Shades stay the same:
+   they are tool faces, not page ground. */
 
 :root {
   color-scheme: light dark;
@@ -34,6 +37,32 @@
   --room-cmp:     #B7C2CC;  /* CMP: grey */
   --room-metro:   #8ED6A8;  /* metrology: mint */
 
+  /* Room art steps (card art, docs/card-art-plan.md). Three per room, all
+     flat, made by mixing the room color with white or with --ink:
+       -tint    72% toward white. Pale backdrop wall. Safe behind --ink text
+                (13.1:1 or better).
+       -shade1  18% toward --ink. First darker face: a tool body or a side
+                face. Safe behind --ink text (4.9:1 or better, etch lowest;
+                etch is 19% toward --ink so it still steps 1.35:1 from its base).
+       -shade2  38% toward --ink. Second darker face. ART ONLY, NEVER BEHIND
+                TEXT: some give only 3.5:1 with --ink and 3.4:1 with white.
+     shade1 is at least 1.35:1 darker than the base and shade2 1.35:1 darker
+     than shade1, so two flat faces read as different without a gradient.
+     The tint is 1.15:1 or more above the base (dep is lowest, 1.19:1: its
+     base is nearly white already), so a tool drawn on its tint always gets
+     an --ink outline. The dep tint is also almost the page --bg, so a dep
+     backdrop always keeps its frame line.
+     tests/tokens.test.js checks all of this. */
+  --room-clean-tint:   #D2F3F6;  --room-clean-shade1:   #52B3BF;  --room-clean-shade2:   #438F9B;
+  --room-litho-tint:   #FFF0C6;  --room-litho-shade1:   #D5AB32;  --room-litho-shade2:   #A68930;
+  --room-etch-tint:    #D7E7FC;  --room-etch-shade1:    #5E8ECF;  --room-etch-shade2:    #4C74A8;
+  --room-dep-tint:     #F5F7FA;  --room-dep-shade1:     #B9C1C9;  --room-dep-shade2:     #919AA3;
+  --room-diff-tint:    #FFE3CD;  --room-diff-shade1:    #D58447;  --room-diff-shade2:    #A66C40;
+  --room-implant-tint: #EBE3FD;  --room-implant-shade1: #9A86D2;  --room-implant-shade2: #796DA9;
+  --room-plate-tint:   #F6E3D3;  --room-plate-shade1:   #BB8459;  --room-plate-shade2:   #926C4E;
+  --room-cmp-tint:     #EBEEF1;  --room-cmp-shade1:     #9AA5AF;  --room-cmp-shade2:     #79848F;
+  --room-metro-tint:   #DFF4E7;  --room-metro-shade1:   #78B592;  --room-metro-shade2:   #609179;
+
   /* Materials, for cross-section and wafer views (from the Cross Section art direction) */
   --mat-si:      #8E989D;
   --mat-oxide:   #D6E0E4;
@@ -46,7 +75,15 @@
   --mat-polymer: #A68BC4;
   --mat-nb:      #5F86B0;
   --mat-void:    #EE6B60;   /* drawn as a dashed outline, never a fill */
+  --mat-doped:    #B4BCC0;   /* implanted Si: a lighter Si (1.5:1 against --mat-si) */
+  --mat-particle: #E8E3C0;   /* particles: pale dots. Not red: red means void or fail */
+  --mat-junction: #14202B;   /* junction line (dashed) and damage marks; 5.6:1 on Si */
+  --mat-plasma:   #9CC4FA;   /* plasma ions above an etch, short dashes */
   --view-dark:   #161B1D;   /* the microscope window behind cross-sections */
+  --view-ink:    #E6EDF3;   /* labels and scale bar on the dark window: 14.7:1.
+                               Labels ON a light film use --on-fill instead.
+                               Never label on Cu or barrier: too dark for
+                               --on-fill, too light for --view-ink. */
 
   /* Wafer map */
   --die-pass: #CFE3D6;
@@ -77,12 +114,18 @@
     --bg: #0F1720; --surface: #17212C; --ink: #E6EDF3; --muted: #9AA8B6; --line: #2A3744;
     --blue: #6FA8F5; --on-blue: #0F1720;
     --ok: #5CC48F; --warn: #F0B44C; --bad: #F27466;
+    --room-clean-tint: #274854; --room-litho-tint: #4A462E; --room-etch-tint: #2A3F58;
+    --room-dep-tint: #434C56; --room-diff-tint: #4A3C33; --room-implant-tint: #3A3C59;
+    --room-plate-tint: #433C38; --room-cmp-tint: #3A444F; --room-metro-tint: #314947;
   }
 }
 :root[data-theme="dark"] {
   --bg: #0F1720; --surface: #17212C; --ink: #E6EDF3; --muted: #9AA8B6; --line: #2A3744;
   --blue: #6FA8F5; --on-blue: #0F1720;
   --ok: #5CC48F; --warn: #F0B44C; --bad: #F27466;
+  --room-clean-tint: #274854; --room-litho-tint: #4A462E; --room-etch-tint: #2A3F58;
+  --room-dep-tint: #434C56; --room-diff-tint: #4A3C33; --room-implant-tint: #3A3C59;
+  --room-plate-tint: #433C38; --room-cmp-tint: #3A444F; --room-metro-tint: #314947;
 }
 
 body {

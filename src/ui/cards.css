@@ -1,0 +1,239 @@
+/* cards.css — the shared card frame (M6, docs/card-art-plan.md).
+   One frame for every card. What kind of card it is shows in the art
+   window's style; rarity shows as 1 to 3 diamonds. Colors only from
+   tokens.css.
+
+   Class names start with "frame-" so they never clash with the older
+   .card classes in room.css while the hand still uses those.
+
+   Shape of one card (built by art-preview.html for now):
+     <article class="frame frame-practice" data-room="etch">
+       <header class="frame-band">  room icon + name, cost chip  </header>
+       <div class="frame-window">   the art                      </div>
+       <div class="frame-body">     kind + rarity, name, effect, tradeoff </div>
+     </article>
+*/
+
+/* --- Room colors: each card picks up its room's fill, tint and shades -- */
+.frame[data-room="clean"]   { --room: var(--room-clean);   --room-tint: var(--room-clean-tint);   --room-shade1: var(--room-clean-shade1);   --room-shade2: var(--room-clean-shade2); }
+.frame[data-room="litho"]   { --room: var(--room-litho);   --room-tint: var(--room-litho-tint);   --room-shade1: var(--room-litho-shade1);   --room-shade2: var(--room-litho-shade2); }
+.frame[data-room="etch"]    { --room: var(--room-etch);    --room-tint: var(--room-etch-tint);    --room-shade1: var(--room-etch-shade1);    --room-shade2: var(--room-etch-shade2); }
+.frame[data-room="dep"]     { --room: var(--room-dep);     --room-tint: var(--room-dep-tint);     --room-shade1: var(--room-dep-shade1);     --room-shade2: var(--room-dep-shade2); }
+.frame[data-room="diff"]    { --room: var(--room-diff);    --room-tint: var(--room-diff-tint);    --room-shade1: var(--room-diff-shade1);    --room-shade2: var(--room-diff-shade2); }
+.frame[data-room="implant"] { --room: var(--room-implant); --room-tint: var(--room-implant-tint); --room-shade1: var(--room-implant-shade1); --room-shade2: var(--room-implant-shade2); }
+.frame[data-room="plate"]   { --room: var(--room-plate);   --room-tint: var(--room-plate-tint);   --room-shade1: var(--room-plate-shade1);   --room-shade2: var(--room-plate-shade2); }
+.frame[data-room="cmp"]     { --room: var(--room-cmp);     --room-tint: var(--room-cmp-tint);     --room-shade1: var(--room-cmp-shade1);     --room-shade2: var(--room-cmp-shade2); }
+.frame[data-room="metro"]   { --room: var(--room-metro);   --room-tint: var(--room-metro-tint);   --room-shade1: var(--room-metro-shade1);   --room-shade2: var(--room-metro-shade2); }
+/* Consumables belong to no room: plain surface band, plain backdrop. */
+.frame[data-room="any"]     { --room: var(--surface); --room-tint: var(--bg); --room-shade1: var(--line); --room-shade2: var(--muted); }
+
+/* --- The frame itself: 260 × 380 at 1× ---------------------------------- */
+.frame {
+  box-sizing: border-box;
+  width: 260px;
+  height: 380px;
+  flex: none;            /* never squeezed narrower in a row of cards */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--surface);
+  color: var(--ink);
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+}
+/* In a 375 px phone hand the whole card shrinks to 0.75× (195 × 285).
+   zoom keeps the layout box small too, unlike transform: scale. */
+.frame-small { zoom: 0.75; }
+
+/* 1. Room band: room fill, dark text, icon and name. */
+.frame-band {
+  flex: none;
+  height: 40px;
+  box-sizing: border-box;
+  padding: 0 8px 0 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: var(--room);
+  color: var(--on-fill);              /* room fills stay light at night too */
+  border-bottom: 2px solid var(--ink);
+}
+.frame[data-room="any"] .frame-band { color: var(--ink); }
+.frame-room {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font: 600 16px/1 var(--cond);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.frame-icon { width: 18px; height: 18px; flex: none; }
+.frame-icon svg { display: block; width: 100%; height: 100%; }
+
+/* 2. Cost chip: dark pill, light mono text. These two stay the same in
+   night shift because the pill sits on the (always light) room band. */
+.frame-cost {
+  flex: none;            /* the cost never wraps or gets squeezed */
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--on-fill);
+  color: var(--view-ink);              /* 14:1 on --on-fill */
+  font: 500 13px/1 var(--mono);
+  white-space: nowrap;
+}
+
+/* 3. Art window: 260 × 140. Its style tells the card's kind. */
+.frame-window {
+  flex: none;
+  position: relative;
+  height: 140px;
+  overflow: hidden;
+  border-bottom: 2px solid var(--ink);
+}
+.frame-window > svg { display: block; width: 100%; height: 100%; }
+
+/* Practice: the dark microscope window with a cross-section in it. */
+.frame-practice .frame-window { background: var(--view-dark); }
+
+/* Equipment, material, consumable: the bay window, looking through the
+   cleanroom glass. Ceiling panels on top, floor along the bottom. Item art
+   (tools, bottles, baths) goes in between in a later roadmap item. */
+.frame-equipment .frame-window,
+.frame-material .frame-window,
+.frame-consumable .frame-window { background: var(--room-tint); }
+.frame-ceiling, .frame-floor {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 16px;
+  background: var(--room-shade1);
+}
+.frame-ceiling { top: 0; border-bottom: 2px solid var(--ink); }
+.frame-floor { bottom: 0; border-top: 2px solid var(--ink); }
+
+/* Equipment: four bolt dots in the window's corners (a fixed fitting). */
+.frame-bolt {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ink);
+}
+/* Bolts are <i> elements, so nth-of-type counts only bolts, not the
+   ceiling and floor <span>s next to them. */
+.frame-bolt:nth-of-type(1) { top: 5px; left: 6px; }
+.frame-bolt:nth-of-type(2) { top: 5px; right: 6px; }
+.frame-bolt:nth-of-type(3) { bottom: 5px; left: 6px; }
+.frame-bolt:nth-of-type(4) { bottom: 5px; right: 6px; }
+
+/* Consumable: a smaller window and a "single use" tag. */
+.frame-consumable .frame-window { height: 100px; }
+.frame-tag {
+  position: absolute;
+  top: 24px;
+  right: 8px;
+  padding: 3px 6px;
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--ink);
+  border-radius: var(--radius-small);
+  font: 500 11px/1 var(--mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* --- The text under the window ------------------------------------------ */
+.frame-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 10px 14px 12px;
+  min-height: 0;
+}
+
+/* 4. Kind and rarity: mono label left, marks right. */
+.frame-kind {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font: 500 11px/1 var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.frame-marks { display: flex; align-items: center; gap: 8px; }
+
+/* Rarity: 1 to 3 diamonds, drawn as turned squares (no special font). */
+.frame-rarity { display: flex; gap: 5px; padding-right: 2px; }
+.frame-diamond {
+  width: 6px;
+  height: 6px;
+  background: var(--ink);
+  transform: rotate(45deg);
+}
+
+/* Material shelf life: one tick per room it lasts. */
+.frame-shelf { display: flex; gap: 2px; }
+.frame-tick { width: 3px; height: 10px; background: var(--ink); }
+
+/* 5. Name: two lines at most. */
+.frame-name {
+  margin: 8px 0 0;
+  font: 600 23px/1.1 var(--cond);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+
+/* 6. Effect: plain verbs and the multiplier. */
+.frame-effect {
+  margin: 6px 0 0;
+  font: 500 13px/1.35 var(--sans);
+}
+
+/* 7. Tradeoff: always printed, under a hairline, at the bottom. */
+.frame-tradeoff {
+  margin: auto 0 0;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+  font: 400 13px/1.35 var(--sans);
+  color: var(--muted);
+}
+.frame-tradeoff b { font-weight: 600; color: var(--ink); }
+
+/* --- States, ready for the hand ------------------------------------------ */
+/* Can't be played: dashed edge, so it differs by pattern, not only color. */
+.frame-unplayable { border-style: dashed; }
+/* Keyboard focus: a thick blue ring outside the frame. */
+.frame:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; }
+
+/* --- Cross-section materials --------------------------------------------
+   The practice art (src/art/sections/*.svg) names its materials with these
+   classes instead of colors, so every color still comes from tokens.css. */
+.mat-si       { fill: var(--mat-si); }
+.mat-oxide    { fill: var(--mat-oxide); }
+.mat-nitride  { fill: var(--mat-nitride); }
+.mat-resist   { fill: var(--mat-resist); }
+.mat-barrier  { fill: var(--mat-barrier); }
+.mat-seed     { fill: var(--mat-seed); }
+.mat-cu       { fill: var(--mat-cu); }
+.mat-doped    { fill: var(--mat-doped); }
+.mat-particle { fill: var(--mat-particle); stroke: var(--view-dark); stroke-width: 1; }  /* edge so it shows on pale oxide */
+.mat-plasma   { fill: none; stroke: var(--mat-plasma); stroke-width: 2; stroke-linecap: round; }
+.mat-junction { fill: none; stroke: var(--mat-junction); stroke-width: 2; stroke-dasharray: 6 4; }
+.mat-junction-before { fill: none; stroke: var(--mat-junction); stroke-width: 1; }  /* where it was, thin solid */
+.mat-damage   { fill: none; stroke: var(--mat-junction); stroke-width: 2; stroke-linecap: round; }
+.mat-void     { fill: none; stroke: var(--mat-void); stroke-width: 2; stroke-dasharray: 4 3; }
+/* A cut-away: etched-out space, the same dark as the window behind it. */
+.art-hole     { fill: var(--view-dark); }
+/* An outline only: a shape that was there before (a stripped resist line). */
+.mat-ghost    { fill: none; stroke: var(--mat-resist); stroke-width: 1.5; stroke-dasharray: 2 2; }
+/* Measurement marks and their labels on the dark window. */
+.mat-measure  { fill: none; stroke: var(--view-ink); stroke-width: 1.5; }
+.art-label    { fill: var(--on-fill); font: 500 11px var(--mono); }
+.art-label-on-dark { fill: var(--view-ink); font: 500 11px var(--mono); }
