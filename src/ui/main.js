@@ -27,6 +27,8 @@ import { renderMap, renderStop, renderShop, renderPm, renderEvent } from './floo
 import { eventView } from './eventView.js';
 import { pmView } from './pmView.js';
 import { shipView } from './shipView.js';
+import { notebookView } from './notebookView.js';
+import { renderNotebook } from './notebookPage.js';
 import { diagnoseLot } from '../engine/notebook.js';
 
 const LOT_TYPE_ID = 'cuLine';
@@ -191,13 +193,31 @@ function showStop(before, stopKind) {
 }
 
 function showMap() {
-  renderMap(app, mapView(state), { onTakeStop, onGoStraight, onScrap });
+  renderMap(app, mapView(state), { onTakeStop, onGoStraight, onScrap, notebook: notebookOpener(showMap) });
 }
 
 // The ship report: the one screen every finished run ends on, whether the
 // lot shipped, was rejected or was scrapped.
 function showShipReport() {
-  renderShip(app, shipView(state, notebook, diagnosis), { onDiagnose, onReplay, onNewSeed });
+  renderShip(app, shipView(state, notebook, diagnosis),
+    { onDiagnose, onReplay, onNewSeed, notebook: notebookOpener(showShipReport) });
+}
+
+// The Notebook page (M4 item 3). Opening it is not a run action: nothing
+// in the run changes and nothing is saved. Back calls `showBehind`, which
+// redraws the screen the player came from (the floor plan or the ship
+// report, with its diagnosis), exactly as it was.
+function showNotebook(showBehind) {
+  renderNotebook(app, notebookView(notebook), { onBack: () => safely(showBehind) });
+}
+
+// What the Notebook button in a header needs: the count it shows, and what
+// a tap does. `showBehind` is the screen the button is on.
+function notebookOpener(showBehind) {
+  return {
+    count: notebookView(notebook).count,
+    onOpen: () => safely(() => showNotebook(showBehind)),
+  };
 }
 
 // The player names a failure mode on the ship report (M4 item 1). A right

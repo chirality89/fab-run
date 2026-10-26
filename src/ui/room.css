@@ -322,6 +322,13 @@
 .shop-bought { display: block; margin-top: 8px; font-weight: 600; color: var(--ok); }
 .buy-button { margin-top: 10px; }
 
+/* --- Notebook page and its button (notebookPage.js) ------------------------ */
+.notebook-button { margin-top: 10px; }   /* white on the blue band, like other secondary buttons */
+.notebook-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.notebook-entry { border-color: var(--line); }   /* a page to read, not a button to press */
+.notebook-seed { display: block; margin-top: 6px; font-family: var(--mono); font-size: 14px; color: var(--muted); }
+.notebook-still { margin: 12px 0; color: var(--muted); }
+
 /* --- Tool SPC chart (spcChart.js) ------------------------------------------ */
 .spc-title { margin: 0 0 6px; font-weight: 600; }
 .spc-chart { display: block; width: 100%; height: auto; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-small); }

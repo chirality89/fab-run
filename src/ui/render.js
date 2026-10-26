@@ -206,6 +206,12 @@ export function actionButton(text, className, onClick) {
   return button;
 }
 
+// The button that opens the Notebook page, shown in the floor-plan and
+// ship-report headers: "Notebook (3)". `notebook` is { count, onOpen }.
+export function notebookButton(notebook) {
+  return actionButton(`Notebook (${notebook.count})`, 'notebook-button secondary-button', notebook.onOpen);
+}
+
 // The screen after a room is run: what it cost, the new wafer map, what
 // happens next, and two ways to play again.
 // `actions` holds onContinue() (shown only while the run goes on),
@@ -307,13 +313,14 @@ function drawRouteSpc(view) {
 
 // The screen after a run ends: the verdict, the three numbers, the diagnose
 // panel, yield by step, the tools' SPC and the final wafer map. `actions`
-// holds onDiagnose(id), onReplay() and onNewSeed().
+// holds onDiagnose(id), onReplay(), onNewSeed() and notebook ({ count,
+// onOpen }, for the Notebook button).
 export function renderShip(container, view, actions) {
   const header = el('header', 'room-band map-band');
   header.append(el('h1', 'room-name', 'Ship report'), el('p', 'room-step', view.lotName));
   const facts = el('p', 'room-facts');
   facts.append(el('span', 'seed', `Seed ${view.seed}`), el('span', 'cash', `Cash ${view.cash}`));
-  header.append(facts);
+  header.append(facts, notebookButton(actions.notebook));
 
   const verdict = panel('Verdict', `result-panel verdict-${view.status}`);
   verdict.setAttribute('role', 'status');

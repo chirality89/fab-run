@@ -2,13 +2,14 @@
 // run is over: shipped, rejected or scrapped. No DOM and no game rules: it
 // only reads the finished state and the content.
 
-import { ROOMS, PATTERNS, PRACTICES, EQUIPMENT, MATERIALS, CONSUMABLES } from '../content/content.js';
+import { ROOMS, PRACTICES, EQUIPMENT, MATERIALS, CONSUMABLES } from '../content/content.js';
 import { TOOL_MONITORS } from '../content/toolMonitors.js';
 import { LOT_TYPES } from '../content/lotTypes.js';
 import { STARTING_CASH, SCRAP_LINE, CUSTOMER_SPEC, LOT_BASE_COST } from '../content/balance.js';
 import { lotYield } from '../engine/lot.js';
 import { diagnosisFor, findFailureMode, inNotebook, emptyNotebook } from '../engine/notebook.js';
 import { spcView } from './spcView.js';
+import { modeName } from './notebookView.js';   // failure-mode names, shared with the Notebook page
 import { toPercent, siteView, mapKeyText } from './view.js';
 
 // Every die on the lot: 25 wafers × 25 sites. Lot yield is the average of
@@ -69,10 +70,6 @@ function stepRows(state, route) {
 }
 
 // --- diagnosis (M4 item 1) ---
-
-// A failure mode's name. Entries without a name yet fall back to the
-// pattern's description, so new content still shows something readable.
-const modeName = mode => mode.name ?? PATTERNS[mode.pattern];
 
 // The names of what a failure mode unlocks: practices, equipment, materials
 // or consumables.
