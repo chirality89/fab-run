@@ -69,3 +69,40 @@ I see: Q-time warnings again; went straight. Deposition forecast 3.7, cost 3.1 �
 I think: I PM'd this tool and it still cost 3.1. Last run, NOT PM'd, it cost 3.8. Two PMs and 800 cash this run and I'm at 69.5 after step 6 vs 67.4 in run 1 doing basically nothing. Choices feel like they're worth ~1 point each against rooms that hit for 20.
 I try: Continue.
 Mood: about to quit
+
+### Step 11 — Browser closed on me; reopened seed 42
+Screenshot: none
+I see: Reopening the link starts the run from the floor plan at 100% again. No "continue run".
+I think: Lost my run to a closed tab. I replayed the same clicks and landed on exactly 69.5% / 700 cash / 223 min — the seed is fully deterministic, which is nice for testing, but having no resume is rough.
+I try: Event.
+Mood: annoyed
+
+### Step 12 — Event: Hot lot (again) — skipped via Continue
+Screenshot: docs/playtest/shots/spire-veteran/42-29-s42-06-event.png
+I see: Same hot-lot event as run 1. "Choose one option", plus a Continue button.
+I think: Testing whether Continue is a free skip. It is: I went straight to Plating with no cost and no choice made. So every event has a hidden third option, "pay 10 min, get nothing". Events repeat across seeds (audit and hot lot both came up in both runs) — the event pool feels tiny.
+I try: Continue (skip).
+Mood: bored
+
+### Step 13 — Room 7 Plating, PM stop, Room 8 CMP
+Screenshot: none
+I see: Plating with bath 2.1 forecast, cost 2.4. PM stop: only CMP offered, in control. Skipped it. CMP forecast 8.2 (no pad conditioner this time), cost 8.2 → 58.9%.
+I think: Run 1 CMP with the 350 conditioner: 6.6 forecast. Without: 8.2. So the conditioner is roughly 1.6 points for 350 + pads. The shop never told me that, I had to A/B it across two runs. CMP is a second mini-elite (6–8 points) that has no card and no flag. Final yield 58.9% — IDENTICAL to run 1's 58.9%. Two completely different sets of choices, same number to the decimal.
+I try: Metrology, ship report.
+Mood: about to quit
+
+### Step 14 — Ship report + Diagnose
+Screenshot: docs/playtest/shots/spire-veteran/42-39-s42-07-report.png, docs/playtest/shots/spire-veteran/42-40-s42-08-diagnosed.png
+I see: Rejected 58.9%. Cost per good die 7.60 (run 1: 6.95). Diagnose options: Underlayer attack / Etch residue / Q-time oxide / Removal-rate drift. Etch and CMP charts in control after the run. I picked Underlayer attack (I played over-etch, and its text was "attacks the film below"). "Diagnosed: Underlayer attack. Written in your notebook. Unlocks for later runs: Deposit SiN etch stop, Optical endpoint detector, Stop on endpoint. (Unlocks start to count in a later update.)"
+I think: Got one right. But: the card I played to LOWER the etch forecast is what the game says hurt the lot. So the over-etch card is a trap that shows as a bonus in the forecast? Confusing. The reward is "unlocks that don't count yet", and one of them (endpoint detector) I already bought in a shop this run. So the meta-progression is currently a sticker. Spending more (cash and time) made my cost-per-die worse and yield identical: optimal play so far = buy nothing, stop nowhere.
+I try: Replay seed 42 with zero choices to test that.
+Mood: annoyed
+
+### Step 15 — Replay seed 42, "do nothing" run
+Screenshot: docs/playtest/shots/spire-veteran/42-67-s42-09-donothing-end.png
+I see: Went straight through every corridor, bought nothing, played no cards. Etch 91.7 → 64.3 (27.4 points). Wet clean 0.7. Deposition (step 6) 2.9. Plating 6.1. CMP 6.7. Final 47.9%.
+I think: OK, I take back part of what I said. My choices were worth 11 points total (58.9 vs 47.9). Breakdown by A/B: Etch PM + detector + card ≈ 9 points; copper bath ≈ 3.7 points on Plating (always buy). But the step-6 deposition I spent a PM on cost 3.1 PM'd vs 2.9 un-PM'd — that PM was worth nothing. And CMP cost 6.7 here vs 8.2 in my "real" run, so something I did earlier made CMP WORSE by 1.5 and the game never told me what. The point: none of this is visible while choosing. I only learned it by replaying a seed three times. And even with every lever I found, 58.9 is miles from 70. The spec feels unreachable on this map.
+I try: Stop seed 42. Move to 777 with "PM etch, buy DUV resist + bath + conditioner + detector, skip everything else".
+Mood: annoyed
+
+Run summary: rejected at 58.9% (best effort) / 47.9% (do nothing). Real decisions: PM targets, shop buys. Most of their value only discoverable by replaying.
