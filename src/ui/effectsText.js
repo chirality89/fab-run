@@ -21,7 +21,7 @@ const camelWords = name => name
   .join(' ');
 
 // The name of a card, equipment or material, or its id if it is unknown.
-function itemName(id) {
+export function itemName(id) {
   const item = [...PRACTICES, ...EQUIPMENT, ...MATERIALS].find(entry => entry.id === id);
   return item ? item.name : id;
 }

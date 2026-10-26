@@ -37,6 +37,7 @@ function drawHeader(view) {
   const cash = el('span', 'cash', `Cash ${view.cash}`);
   facts.append(seed, cash);
   header.append(facts);
+  if (view.cashNoteText) header.append(el('p', 'room-step cash-note', view.cashNoteText));   // where cash just went
   return header;
 }
 

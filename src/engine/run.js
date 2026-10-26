@@ -130,7 +130,7 @@ export function createRun({
     stepIndex: 0,
     lot,
     cash: STARTING_CASH,
-    room: null,             // { id, timeLeft, budget, revealed } while in a room
+    room: null,             // { id, timeLeft, budget, revealed, itemCash } while in a room
     map: buildMap(seed, lotType.route),   // the corridors (map.js), known from the start
     corridor: null,         // index of the corridor the lot stands in, or null
     shop: null,             // { corridor, stock, bought } while a procurement stop is open
@@ -199,9 +199,16 @@ export function enterStep(state) {
   // 2. Equipment and materials for this room act once, before any card.
   // applyEffects skips effects whose own `when` fails, but not the item's
   // top-level `when`, so that is checked here.
+  // Any cash an item takes (or gives) is noted in room.itemCash, so the
+  // screen can say where the cash went (Lane F issue 9).
+  const itemCash = [];
   for (const item of itemsForRoom(next, step.room)) {
-    if (conditionMet(next, item.when)) next = applyEffects(next, item);
+    if (!conditionMet(next, item.when)) continue;
+    const cashBefore = next.cash;
+    next = applyEffects(next, item);
+    if (next.cash !== cashBefore) itemCash.push({ id: item.id, delta: next.cash - cashBefore });
   }
+  next = { ...next, room: { ...next.room, itemCash } };
 
   // 3. The time the lot spends in this room counts whether you play or not.
   const budget = next.room.timeLeft;

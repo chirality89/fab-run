@@ -403,3 +403,22 @@ test('shop items show their effects', () => {
     resistThick: 'underlayer attack ×0.5 (deep etch only) · cd error ×1.3 · uses 10 min of room time',
   });
 });
+
+// --- M4.5 small fixes: where cash went (Lane F issue 9) -------------------
+// Hand check: the pad conditioner takes 20 cash every time the lot enters
+// CMP (its cashCost effect). Nothing else here costs cash, so the lot has
+// 1500 − 20 = 1480 on entering CMP, and no note in any earlier room.
+const CMP = 7;   // 0-based step index of CMP on the cuLine route
+
+test('the room says which item took cash on entering: pad conditioner at CMP', () => {
+  const loadout = { equipment: ['padConditioner'], slots: {} };
+  let state = createRun({ seed: SEED, scatterStrength: 0, toolDrift: false, loadout });
+  while (state.stepIndex < CMP) {
+    assert.equal(roomView(enterStep(state)).cashNoteText, null, `step ${state.stepIndex + 1} (seed ${SEED})`);
+    state = idleRoom(state);
+  }
+  const inCmp = enterStep(state);
+  assert.equal(inCmp.cash, 1480, `seed ${SEED}`);
+  assert.deepEqual(inCmp.room.itemCash, [{ id: 'padConditioner', delta: -20 }]);
+  assert.equal(roomView(inCmp).cashNoteText, 'On entering, In-situ pad conditioner took 20 cash.');
+});

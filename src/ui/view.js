@@ -17,7 +17,7 @@ import { whyIllegal, playCard } from '../engine/run.js';
 import { whyCannotBuy, findShopItem } from '../engine/shop.js';
 import { cardInRun } from '../engine/doe.js';
 import { spcView } from './spcView.js';
-import { effectsLine } from './effectsText.js';
+import { effectsLine, itemName } from './effectsText.js';
 
 // A fraction (0..1) as a percent with one decimal, e.g. 0.913931 → 91.4.
 export function toPercent(fraction) {
@@ -142,6 +142,16 @@ function expectedLossPoints(lot, step) {
   return (lotYield(lot) - lotYield(after)) * 100;
 }
 
+// What the room's equipment and materials did to cash as the lot came in,
+// e.g. "On entering, In-situ pad conditioner took 20 cash." Null if
+// nothing changed cash (Lane F issue 9: cash went with no message).
+export function cashNoteText(itemCash = []) {
+  if (itemCash.length === 0) return null;
+  const parts = itemCash.map(({ id, delta }) =>
+    (delta < 0 ? `${itemName(id)} took ${-delta} cash` : `${itemName(id)} gave ${delta} cash`));
+  return `On entering, ${parts.join(' and ')}.`;
+}
+
 // Everything the room screen shows. Call it only while the lot is in a room.
 export function roomView(state) {
   if (state.room === null) throw new Error('roomView: the lot is not in a room');
@@ -154,6 +164,7 @@ export function roomView(state) {
     seed: state.seed,
     roomId,
     roomName: ROOMS[roomId].name,
+    cashNoteText: cashNoteText(state.room.itemCash),
     stepNumber: state.stepIndex + 1,
     stepCount: route.length,
     stepLabel: step.label,
