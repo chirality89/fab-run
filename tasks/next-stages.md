@@ -1,6 +1,6 @@
 # Next stages and lanes (proposal, 26 Oct 2026)
 
-**Status: David said yes to Q1 (S1 before M5), 26 Oct 2026; S1 is now M4.5 in `ROADMAP.md`. Q2–Q5 are still open and block the items that name them.**
+**Status: all questions answered by David, 26 Oct 2026 (see "David's decisions" at the end). S1 is M4.5 in `ROADMAP.md`.**
 
 ## Where we are
 
@@ -92,3 +92,47 @@ Taken from what went wrong before (`tasks/lessons.md`):
 3. **Lane E.** I found no record of what Lane E was. I propose **E = balance and the bot** (the M7 report, and re-tuning after S1), unless it meant something else.
 4. **How many lanes at once?** Proposed for S1: **A, C and D in parallel, F after them, B retired**.
 5. **Your calls from the physics review** that block Lane C: the circular CAR unlock (claim 2), the Q-time mechanism (4), the slurry and audit wording (6, 7), a trend rule for SPC (9), and a round 21-site mask (10).
+
+## David's decisions (26 Oct 2026)
+
+**Structure**
+- Q1: S1 goes before M5 (now M4.5).
+- Q2 starter deck: **both**. Most rooms get one simple starter practice with a real tradeoff, and a room with nothing to play skips the hand screen.
+- Q3 Lane E: **dropped**. Balance and the bot stay in Lane A (M7 report).
+- Q4 lanes: **A, C and D in parallel, then F**. B is retired; small save changes go to A. Before merging a second lane PR, merge both locally and run `npm test` and `npm run screens`.
+
+**Physics calls (Lane F physics review)**
+- Etch stop (claim 11): **the stop is a choice.** The route label becomes "Deposition (oxide)", and the Etch-stop card adds the SiN stop. With the stop, etch adds much less underlayer attack. Over-etch on a stop is about ×1.05, not ×0.75. Needs a small engine rule (a flag set earlier scales a risk added later); Lane A plans it, then asks.
+- Depth variation at etch: **label it.** Keep 0.08. The etch room's forecast says how much is from this etch and how much is carried in from the film stack.
+- Q-time (claim 4): **moisture uptake.** The dielectric takes up moisture while the lot waits and outgasses under the barrier, so the barrier adheres poorly. Same pattern slot, new name and text.
+- SPC (claim 9): **add the trend rule**, 6 points in a row steadily rising or falling. Verdicts named by rule; one point past a limit is an excursion, not a shift.
+- Wafer map (claim 10): **round 21-site mask** (1 centre, 8 inner, 12 outer). Every hand-computed yield test changes: Lane A recomputes each by hand and shows David before editing. Lane D draws it.
+- T-top (claim 2): **offered only when a chemically amplified resist was in the slot.** It unlocks a CAR remedy, not the CAR resist; the CAR resist becomes a starter shop item.
+- Slurry event (claim 6): **"under a signed engineering deviation"**, same effects.
+- Audit event (claim 7): **wet bench past its bath-change interval.** Change the bath now (lot waits 30 min, marks a PM on the wet-clean chart) or run on a logged deviation (corrective-action cost).
+- Gauge text (claim 1): **"No tool chart here: the gauge is checked against reference standards (not modelled yet)."**
+- Earlier today: wafer map rounds to the nearest percent (done), cost tile for reference only with the score left for M7 (done), the Words page as its own item.
+
+## Who does what for the rest of M4.5
+
+**Lane A (engine, screens; this branch)**
+1. Land Lane F's reports and Lane D's commit on `main` (after PR #23 merges).
+2. Etch-stop rule and the route label; the etch forecast split (stack vs this etch).
+3. SPC: trend rule, verdicts by rule, excursion wording; a flagged tool should cost more (issue 4).
+4. Diagnosis explains itself; offer only failure modes whose cause could have been there, including T-top only with CAR (issue 2).
+5. Skip the hand screen in a room with nothing to play (starter deck, part 2).
+6. Round 21-site wafer map, engine side (`lot.js` site weights and the tests), after Lane D's drawing is agreed.
+
+**Lane C (content: `content.js`, `events.js`; `physics-reviewer` on every batch)**
+1. A starter practice with a real tradeoff in most rooms (starter deck, part 1). Also fixes "Strip and re-expose" (nothing makes it playable today).
+2. Signatures readable from on-screen evidence (keyhole void, dishing, underlayer attack: claims 2, 3, 11).
+3. Q-time moisture text, slurry and audit rewording, gauge text, T-top's unlock.
+4. The Words page's terms (`glossary.js`), once Lane A has the page.
+
+**Lane D (look and feel: `tokens.css`, `cards.css`, `src/art/`)**
+1. Phone layout (issue 17) and run-ending button spacing (issue 8).
+2. The round 21-site wafer map drawing.
+
+**Lane F (after A, C and D merge)**: rerun the five personas on seeds 123456, 42 and 777 and check the exit test.
+
+**Order that avoids collisions:** Lane C's starter cards change seeded hands, so Lane A's hand-checked tests may move. Lane C announces the batch before merging; Lane A updates its own tests. The round map changes every yield test, so it goes **last** in Lane A, after the other items have settled.
