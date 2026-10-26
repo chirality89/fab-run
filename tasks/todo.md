@@ -2,7 +2,7 @@
 
 ## Current: M4 item 3 — Notebook page: your diagnosed failure modes, their signatures and the seed each was found on
 
-**Status: plan, waiting for David's OK.**
+**Status: plan. David answered Q1–Q4 (26 Oct 2026): Q1, Q2 and Q4 as proposed; Q3 changed: **remedies stay hidden until the unlock pool (M4 item 4) makes them real**. Ready to build on David's go.**
 
 **Decisions settled:** none needed. O1 (diagnosing earns unlocks) is already settled. The tool-schematic art for notebook pages (S10) is an M6 item, so this page uses the plain panels the other screens use.
 
@@ -13,7 +13,7 @@
 - The page lists the failure modes you have diagnosed, **newest first** (Q2). Each entry shows:
   - its **name** and **signature** (the same words as on the diagnose panel);
   - **"Found on seed 123456"**;
-  - **its remedies**: the names of what it unlocks, for example "Low-current start step, Additive bath, Bath analysis". The note says they join your draws and the shop in a coming update (M4 item 4), so nothing promises what isn't built yet. Etch residue has none yet and says "No remedy yet." (Q3)
+  - **No remedies yet** (Q3): what an entry unlocks appears on this page when the unlock pool is built (M4 item 4), so the page never lists something the game doesn't do yet.
 - Under the list, with 3 found: **"14 failure modes still to find."** It gives the count only, never the names, so nothing is spoiled (Q4).
 - An empty notebook says: "Nothing diagnosed yet. At the end of a run, name the failure mode that hurt the lot on the ship report."
 - Entries whose failure mode is no longer in the content are skipped, as already agreed for M4 item 2 (Q3 there).
@@ -24,8 +24,8 @@
 - No art yet: the tool-schematic notebook pages are M6.
 
 **Code (all in `src/ui/`, one folder)**
-- [ ] New `notebookView.js`, about 60 lines, pure (runs in Node like the other views): `notebookView(notebook)` gives `{ entries: [{ id, name, sig, seed, remedies }], stillToFind, emptyText }`.
-  - `modeName` and `unlockNames` **move here** from `shipView.js`, which then imports them. That's about 10 lines moved, not new logic, so both screens name things the same way.
+- [ ] New `notebookView.js`, about 60 lines, pure (runs in Node like the other views): `notebookView(notebook)` gives `{ entries: [{ id, name, sig, seed }], stillToFind, emptyText }`.
+  - `modeName` **moves here** from `shipView.js`, which then imports it. It's 1 line moved, not new logic, so both screens name failure modes the same way.
 - [ ] New `notebookPage.js`, about 60 lines: `renderNotebook(container, view, { onBack })`. It's a new file because `render.js` (372 lines) would pass 400 (CLAUDE.md §4).
 - [ ] `floorPlan.js` and `render.js`: a Notebook button (44 px, with the double-tap guard) in the map and ship-report headers, about 10 lines.
 - [ ] `main.js`, about 20 lines: `showNotebook(back)` draws the page, and Back calls `back` (`showMap` or `showShipReport`), so the screen comes back as it was, including a diagnosis already made.
@@ -34,8 +34,7 @@
 **Tests**
 - [ ] `tests/notebookView.test.js` (Node):
   - an empty notebook gives no entries and the empty text, and `stillToFind` equals the number of failure modes;
-  - two entries come out newest first, with their names, signatures, seeds and remedy names (keyhole void → its three remedy names), and `stillToFind` goes down by 2;
-  - etch residue shows "No remedy yet";
+  - two entries come out newest first, with their names, signatures and seeds, and `stillToFind` goes down by 2;
   - an unknown id is skipped and doesn't change `stillToFind`.
 - [ ] `tests/screens/notebook.spec.js`, desktop and phone:
   - an empty notebook from the floor plan opens and shows the empty text; Back returns to the floor plan;
@@ -43,16 +42,16 @@
   - no sideways scroll at 375 px and no console errors; a screenshot of each;
   - the phone tests pass with `--repeat-each=5`.
 
-**Size:** about 150 lines of code in `src/ui/` and about 150 lines of tests. One `src/` folder. ROADMAP: this becomes M4 item 3, and the unlock pool moves to item 4.
+**Size:** about 140 lines of code in `src/ui/` and about 150 lines of tests. One `src/` folder. ROADMAP: this becomes M4 item 3, and the unlock pool moves to item 4.
 
 ### Questions for David (proposed answers; say if any is wrong)
 - **Q1 where to open it:** from the floor plan and the ship report, not from inside a room. Back returns to where you were. Proposed: yes.
 - **Q2 order:** newest first. Proposed: yes.
-- **Q3 remedies on the page:** list them now, with a note that they join the game in the next item. Proposed: yes. (The other choice is to hide them until the unlock pool is built.)
+- **Q3 remedies on the page:** list them now, with a note that they join the game in the next item. Proposed: yes. (The other choice is to hide them until the unlock pool is built.) **David: hide them until built.**
 - **Q4 undiscovered failure modes:** show only a count ("14 still to find"), never their names. The count includes the ones only an NMOS lot can show, which hints there's more to come. Proposed: yes.
 
 ### Acceptance criteria
-- From the floor plan or the ship report, you can open the Notebook page and see each diagnosed failure mode with its signature, seed and remedies, and Back returns you to the same screen.
+- From the floor plan or the ship report, you can open the Notebook page and see each diagnosed failure mode with its signature and seed, and Back returns you to the same screen.
 - `npm test` and `npm run screens` pass; the phone screen tests pass 5 runs in a row; screenshots are checked at both sizes.
 
 ---
