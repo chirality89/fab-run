@@ -2,7 +2,7 @@
 
 Work top to bottom, one checkbox per session. Plan in `tasks/todo.md` first (see `PROJECT.md`). Tick the box here when done. Before starting a milestone, settle the `docs/decisions.md` items it depends on.
 
-Current milestone: **M4 — Notebook and unlocks** (M3's last item, save and resume, is in Lane B)
+Current milestone: **M4 — Notebook and unlocks**
 
 ## M0 — Move in
 - [x] Turn on GitHub Pages (Settings → Pages → Deploy from a branch → `main` / root); confirm the placeholder page loads at `https://chirality89.github.io/fab-run/` on desktop and phone
@@ -30,7 +30,7 @@ Current milestone: **M4 — Notebook and unlocks** (M3's last item, save and res
 - [x] DOE stop: upgrade one practice for the run (upgrades as data)
 - [x] Three events with a tradeoff each
 - [x] Ship screen: yield against spec, cost per good die, cycle time; scrap and reject end states
-- [ ] Save and resume a run (`SAVE_KEY`, storage-blocked safe)
+- [x] Save and resume a run (`SAVE_KEY`, storage-blocked safe)
 
 ## M4 — Notebook and unlocks (needs O1)
 - [x] Diagnose screen: name a failure mode from the evidence; right answer writes the notebook
@@ -40,13 +40,13 @@ Current milestone: **M4 — Notebook and unlocks** (M3's last item, save and res
 ## M5 — Randomness and a second lot
 - [ ] Lot modifiers, announced at run start; random lot type from the unlocked pool; fixed first run
 - [ ] Second lot type: NMOS (see `docs/process-primer.md`)
-- [ ] Content to about 40 items via `content-drafter`, reviewed by David and `physics-reviewer`
+- [x] Content to about 40 items via `content-drafter`, reviewed by David and `physics-reviewer`
 
 ## M6 — Look and feel
 - [ ] Room styling from `docs/art-direction.md`; film-growth and wafer-map hit animations; reduced-motion respected
-- [ ] Card art setup (`docs/card-art-plan.md`): per-room tint and shade tokens in `tokens.css` (contrast checked); settle the `art` field in content entries
-- [ ] Shared card frame: room band, cost chip, art window, kind and rarity, name, effect, tradeoff; kind shown by window style, rarity by 1–3 diamonds
-- [ ] Practice art: microscope cross-sections drawn from the `--mat-*` tokens for every practice; `physics-reviewer` pass
+- [x] Card art setup (`docs/card-art-plan.md`): per-room tint and shade tokens in `tokens.css` (contrast checked); settle the `art` field in content entries (the `art` field is deferred: art is found by the practice id for now)
+- [x] Shared card frame: room band, cost chip, art window, kind and rarity, name, effect, tradeoff; kind shown by window style, rarity by 1–3 diamonds
+- [x] Practice art: microscope cross-sections drawn from the `--mat-*` tokens for every practice; `physics-reviewer` pass
 - [ ] Item art: bay-window kit (room backdrops, tool bodies in room color, bottles and baths) for equipment, materials and consumables; lamp tower turns amber when the room's tool drifts
 - [ ] Inspect view in the tool-schematic style; map rooms in the toy-diorama style
 - [ ] Card motion: one loop of 6 s or less, plays on lift, hover or focus only; reduced motion shows a chosen key frame

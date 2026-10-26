@@ -267,3 +267,61 @@ Each PR was tested against main without the other. Neither branch had the other'
 ### Rule to Prevent
 ✅ Before merging a second lane PR, merge both branches locally and run `npm test` and `npm run screens` on the combined result
 ✅ When a lane adds a rule that covers all content ("every practice has art"), tell the content lane before either merges
+
+## Rounded numbers hid a failing contrast step (Lane D)
+
+### What Happened
+The contrast script printed 1.345 as "1.35", so etch shade1 looked like it met the 1.35:1 rule. It didn't, and the new test caught it.
+
+### Root Cause
+A limit was judged from a rounded printout.
+
+### Rule to Prevent
+✅ Compare raw ratios against limits in code (the test does); round only what people read
+✅ Never copy a "passes" judgement from rounded output
+
+## Cards shrank in a one-row hand (Lane D)
+
+### What Happened
+A fixed-width card in a `nowrap` flex row was squeezed below 260 px and its text overflowed.
+
+### Root Cause
+Flex items shrink by default.
+
+### Rule to Prevent
+✅ Fixed-size UI pieces get `flex: none`
+✅ The art-preview screen test checks that no card text overflows
+
+## A long text squeezed the card name away (Lane D)
+
+### What Happened
+Lane C's longer tradeoffs didn't fit the 260 × 380 card. Flex let the card name shrink to zero height on 11 cards, and the overflow test didn't notice.
+
+### Root Cause
+Flex items shrink by default, and the test measured the container, not its parts.
+
+### Rule to Prevent
+✅ Fixed parts of a card get `flex: none`
+✅ Test that each part is visible, not only that the container doesn't overflow
+
+## A test assumed the first room deals cards (Lane B)
+
+### What Happened
+A "room with a hand" check ran at wet clean, but the starter deck has no wet-clean cards.
+
+### Root Cause
+The test relied on a hand without checking which rooms the deck covers.
+
+### Rule to Prevent
+✅ Before a test relies on a hand, check which room's cards are in the deck
+
+## A test helper assumed the lot was never already in a room (Lane B)
+
+### What Happened
+A helper that walks a run assumed it started at a door, and broke when the lot was already in a room.
+
+### Root Cause
+The helper didn't look at where the lot stood.
+
+### Rule to Prevent
+✅ Helpers that walk a run start from wherever the lot stands (door, room, corridor, shop)
