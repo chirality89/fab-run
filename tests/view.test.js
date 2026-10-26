@@ -9,7 +9,7 @@ import {
   createRun, enterStep, resolveStep, playCard, walkCorridor, buyItem, fullPool, whyIllegal,
 } from '../src/engine/run.js';
 import { lotYield } from '../src/engine/lot.js';
-import { seedSellingTestItems } from './shopSeed.js';
+import { seedSellingTestItems, SHOP_TEST_UNLOCKS } from './shopSeed.js';
 import { roomView, resultView, mapView, stopView, shopView, siteBand, yieldBand, parseSeed } from '../src/ui/view.js';
 
 const SEED = 123456;
@@ -233,7 +233,7 @@ test('mapView refuses to draw while the lot is in a room', () => {
 const SHOP_SEED = seedSellingTestItems();
 
 function shopAfterStep2() {
-  const afterStep1 = walkCorridor(resolveStep(enterStep(createRun({ seed: SHOP_SEED }))), null);
+  const afterStep1 = walkCorridor(resolveStep(enterStep(createRun({ seed: SHOP_SEED, unlocked: SHOP_TEST_UNLOCKS }))), null);
   return walkCorridor(resolveStep(enterStep(afterStep1)), 'procurement');
 }
 

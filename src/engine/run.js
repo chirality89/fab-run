@@ -60,6 +60,17 @@ export function starterDeck() {
   return PRACTICES.filter(card => STARTER_IDS.includes(card.id)).map(card => card.id);
 }
 
+// The deck for a run: the starter practices plus the practices in
+// `unlocked` (ids earned in the notebook, notebook.js unlockedIds), in
+// content order. Every unlocked practice joins every later run (David,
+// 26 Oct 2026); the hand is drawn only from the cards legal in a room, so
+// more cards means more choice there, not clutter.
+export function runDeck(unlocked = []) {
+  return PRACTICES
+    .filter(card => STARTER_IDS.includes(card.id) || unlocked.includes(card.id))
+    .map(card => card.id);
+}
+
 // Every practice in the game, for tests and the bot ("--deck full").
 export function fullPool() {
   return PRACTICES.map(card => card.id);
@@ -76,6 +87,9 @@ export function defaultLoadout() {
 // `toolDrift: false` keeps every tool at full health and stops wear, so
 // drift adds nothing (for hand checks, like scatterStrength: 0).
 // `startingHealth`, e.g. { cmp: 60 }, fixes a tool's starting health.
+// `unlocked` lists the item ids the notebook had earned when the run began
+// (notebook.js unlockedIds). It is fixed for the whole run, so a diagnosis
+// in another tab can't change it; procurement sells starter items and these.
 export function createRun({
   seed = 1,
   lotTypeId = 'cuLine',
@@ -84,6 +98,7 @@ export function createRun({
   scatterStrength = SCATTER_STRENGTH,
   toolDrift = true,
   startingHealth = {},
+  unlocked = [],
 } = {}) {
   if (normalizeSeed(seed) === null) throw new Error(`createRun: bad seed ${seed}`);
   const lotType = LOT_TYPES[lotTypeId];
@@ -100,6 +115,7 @@ export function createRun({
     seed,
     rngState: seed,
     lotTypeId,
+    unlocked: [...unlocked],   // item ids earned in the notebook, fixed at the start
     scatterStrength,
     stepIndex: 0,
     lot,

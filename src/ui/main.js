@@ -17,7 +17,7 @@
 // save, so the last tab to act is the one a reload picks up.
 
 import { normalizeSeed } from '../engine/rng.js';
-import { createRun, starterDeck, defaultLoadout } from '../engine/run.js';
+import { createRun, runDeck, defaultLoadout } from '../engine/run.js';
 import { applyAction, saveRun, loadRun, clearRun, replayRun, loadNotebook, saveNotebook } from './storage.js';
 import { roomView, resultView, mapView, stopView, shopView, parseSeed } from './view.js';
 import {
@@ -29,7 +29,7 @@ import { pmView } from './pmView.js';
 import { shipView } from './shipView.js';
 import { notebookView } from './notebookView.js';
 import { renderNotebook } from './notebookPage.js';
-import { diagnoseLot } from '../engine/notebook.js';
+import { diagnoseLot, unlockedIds } from '../engine/notebook.js';
 
 const LOT_TYPE_ID = 'cuLine';
 
@@ -94,7 +94,7 @@ function act(action) {
 // reload after the ship report starts fresh. A blocked storage just means
 // no save (storage.js never throws).
 function keepSave() {
-  if (state.status === 'running') saveRun(state.seed, actions);
+  if (state.status === 'running') saveRun({ seed: state.seed, unlocked: state.unlocked, actions });
   else clearRun();
 }
 
@@ -260,17 +260,22 @@ function enterRoom() {
   showFromTop(app);
 }
 
-// A fresh run for the seed: starter deck, default loadout (i-line resist in
-// litho), normal scatter. The one place a run is built, for a new run and
-// for a resumed one alike, so a replay always starts from the same lot.
-function newRun(seed) {
-  return createRun({ seed, lotTypeId: LOT_TYPE_ID, deck: starterDeck(), loadout: defaultLoadout() });
+// A fresh run for the seed: the starter deck plus every practice in
+// `unlocked`, default loadout (i-line resist in litho), normal scatter.
+// The one place a run is built, for a new run and for a resumed one alike,
+// so a replay always starts from the same lot. `unlocked` is what the
+// notebook has earned now (a new run) or what was saved with the run (a
+// resumed one), never the notebook as it is later (M4 item 4).
+function newRun(seed, unlocked) {
+  return createRun({
+    seed, lotTypeId: LOT_TYPE_ID, deck: runDeck(unlocked), loadout: defaultLoadout(), unlocked,
+  });
 }
 
 // Starts the seed from the beginning, on the floor plan. Any old save goes.
 function startRun(seed) {
   diagnosis = null;
-  state = newRun(seed);
+  state = newRun(seed, unlockedIds(notebook));
   actions = [];
   clearRun();
   showMap();
@@ -285,13 +290,13 @@ function resumeSavedRun() {
   const fromAddress = parseSeed(window.location.search, null);
   if (fromAddress !== null && fromAddress !== save.seed) return false;
 
-  const resumed = replayRun(newRun(save.seed), save.actions);
+  const resumed = replayRun(newRun(save.seed, save.unlocked), save.actions);
   if (resumed === null || resumed.status !== 'running') return false;
 
   // The state just before the last action, for screens that show what it
   // changed (the room result, a side stop). Replaying all but the last
   // action gives exactly that state.
-  const before = replayRun(newRun(save.seed), save.actions.slice(0, -1));
+  const before = replayRun(newRun(save.seed, save.unlocked), save.actions.slice(0, -1));
   state = resumed;
   actions = save.actions;
   writeSeedToAddress(save.seed);

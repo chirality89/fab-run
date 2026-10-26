@@ -5,7 +5,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createRun, legalCards, fullPool } from '../src/engine/run.js';
+import { createRun, legalCards, fullPool, runDeck } from '../src/engine/run.js';
 import { PRACTICES } from '../src/content/content.js';
 import { LOT_TYPES } from '../src/content/lotTypes.js';
 import { whyCannotBuy } from '../src/engine/shop.js';
@@ -14,7 +14,8 @@ import {
   SAVE_KEY, SAVE_VERSION, readJson, writeJson, saveRun, loadRun, clearRun, applyAction, replayRun,
   NOTEBOOK_KEY, loadNotebook, saveNotebook,
 } from '../src/ui/storage.js';
-import { diagnosisFor } from '../src/engine/notebook.js';
+import { diagnosisFor, unlockedIds } from '../src/engine/notebook.js';
+import { FULL_NOTEBOOK_UNLOCKS } from './shopSeed.js';
 
 const SEED = 123456;   // its corridor after step 2 offers procurement (tasks/todo.md)
 
@@ -36,8 +37,9 @@ function blockedStorage() {
 
 // A player that records every action it takes, the way main.js will.
 // `deck` is the starter deck unless a test passes another (fullPool()).
-function recordingPlayer(seed, deck = undefined) {
-  const player = { state: createRun({ seed, deck }), deck, actions: [] };
+// `unlocked` is what the run began with (M4 item 4); none by default.
+function recordingPlayer(seed, deck = undefined, unlocked = []) {
+  const player = { state: createRun({ seed, deck, unlocked }), deck, actions: [] };
   player.act = (...action) => {
     player.state = applyAction(player.state, action);
     player.actions.push(action);
@@ -111,9 +113,10 @@ function takeEveryStop(player) {
 // fresh run of the same seed.
 function saveAndResume(player) {
   const storage = fakeStorage();
-  assert.equal(saveRun(player.state.seed, player.actions, storage), true, `save failed (seed ${SEED})`);
+  const run = { seed: player.state.seed, unlocked: player.state.unlocked, actions: player.actions };
+  assert.equal(saveRun(run, storage), true, `save failed (seed ${SEED})`);
   const save = loadRun(storage);
-  return replayRun(createRun({ seed: save.seed, deck: player.deck }), save.actions);
+  return replayRun(createRun({ seed: save.seed, deck: player.deck, unlocked: save.unlocked }), save.actions);
 }
 
 test('resuming mid-run gives exactly the same state, and the same ending', () => {
@@ -195,7 +198,8 @@ test('every kind of action replays: saved after any action, the run resumes exac
 // Plays a whole run with every practice in the deck: in each room it plays
 // legal cards until none is left, and takes every side stop.
 function playFullPoolRun(seed) {
-  const player = recordingPlayer(seed, fullPool());
+  // Everything unlocked, so the shop can sell every item too.
+  const player = recordingPlayer(seed, fullPool(), FULL_NOTEBOOK_UNLOCKS);
   while (player.state.status === 'running') {
     if (player.state.corridor !== null) takeEveryStop(player);
     if (player.state.room === null) player.act('enter');
@@ -255,7 +259,7 @@ test('a bad action list replays as null, never a half-played state', () => {
 
 test('blocked storage: saving says no, loading finds nothing, nothing throws', () => {
   const storage = blockedStorage();
-  assert.equal(saveRun(SEED, [['enter']], storage), false);
+  assert.equal(saveRun({ seed: SEED, unlocked: [], actions: [['enter']] }, storage), false);
   assert.equal(loadRun(storage), null);
   assert.equal(clearRun(storage), false);
   assert.equal(readJson('anything', storage), null);
@@ -267,7 +271,7 @@ test('blocked storage: saving says no, loading finds nothing, nothing throws', (
 // one fails loudly instead of quietly testing something else.
 test('no storage at all (Node has no localStorage): the defaults do not throw', () => {
   assert.equal(globalThis.localStorage, undefined, 'this Node has a localStorage; give the test a stub');
-  assert.equal(saveRun(SEED, []), false);
+  assert.equal(saveRun({ seed: SEED, unlocked: [], actions: [] }), false);
   assert.equal(loadRun(), null);
   assert.equal(clearRun(), false);
 });
@@ -277,12 +281,16 @@ test('junk in the save is ignored', () => {
     'not json {',
     JSON.stringify(null),
     JSON.stringify(42),
-    JSON.stringify({ version: 0, seed: SEED, actions: [] }),
-    JSON.stringify({ version: SAVE_VERSION + 1, seed: SEED, actions: [] }),
-    JSON.stringify({ version: SAVE_VERSION, actions: [] }),
-    JSON.stringify({ version: SAVE_VERSION, seed: -1, actions: [] }),
-    JSON.stringify({ version: SAVE_VERSION, seed: 1.5, actions: [] }),
-    JSON.stringify({ version: SAVE_VERSION, seed: SEED, actions: 'enter' }),
+    JSON.stringify({ version: 0, seed: SEED, unlocked: [], actions: [] }),
+    JSON.stringify({ version: 1, seed: SEED, actions: [] }),   // a save from before M4 item 4
+    JSON.stringify({ version: SAVE_VERSION + 1, seed: SEED, unlocked: [], actions: [] }),
+    JSON.stringify({ version: SAVE_VERSION, unlocked: [], actions: [] }),
+    JSON.stringify({ version: SAVE_VERSION, seed: -1, unlocked: [], actions: [] }),
+    JSON.stringify({ version: SAVE_VERSION, seed: 1.5, unlocked: [], actions: [] }),
+    JSON.stringify({ version: SAVE_VERSION, seed: SEED, actions: [] }),   // no unlocked list
+    JSON.stringify({ version: SAVE_VERSION, seed: SEED, unlocked: 'all', actions: [] }),
+    JSON.stringify({ version: SAVE_VERSION, seed: SEED, unlocked: [7], actions: [] }),
+    JSON.stringify({ version: SAVE_VERSION, seed: SEED, unlocked: [], actions: 'enter' }),
   ];
   for (const text of junk) {
     const storage = fakeStorage();
@@ -295,8 +303,8 @@ test('clearRun removes the save, and the run key leaves other keys alone', () =>
   const storage = fakeStorage();
   writeJson(NOTEBOOK_KEY, { entries: ['keyholeVoid'] }, storage);
 
-  saveRun(SEED, [['enter']], storage);
-  assert.deepEqual(loadRun(storage), { seed: SEED, actions: [['enter']] });
+  saveRun({ seed: SEED, unlocked: [], actions: [['enter']] }, storage);
+  assert.deepEqual(loadRun(storage), { seed: SEED, unlocked: [], actions: [['enter']] });
   assert.equal(clearRun(storage), true);
   assert.equal(loadRun(storage), null);
   assert.deepEqual(readJson(NOTEBOOK_KEY, storage), { entries: ['keyholeVoid'] });
@@ -337,7 +345,7 @@ test('notebook: junk under the key loads as what is usable, never throws', () =>
 
 test('notebook: a run-save version bump and clearRun leave it untouched', () => {
   const storage = fakeStorage();
-  saveRun(SEED, [['enter']], storage);
+  saveRun({ seed: SEED, unlocked: [], actions: [['enter']] }, storage);
   saveNotebook(notebookOf(KEYHOLE), storage);
   const notebookText = storage.getItem(NOTEBOOK_KEY);
 
@@ -387,4 +395,20 @@ test('notebook: two open tabs each save an entry; both are kept', () => {
   saveNotebook({ ...tabA, entries: [...tabA.entries, KEYHOLE] }, storage);
   saveNotebook({ ...tabB, entries: [...tabB.entries, PARTICLES] }, storage);
   assert.deepEqual(loadNotebook(storage), notebookOf(KEYHOLE, PARTICLES));
+});
+
+// --- the unlocked pool in the save (M4 item 4) -----------------------------
+
+test('a resumed run uses the unlocked list saved with it, not the notebook as it is now', () => {
+  const storage = fakeStorage();
+  const unlocked = unlockedIds(notebookOf(KEYHOLE));
+  const player = recordingPlayer(SEED, runDeck(unlocked), unlocked);
+  playRoom(player);
+  saveRun({ seed: SEED, unlocked: player.state.unlocked, actions: player.actions }, storage);
+  // Meanwhile another tab diagnoses particles. The saved run doesn't change.
+  saveNotebook(notebookOf(KEYHOLE, PARTICLES), storage);
+  const save = loadRun(storage);
+  assert.deepEqual(save.unlocked, unlocked);
+  const resumed = replayRun(createRun({ seed: save.seed, deck: runDeck(save.unlocked), unlocked: save.unlocked }), save.actions);
+  assert.deepEqual(resumed, player.state, `seed ${SEED}`);
 });

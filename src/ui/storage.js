@@ -3,11 +3,15 @@
 // What is saved is NOT the whole state. It is the seed plus the list of
 // actions the player took, for example:
 //
-//   { version: 1, seed: 123456,
+//   { version: 2, seed: 123456, unlocked: ['slowStartPlate', 'additiveBath'],
 //     actions: [['enter'], ['play', 'timedOverEtch'], ['run'], ['walk', null], ['enter'], …] }
 //
-// To resume, the page builds a fresh run for the seed and plays the actions
-// again through the engine (replayRun). Same seed + same actions → same run
+// `unlocked` is the list of items the notebook had earned when the run
+// began (M4 item 4). It is saved with the run, so a diagnosis made since, in
+// another tab, can't change the deck or the shop of a resumed run.
+//
+// To resume, the page builds a fresh run for the seed and its unlocked list
+// and plays the actions again through the engine (replayRun). Same seed + same actions → same run
 // (CLAUDE.md §8), so the lot ends up exactly where it was.
 //
 // The browser's storage can be blocked (private windows, strict settings),
@@ -35,8 +39,9 @@ import { normalizeSeed } from '../engine/rng.js';
 // balance.js or content.js (David, 25 Oct 2026). An old save is then
 // ignored instead of replayed wrongly.
 // The notebook (M4) has its own key, so bumping this never touches it.
-export const SAVE_VERSION = 1;
-export const SAVE_KEY = 'fabrun.run.v1';   // bump the v1 together with SAVE_VERSION
+// 2 (26 Oct 2026): the save also holds the run's unlocked list (M4 item 4).
+export const SAVE_VERSION = 2;
+export const SAVE_KEY = 'fabrun.run.v2';   // bump the v2 together with SAVE_VERSION
 
 // The browser's localStorage, or null. Even LOOKING it up throws in some
 // browsers when storage is blocked, hence the try. Node has none.
@@ -83,20 +88,27 @@ export function removeKey(key, storage = browserStorage()) {
 
 // --- the run save --------------------------------------------------------
 
-// Saves the run as its seed and its action list. True if saved.
-export function saveRun(seed, actions, storage = browserStorage()) {
-  return writeJson(SAVE_KEY, { version: SAVE_VERSION, seed, actions }, storage);
+// Saves the run as { seed, unlocked, actions }: its seed, the unlocked list
+// it began with, and its action list. True if saved.
+export function saveRun({ seed, unlocked, actions }, storage = browserStorage()) {
+  return writeJson(SAVE_KEY, { version: SAVE_VERSION, seed, unlocked, actions }, storage);
 }
 
-// The saved { seed, actions }, or null if there is no usable save: nothing
-// stored, another version, a bad seed, or actions that aren't a list.
+// True for a list of item ids (text). An id no longer in the content is
+// harmless: the deck and the shop only ever look up ids that exist.
+const isIdList = value => Array.isArray(value) && value.every(id => typeof id === 'string');
+
+// The saved { seed, unlocked, actions }, or null if there is no usable save:
+// nothing stored, another version, a bad seed, an unlocked list that isn't
+// a list of ids, or actions that aren't a list.
 export function loadRun(storage = browserStorage()) {
   const save = readJson(SAVE_KEY, storage);
   if (save === null || typeof save !== 'object') return null;
   if (save.version !== SAVE_VERSION) return null;
   if (normalizeSeed(save.seed) === null) return null;
+  if (!isIdList(save.unlocked)) return null;
   if (!Array.isArray(save.actions)) return null;
-  return { seed: save.seed, actions: save.actions };
+  return { seed: save.seed, unlocked: save.unlocked, actions: save.actions };
 }
 
 // Removes the run save (when the run ends, or a new run starts).

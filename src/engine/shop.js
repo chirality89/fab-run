@@ -35,11 +35,13 @@ function shopSeed(seed, corridorIndex) {
   return normalizeSeed((mixed + corridorIndex) >>> 0);
 }
 
-// Could this item be on sale for this run right now? Not if it is already
-// owned, not if it is the material already in its slot, and not if the lot
-// never enters its room again on this route (it could never act).
+// Could this item be on sale for this run right now? Only if it is a
+// starter item or one this run had unlocked (M4 item 4). Not if it is
+// already owned, not if it is the material already in its slot, and not if
+// the lot never enters its room again on this route (it could never act).
 function isForSale(state, item, roomsAhead) {
-  if (!SHOP_SELLS_LOCKED_ITEMS && item.unlockedBy !== null) return false;
+  const available = item.unlockedBy === null || state.unlocked.includes(item.id);
+  if (!SHOP_SELLS_LOCKED_ITEMS && !available) return false;
   if (!roomsAhead.has(item.room)) return false;
   if (item.kind === 'equipment') return !state.equipment.includes(item.id);
   return state.slots[item.slot]?.id !== item.id;
