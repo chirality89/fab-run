@@ -39,7 +39,7 @@ A route step in `lotTypes.js` gets an optional `effects` list. These are ordinar
 |---|---|---|
 | No stop, nothing played | 16.20 points lost | 16.20 (unchanged) |
 | No stop, timed over-etch | 15.18 | 15.18 (unchanged) |
-| With stop, nothing played | 10.69 | **10.69** (attack 0.03 → 0.009; depth was already ×0.4) |
+| With stop, nothing played | 12.42 (the stop only cut depth ×0.4) | **10.69** (attack 0.03 → 0.009 as well) |
 | With stop, timed over-etch | 9.47 (×0.75 on 0.03) | **8.35** (0.009 × 1.05) |
 
 - **Every test on a run without the stop keeps its values**, and that is most of them, including the idle run. The one test that checks the ×0.75 (`resolve.test.js`, "0.075 with it") changes to 0.105 (0.1 × 1.5 × 0.7). I'll show it to you before editing.
