@@ -1,8 +1,23 @@
 # Fab Run — Task Tracker
 
-## Planned: M4.5 item 8 (part) — the small fixes (Lane F issues 8 labels, 9, 10, 13, 14, 15, 16)
+## Done: M4.5 item 8 (part) — the small fixes (Lane F issues 8 labels, 9, 10, 13, 14, 15; 16 moved to its own item)
 
-**Status: PLAN for David's OK (26 Oct 2026). No code is changed until you say yes. Questions Q1–Q3 are at the end.**
+**Status: built 26 Oct 2026. David took the recommendations: Q1 round to nearest and relabel; Q2 A (leave the score for M7, only reword the cost tile); Q3 the glossary becomes its own roadmap item ("Words page").**
+
+**What was built (one commit each)**
+1. **Cash (issue 9).** The cash is taken when the lot *enters* the room (equipment acts on entering), so the note sits on the room screen, not the result as the plan said: "On entering, In-situ pad conditioner took 20 cash." under the room header. `run.js` `enterStep` notes each item's cash change in `room.itemCash` (a small engine change: two folders touched, about 10 lines). Hand check: with the pad conditioner, 1480 cash on entering CMP and that note; no note in earlier rooms.
+2. **Bad seeds (issue 15).** `view.js` `badSeedText` and `render.js` `renderSeedNote`: '"abc" is not a seed (a whole number from 0 to 4294967295), so this is seed N.' Long values are cut at 20 characters. New screen test `seed.spec.js`. While checking its screenshot I found the floor-plan legend still listed "MET Metrology" (my miss in item 5); it now lists only the stops the map offers.
+3. **Risk units (issue 10).** `effectsText.js` `riskText`: "+0.02 risk (about 2.0 points of yield): …", used by events and by `addRisk` effects. Hand checks: 0.02 → 1.98, 0.03 → 2.96, 0.04 → 3.92, 0.010 → 0.995.
+4. **PM labels (issue 8).** Buttons read "PM the Etch tool". Before any choice the stop's exit reads "Leave without a PM or DOE: on to step 3, Litho (trench)", then "Continue to step 3: Litho (trench)".
+5. **Wafer map (Q1).** Tiles round to the nearest percent and the legend reads "Each site: % of this die position expected good across the lot." The band still follows the printed number. Test values changed with David's OK: 0.8999 now prints 90 (pass, was 89 warn) and 0.6999 prints 70 (warn, was 69 fail); two new values cover 89 and 69.
+6. **Cost tile (Q2 A).** It adds "For reference only: shipping at spec is what wins the run."
+7. **Glossary (Q3).** Added to `ROADMAP.md` as its own M4.5 item.
+
+**Checks:** `npm test` 250/250, `npm run screens` 78/78, the PM, seed and etch phone tests passed 5 runs in a row. I checked the screenshots: the room result and ship report on the phone, and the bad-seed note. No save version bump: no saved action or engine rule changed (`room.itemCash` is rebuilt on replay).
+
+**Not done here:** phone layout (17) and the run-ending button spacing (8) are Lane D's, so the roadmap line stays open.
+
+**Original plan below.**
 
 Roadmap line: "Phone layout and run-ending buttons (issues 8, 17); small fixes (issues 9, 10, 13, 14, 15, 16)". The phone layout (17) and the spacing of run-ending buttons (8) are Lane D's look-and-feel work, so they are **not** in this plan. This plan is the Lane A part: words, numbers and messages. All of it is in `src/ui/` except where noted. No engine rule, no balance number and no saved action changes, so **no save version bump**.
 

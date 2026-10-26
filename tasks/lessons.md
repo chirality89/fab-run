@@ -355,3 +355,8 @@ The expected names were written from the items' ids, not read from `content.js`.
 - **What happened:** after the map stopped offering metrology, every corridor offered PM or an event. `takeEveryStop` in `storage.test.js` always took PM first, then event, so it never shopped, and the "every action replays" test found no seed that used `buy`.
 - **Root cause:** the helper's preference order quietly depended on which stops a corridor could offer. Taking a kind out of the pool changed what the helper could ever reach.
 - **Rule:** a test helper that has to cover every kind of choice should turn its preference with something that varies (here the corridor number), not use a fixed "first match" order. When a pool of choices changes, check which helpers pick from it.
+
+## A screenshot caught what a test didn't: the map legend still listed a stop the map no longer offers (26 Oct 2026)
+- **What happened:** M4.5 item 5 took metrology off the map, but the floor-plan legend was built from every stop in `sideStops.js`, so it still said "MET Metrology". No test checked the legend, and I didn't look at a floor-plan screenshot after that item.
+- **Root cause:** two lists described the same thing (the stops in content, the stops the map offers), and I changed only one of them.
+- **Rule:** when a change takes something out of the game, search for every place that lists it (legends, keys, help text), and look at the screenshot of every screen that could show it, not only the screens the change was about.
