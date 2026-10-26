@@ -376,7 +376,17 @@ export function renderError(container, error) {
 // One line at the top after a reload picked up a saved run: "Resumed seed
 // 123456". It sits above the screen just drawn and goes with the next redraw.
 export function renderResumedNote(container, seed) {
-  const note = el('p', 'resumed-note', `Resumed seed ${seed}`);
+  renderNote(container, `Resumed seed ${seed}`, 'resumed-note');
+}
+
+// The same kind of line when the address held a seed that isn't one
+// (view.js badSeedText): it says which seed started instead.
+export function renderSeedNote(container, text) {
+  renderNote(container, text, 'resumed-note seed-note');
+}
+
+function renderNote(container, text, className) {
+  const note = el('p', className, text);
   note.setAttribute('role', 'status');
   container.prepend(note);
 }

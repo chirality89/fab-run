@@ -19,9 +19,9 @@
 import { normalizeSeed } from '../engine/rng.js';
 import { createRun, runDeck, defaultLoadout } from '../engine/run.js';
 import { applyAction, saveRun, loadRun, clearRun, replayRun, loadNotebook, saveNotebook } from './storage.js';
-import { roomView, resultView, mapView, stopView, shopView, parseSeed } from './view.js';
+import { roomView, resultView, mapView, stopView, shopView, parseSeed, badSeedText } from './view.js';
 import {
-  renderRoom, renderResult, renderShip, renderError, renderResumedNote, focusNextAction, showFromTop,
+  renderRoom, renderResult, renderShip, renderError, renderResumedNote, renderSeedNote, focusNextAction, showFromTop,
 } from './render.js';
 import { renderMap, renderStop, renderShop, renderPm, renderEvent } from './floorPlan.js';
 import { eventView } from './eventView.js';
@@ -311,5 +311,10 @@ function resumeSavedRun() {
 }
 
 safely(() => {
-  if (!resumeSavedRun()) startRun(chooseSeed());
+  if (resumeSavedRun()) return;
+  const search = window.location.search;   // read before chooseSeed rewrites the address
+  const seed = chooseSeed();
+  startRun(seed);
+  const note = badSeedText(search, seed);
+  if (note !== null) renderSeedNote(app, note);
 });

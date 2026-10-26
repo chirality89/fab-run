@@ -11,7 +11,7 @@ import {
 import { lotYield } from '../src/engine/lot.js';
 import { seedSellingTestItems, SHOP_TEST_UNLOCKS } from './shopSeed.js';
 import {
-  roomView, resultView, mapView, stopView, shopView, siteBand, yieldBand, parseSeed, pointsChangeText,
+  roomView, resultView, mapView, stopView, shopView, siteBand, yieldBand, parseSeed, pointsChangeText, badSeedText, stopKeyText,
 } from '../src/ui/view.js';
 
 const SEED = 123456;
@@ -421,4 +421,27 @@ test('the room says which item took cash on entering: pad conditioner at CMP', (
   assert.equal(inCmp.cash, 1480, `seed ${SEED}`);
   assert.deepEqual(inCmp.room.itemCash, [{ id: 'padConditioner', delta: -20 }]);
   assert.equal(roomView(inCmp).cashNoteText, 'On entering, In-situ pad conditioner took 20 cash.');
+});
+
+// --- M4.5 small fixes: a seed in the address that isn't one (issue 15) ----
+
+test('a bad ?seed= says so and names the seed that started instead', () => {
+  const tail = 'is not a seed (a whole number from 0 to 4294967295), so this is seed 77.';
+  assert.equal(badSeedText('?seed=abc', 77), `"abc" ${tail}`);
+  assert.equal(badSeedText('?seed=-5', 77), `"-5" ${tail}`);
+  assert.equal(badSeedText('?seed=1.5', 77), `"1.5" ${tail}`);
+  assert.equal(badSeedText('?seed=99999999999', 77), `"99999999999" ${tail}`, 'too big for a 32-bit seed');
+  assert.equal(badSeedText('?seed=123456789012345678901234', 77), `"12345678901234567890…" ${tail}`, 'cut short');
+  assert.equal(badSeedText('?seed=', 77), `"" ${tail}`, 'an empty seed is not one either');
+});
+
+test('a good ?seed= or none at all shows no note', () => {
+  assert.equal(badSeedText('?seed=123456', 77), null);
+  assert.equal(badSeedText('?seed=4294967295', 77), null, 'the largest seed');
+  assert.equal(badSeedText('', 77), null);
+  assert.equal(badSeedText('?other=1', 77), null);
+});
+
+test('the floor-plan legend lists only the stops the map offers (no metrology since M4.5 item 5)', () => {
+  assert.equal(stopKeyText(), 'PM PM / DOE · BUY Procurement · EVT Event');
 });

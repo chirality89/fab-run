@@ -12,6 +12,7 @@ import {
   SCRAP_LINE, CUSTOMER_SPEC, SITE_GOOD_LINE, SIDE_STOP_MINUTES, QTIME_RISK_PER_MINUTE,
 } from '../content/balance.js';
 import { normalizeSeed } from '../engine/rng.js';
+import { SIDE_STOP_KINDS } from '../engine/map.js';
 import { lotYield, realizeRisks } from '../engine/lot.js';
 import { whyIllegal, playCard } from '../engine/run.js';
 import { whyCannotBuy, findShopItem } from '../engine/shop.js';
@@ -196,6 +197,18 @@ export function parseSeed(search, fallback) {
   return seed === null ? fallback : seed;
 }
 
+// The note shown when the address had a ?seed= that is not a seed (Lane F
+// issue 15), e.g. '"abc" is not a seed (a whole number from 0 to
+// 4294967295), so this is seed 1234567.' Null when there was no ?seed= or
+// it was a good one. A very long value is cut short in the note.
+export function badSeedText(search, seed) {
+  const text = new URLSearchParams(search).get('seed');
+  if (text === null || parseSeed(search, null) !== null) return null;
+  const shown = text.length > 20 ? `${text.slice(0, 20)}…` : text;
+  return `"${shown}" is not a seed (a whole number from 0 to ${MAX_SEED_TEXT}), so this is seed ${seed}.`;
+}
+const MAX_SEED_TEXT = String(2 ** 32 - 1);   // the largest seed rng.js accepts
+
 // What happens to the lot after a room, in words.
 function outcomeText(after, route) {
   if (after.status === 'scrapped') {
@@ -243,9 +256,10 @@ export function resultView(before, after) {
 // --- the floor-plan map (M3 item 1) ----------------------------------------
 
 // The legend under the floor plan, built from the side stops' words
-// (src/content/sideStops.js).
-function stopKeyText() {
-  return Object.values(SIDE_STOPS).map(info => `${info.short} ${info.name}`).join(' · ');
+// (src/content/sideStops.js): only the kinds the map can offer, so a stop
+// not built yet (metrology) is not in it.
+export function stopKeyText() {
+  return SIDE_STOP_KINDS.map(kind => `${SIDE_STOPS[kind].short} ${SIDE_STOPS[kind].name}`).join(' · ');
 }
 
 // Where the lot is on the map. Between rooms it stands in a corridor; at the
