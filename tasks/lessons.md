@@ -255,3 +255,85 @@ Yield is the average of the sites' survivals, not e to the power of the average 
 ✅ Split a yield loss where it happens: per site, then add the sites up. Check that the parts add up to the whole.
 ✅ Test an attribution with a pattern that saturates some sites next to one that is spread evenly
 ✅ A failure mode is a right answer only if its cause was present, not just its pattern (several causes can make the same pattern)
+
+## Two green PRs merged into a red main
+
+### What Happened
+PR #12 (Lane D, card art) and PR #16 (Lane C, content) were each green against main, and I merged them one after the other. Together they broke main. Lane D's test says every practice needs a cross-section, but Lane C's 9 new practices had none, and a line Lane C added made the "Stop on endpoint" card overflow its frame.
+
+### Root Cause
+Each PR was tested against main without the other. Neither branch had the other's rule or the other's content, so no one tested the two together before they landed.
+
+### Rule to Prevent
+✅ Before merging a second lane PR, merge both branches locally and run `npm test` and `npm run screens` on the combined result
+✅ When a lane adds a rule that covers all content ("every practice has art"), tell the content lane before either merges
+
+## Rounded numbers hid a failing contrast step (Lane D)
+
+### What Happened
+The contrast script printed 1.345 as "1.35", so etch shade1 looked like it met the 1.35:1 rule. It didn't, and the new test caught it.
+
+### Root Cause
+A limit was judged from a rounded printout.
+
+### Rule to Prevent
+✅ Compare raw ratios against limits in code (the test does); round only what people read
+✅ Never copy a "passes" judgement from rounded output
+
+## Cards shrank in a one-row hand (Lane D)
+
+### What Happened
+A fixed-width card in a `nowrap` flex row was squeezed below 260 px and its text overflowed.
+
+### Root Cause
+Flex items shrink by default.
+
+### Rule to Prevent
+✅ Fixed-size UI pieces get `flex: none`
+✅ The art-preview screen test checks that no card text overflows
+
+## A long text squeezed the card name away (Lane D)
+
+### What Happened
+Lane C's longer tradeoffs didn't fit the 260 × 380 card. Flex let the card name shrink to zero height on 11 cards, and the overflow test didn't notice.
+
+### Root Cause
+Flex items shrink by default, and the test measured the container, not its parts.
+
+### Rule to Prevent
+✅ Fixed parts of a card get `flex: none`
+✅ Test that each part is visible, not only that the container doesn't overflow
+
+## A test assumed the first room deals cards (Lane B)
+
+### What Happened
+A "room with a hand" check ran at wet clean, but the starter deck has no wet-clean cards.
+
+### Root Cause
+The test relied on a hand without checking which rooms the deck covers.
+
+### Rule to Prevent
+✅ Before a test relies on a hand, check which room's cards are in the deck
+
+## A test helper assumed the lot was never already in a room (Lane B)
+
+### What Happened
+A helper that walks a run assumed it started at a door, and broke when the lot was already in a room.
+
+### Root Cause
+The helper didn't look at where the lot stood.
+
+### Rule to Prevent
+✅ Helpers that walk a run start from wherever the lot stands (door, room, corridor, shop)
+
+## A test passed on a lot that had nothing to test
+
+### What Happened
+A test checked that an unknown notebook id doesn't change the diagnosis. It used a lot scrapped on its first move. That lot lost nothing, so there were no choices at all, and "the same with or without the id" was true for an empty list.
+
+### Root Cause
+The test compared two results without checking that the results had anything in them.
+
+### Rule to Prevent
+✅ When a test compares "with X" against "without X", first assert the result is not empty
+✅ For diagnosis tests, play the lot through (the idle walk) so it has losses to diagnose

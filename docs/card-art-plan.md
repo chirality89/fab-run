@@ -29,7 +29,7 @@ So the art teaches the same physics the card's effect describes.
 - **B, tool schematic**, for the **inspect view** (tap and hold a card) and **notebook** pages.
 - **D, toy diorama**, for the **floor-plan map** rooms, not cards.
 
-## Card anatomy (260 × 380 px at 1×)
+## Card anatomy (260 × 420 px at 1×; David chose 420 over 380 on 26 Oct so the longest tradeoffs fit)
 
 1. **Room band.** Room color fill, dark ink text, room icon and room name. Color never works alone.
 2. **Cost chip.** Ink pill, mono font. Minutes for practices, cash for items.
