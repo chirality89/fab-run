@@ -82,6 +82,7 @@ Lane tags: **A** run spine (engine, run flow, screens, economy), **C** content (
     - An unqualified second-source slurry offered mid-lot as a normal choice.
     - An auditor walk-through that holds the lot for 30 minutes.
     Evidence: `shots/fab-engineer/123456-35-s123456-24-met.png` and the other shots named in `fab-engineer.md` problem 5.
+    **Reviewed:** `physics-reviewer` confirmed all seven as real defects (the ones that need David's call are marked). Its verdicts, file locations and proposed wording are in `physics-review.md`. It also confirmed that issue 1's etch and litho losses are fixed risk amounts that teach a false lesson as tuned, and that issues 2, 13 and the SPC wording have real causes in the content and screen text.
 13. **The wafer map and the headline yield disagree, and the map is a square. [A, with D for the map shape]** After step 1 on seed 123456 the map shows thirteen 99s and twelve 98s, which can't average to the 99.1% in the header. The map is a 5×5 square, not a round wafer (fab-engineer). Evidence: `shots/fab-engineer/123456-02-s123456-04-room1-result.png`.
 14. **Shopping makes the score worse, and rejected lots are unpaid. [A]** Cost per good die was 5.97 with no purchases and 7.36–7.77 with them. The best yield (seed 777) had the worst cost score. The rational move is to buy nothing (minmaxer). Evidence: `shots/minmaxer/777-38-report.png`.
 15. **Seeds that are not ordinary numbers silently become a random seed. [A]** "abc", -5 and a 20-digit number all give a free reroll (minmaxer).
