@@ -40,16 +40,18 @@ On load, the game builds a fresh run for the seed and plays the actions again th
 
 **Part 3: hook into `main.js` (about 40 lines). Only after Lane A's ship screen is on `main`.**
 
-- [ ] Merge `main` into `lane-b` (no rebase) and read Lane A's ship screen code before writing anything.
-- [ ] The page builds the starting run in **one** function (`createRun` with the lot type, starter deck, default loadout and normal scatter), used both for a new run and for the resume. That way the replay can't start from a different lot (code-explainer).
-- [ ] Every action button in today's `main.js` records its action: enter, play, run, walk, buy, pm, doe, choose (event option), scrap. Diagnose is not recorded: it comes after the run ends and the save is cleared.
-- [ ] `main.js` keeps an `actions` list next to `state`. An action is added only **after** the engine accepted it, so a refused tap never goes into the save. Every button that calls an engine function also adds that action to the list and calls `saveRun(state.seed, actions)`. "Go straight" records two actions: walk with no stop, then enter.
-- [ ] On page load (David, 25 Oct 2026):
+- [x] Merge `main` into `lane-b` (no rebase) and read Lane A's ship screen code before writing anything.
+- [x] The page builds the starting run in **one** function (`createRun` with the lot type, starter deck, default loadout and normal scatter), used both for a new run and for the resume. That way the replay can't start from a different lot (code-explainer).
+- [x] Every action button in today's `main.js` records its action: enter, play, run, walk, buy, pm, doe, choose (event option), scrap. Diagnose is not recorded: it comes after the run ends and the save is cleared.
+- [x] `main.js` keeps an `actions` list next to `state`. An action is added only **after** the engine accepted it, so a refused tap never goes into the save. Every button that calls an engine function also adds that action to the list and calls `saveRun(state.seed, actions)`. "Go straight" records two actions: walk with no stop, then enter.
+- [x] On page load (David, 25 Oct 2026):
   - If the address has a `?seed=` that **differs** from the saved seed, the link wins: a fresh run for that seed starts and replaces the save.
   - Otherwise, if there is a save for a run still going, **resume silently** and draw the right screen for where the lot stands: room screen in a room, the shop if it's open, the map in a corridor or at the door. The result screen right after Run needs the "before" state, so a reload there shows the map instead.
+    - *As built:* the page reopens on the screen the **last action** showed. Replaying all actions but the last gives the "before" state, so the room result and the plain stop screen come back exactly. "Continue to the corridor" isn't an action, so a reload after Run reopens that room's result (one more tap on Continue; nothing lost).
   - The map shows one line, "Resumed seed 123456", next to the usual New seed button.
-- [ ] When the run ends (Lane A's ship / reject / scrap screen), clear the save. Replay and New seed start fresh with an empty action list.
-- [ ] Screen tests (Playwright, `tests/screens/saves.spec.js`): play a card, reload, and the hand and time left are the same. Reload in a corridor, and the map comes back. A different `?seed=` link starts fresh. With storage blocked (`localStorage` made to throw by an init script), the game still plays. Both sizes. Screenshots checked by eye.
+    - *As built:* the line shows above whatever screen the reload opens on, and goes with the next redraw.
+- [x] When the run ends (Lane A's ship / reject / scrap screen), clear the save. Replay and New seed start fresh with an empty action list.
+- [x] Screen tests (Playwright, `tests/screens/saves.spec.js`): play a card, reload, and the hand and time left are the same. Reload in a corridor, and the map comes back. A different `?seed=` link starts fresh. With storage blocked (`localStorage` made to throw by an init script), the game still plays. Both sizes. Screenshots checked by eye.
 
 **Decisions settled:** none needed from `docs/decisions.md`. Lane-level, from David (25 Oct 2026):
 - A `?seed=` link that differs from the save wins and starts fresh.
@@ -57,7 +59,7 @@ On load, the game builds a fresh run for the seed and plays the actions again th
 - Save the seed plus the list of actions, not the whole state.
 - Bump `SAVE_VERSION` (and the `v1` in `SAVE_KEY`) on any shipped change to the actions, the engine rules, `balance.js` or `content.js`.
 
-**Size:** Parts 1–2 are `src/ui/` + `tests/` only, about 250 lines with tests. Part 3 is about 40 lines in `main.js` plus one screen test file. Two to three commits: storage + tests, then the hook.
+**Size:** (As built, Part 3 changed about 140 lines of `main.js`, not 40: every button now goes through one `act()`, and one `showScreenAfter()` draws the screen both live and on resume. Over the ~100-line ask in CLAUDE.md §3; told David.) Parts 1–2 are `src/ui/` + `tests/` only, about 250 lines with tests. Part 3 is about 40 lines in `main.js` plus one screen test file. Two to three commits: storage + tests, then the hook.
 
 **Not in this lane (noted):** the notebook itself (M4); a "your save was from an older version" message; saving more than one run; removing the old `v1` key after a version bump (a few bytes left behind).
 
@@ -86,5 +88,24 @@ On load, the game builds a fresh run for the seed and plays the actions again th
 - After this merge: `npm test` 214/215, `npm run screens` 44/48. The failures are the same on plain `main` at 55d56ef: `tokens.test.js` "every practice has a cross-section" and the 4 `art-preview.spec.js` tests (Lane C's new practices have no art yet; Lane D is fixing it). None come from this branch.
 - Lane A's ship screen is now on `main`, so Part 3 (the `main.js` hook) can start when David says.
 - `main.js` now keeps the notebook in memory, and saving it is M4 item 2. That isn't in this lane, but it can use `readJson`/`writeJson` with its own key.
+
+- 2026-10-26: Part 3 built.
+  - `main.js`: every button goes through `act(action)`, which runs `applyAction` (storage.js), adds the action and saves. Once the run ends, the save is cleared instead. `newRun(seed)` is the one place a run is built. `resumeSavedRun()` replays the save and draws the screen the last action showed, then adds the note. If drawing fails, it falls back to a fresh start.
+  - `render.js`: `renderResumedNote`. `room.css`: `.resumed-note` (tokens only).
+  - New `tests/screens/saves.spec.js`, 7 tests × 2 sizes. Reloading:
+    - in a room after a card;
+    - after Run;
+    - at a quiet metrology stop;
+    - in the shop after a purchase;
+    - after a link to another seed;
+    - after a scrap;
+    - with storage blocked.
+  - Switching saving off once made the three resume tests fail; restored. Screenshots 30 (room) and 32 (shop) at phone size and 31 (map) at desktop size checked by eye: note on top, values unchanged, no sideways scroll.
+- code-explainer: all buttons recorded, the live flow is unchanged from before. Fixes done: a fresh-start fallback if the resumed screen fails to draw; comments on `??`, the straight-on walk, diagnose, and two tabs sharing one save; CSS moved to its own section; strict locators; the blocked-storage test now checks that storage really throws; a new shop reload test.
+- After Part 3: `npm test` 214/215 and `npm run screens` 58/62. The failures are the same as on `main` (tokens cross-section, 4 art-preview).
+
+**Open for David:**
+- When the **last** room's Run ends the lot, the save is cleared while the result screen ("See the ship report") is still up. A reload there starts the seed fresh, and the ship report and the chance to diagnose are lost. That is what the plan said ("a finished run starts fresh on reload"). The other option is to keep the save until the player leaves the ship report (Replay or New seed), so a reload reopens it.
+- The "Resumed seed" line shows on any screen, not only the map.
 
 **Result:**

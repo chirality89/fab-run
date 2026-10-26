@@ -386,3 +386,16 @@
 }
 .route-spc-item .spc-title { margin: 6px 0 2px; }
 .diagnose-text { margin: 0 0 8px; font-size: 17px; }
+
+/* --- Resumed run ---------------------------------------------------------- */
+/* The line shown after a reload resumed a saved run (render.js). */
+.resumed-note {
+  margin: 0 0 8px;
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 15px;
+}

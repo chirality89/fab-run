@@ -6,17 +6,23 @@
 // next room …, until the lot ships, is rejected or is scrapped.
 //
 // The whole run lives in one variable, `state`. The screen never changes it
-// directly: every button calls an engine function (enterStep, playCard,
-// resolveStep, walkCorridor, buyItem, pmTool, doeCard, chooseEventOption),
-// stores the new state that comes back, and redraws.
+// directly: every button calls act() with an action such as ['play', cardId].
+// act() runs the matching engine function (storage.js applyAction), keeps the
+// new state, adds the action to the list and saves. Then the screen redraws.
+//
+// Saving (storage.js): the save is the seed plus the action list. On a reload
+// the run is replayed and the page opens on the screen the last action
+// showed. A ?seed= in the address that differs from the save starts that seed
+// fresh instead. When the run ends, the save is removed. Two tabs share one
+// save, so the last tab to act is the one a reload picks up.
 
 import { normalizeSeed } from '../engine/rng.js';
-import {
-  createRun, enterStep, resolveStep, playCard, walkCorridor, buyItem, pmTool, doeCard, chooseEventOption,
-  starterDeck, defaultLoadout, scrapLot,
-} from '../engine/run.js';
+import { createRun, starterDeck, defaultLoadout } from '../engine/run.js';
+import { applyAction, saveRun, loadRun, clearRun, replayRun } from './storage.js';
 import { roomView, resultView, mapView, stopView, shopView, parseSeed } from './view.js';
-import { renderRoom, renderResult, renderShip, renderError, focusNextAction, showFromTop } from './render.js';
+import {
+  renderRoom, renderResult, renderShip, renderError, renderResumedNote, focusNextAction, showFromTop,
+} from './render.js';
 import { renderMap, renderStop, renderShop, renderPm, renderEvent } from './floorPlan.js';
 import { eventView } from './eventView.js';
 import { pmView } from './pmView.js';
@@ -52,6 +58,7 @@ function chooseSeed() {
 
 const app = document.getElementById('app');
 let state = null;   // the whole run; replaced, never edited
+let actions = [];   // every action taken this run, in order: what the save holds
 let notebook = emptyNotebook();   // diagnosed failure modes; kept across runs (in memory until M4 item 2)
 let diagnosis = null;   // this lot's diagnose result (notebook.js), or null before the guess
 
@@ -65,12 +72,53 @@ function safely(draw) {
   }
 }
 
+// --- taking an action ----------------------------------------------------
+
+// Runs one action through the engine and keeps the new state. The action is
+// added to the list only after the engine accepted it, so a refused tap never
+// goes into the save. Returns the state from just before, for screens that
+// show what changed.
+function act(action) {
+  const before = state;
+  state = applyAction(state, action);
+  actions = [...actions, action];
+  keepSave();
+  return before;
+}
+
+// Saves the run while it goes on; removes the save once it has ended, so a
+// reload after the ship report starts fresh. A blocked storage just means
+// no save (storage.js never throws).
+function keepSave() {
+  if (state.status === 'running') saveRun(state.seed, actions);
+  else clearRun();
+}
+
+// Draws the screen that comes after `action`. `before` is the state from
+// just before it. Used live after each tap, and once on a reload with the
+// last saved action, so the page reopens where the player left it.
+function showScreenAfter(action, before) {
+  // `action ?? []` uses an empty list when there is no action yet; the
+  // [name, value] = … line then takes the action's two parts.
+  const [name, value] = action ?? [];
+  if (name === 'enter' || name === 'play') showRoom();
+  else if (name === 'run') showResult(before);
+  // Going straight on ('walk' with null) is always followed by 'enter', so
+  // a save never ends on it; it falls through to the map below.
+  else if (name === 'walk' && value !== null) showStop(before, value);
+  else if (name === 'buy') showShop(value);
+  else if (name === 'pm' || name === 'doe') showPm(AFTER_CHOICE);
+  else if (name === 'choose') showEvent();
+  else if (name === 'scrap') showShipReport();
+  else showMap();   // no action yet: the lot is at the door
+}
+
 // --- what the buttons do -------------------------------------------------
 
 function onPlay(cardId) {
   safely(() => {
     const position = state.hand.indexOf(cardId);   // where the card sat in the hand
-    state = playCard(state, cardId);
+    act(['play', cardId]);
     showRoom();
     focusNextAction(app, position);
   });
@@ -80,65 +128,32 @@ function onPlay(cardId) {
 // step 1) or in a corridor; going straight on walks the corridor first.
 function onGoStraight() {
   safely(() => {
-    if (state.corridor !== null) state = walkCorridor(state, null);
+    if (state.corridor !== null) act(['walk', null]);
     enterRoom();
   });
 }
 
 function onTakeStop(stopKind) {
   safely(() => {
-    const before = state;
-    state = walkCorridor(state, stopKind);
-    if (state.shop !== null) showShop(null);
-    else if (state.pm !== null) showPm(JUST_OPENED);
-    else if (state.event !== null) showEvent();
-    else renderStop(app, stopView(before, state, stopKind), { onContinue: () => safely(enterRoom) });
+    const before = act(['walk', stopKind]);
+    showStop(before, stopKind);
   });
 }
 
-function onPm(roomId) {
+// The buttons below take one action and draw the screen that follows it.
+function takeAction(action) {
   safely(() => {
-    state = pmTool(state, roomId);
-    showPm(AFTER_CHOICE);
+    const before = act(action);
+    showScreenAfter(action, before);
   });
 }
 
-function onDoe(cardId) {
-  safely(() => {
-    state = doeCard(state, cardId);
-    showPm(AFTER_CHOICE);
-  });
-}
-
-function onChoose(optionIndex) {
-  safely(() => {
-    state = chooseEventOption(state, optionIndex);
-    showEvent();
-  });
-}
-
-function onBuy(itemId) {
-  safely(() => {
-    state = buyItem(state, itemId);
-    showShop(itemId);
-  });
-}
-
-function onRunRoom() {
-  safely(() => {
-    const before = state;
-    state = resolveStep(state);
-    const onShip = () => safely(showShipReport);
-    renderResult(app, resultView(before, state), { onContinue: () => safely(showMap), onShip, onReplay, onNewSeed });
-  });
-}
-
-function onScrap() {
-  safely(() => {
-    state = scrapLot(state);
-    showShipReport();
-  });
-}
+const onPm = roomId => takeAction(['pm', roomId]);
+const onDoe = cardId => takeAction(['doe', cardId]);
+const onChoose = optionIndex => takeAction(['choose', optionIndex]);
+const onBuy = itemId => takeAction(['buy', itemId]);
+const onRunRoom = () => takeAction(['run']);
+const onScrap = () => takeAction(['scrap']);
 
 function onReplay() {
   safely(() => startRun(state.seed));
@@ -158,6 +173,21 @@ function showRoom() {
   renderRoom(app, roomView(state), { onPlay, onRunRoom });
 }
 
+// The result of a room, right after Run. `before` is the state at Run.
+function showResult(before) {
+  const onShip = () => safely(showShipReport);
+  renderResult(app, resultView(before, state), { onContinue: () => safely(showMap), onShip, onReplay, onNewSeed });
+}
+
+// The screen of the side stop just taken: the shop, PM/DOE or event, or
+// the plain stop screen when the stop has nothing to choose.
+function showStop(before, stopKind) {
+  if (state.shop !== null) showShop(null);
+  else if (state.pm !== null) showPm(JUST_OPENED);
+  else if (state.event !== null) showEvent();
+  else renderStop(app, stopView(before, state, stopKind), { onContinue: () => safely(enterRoom) });
+}
+
 function showMap() {
   renderMap(app, mapView(state), { onTakeStop, onGoStraight, onScrap });
 }
@@ -170,6 +200,7 @@ function showShipReport() {
 
 // The player names a failure mode on the ship report (M4 item 1). The
 // notebook lives in memory for now; M4 item 2 saves it under its own key.
+// Not an action for the run save: the run has ended, so its save is gone.
 function onDiagnose(failureModeId) {
   safely(() => {
     const done = diagnoseLot(state, notebook, failureModeId);
@@ -200,17 +231,56 @@ function showEvent() {
 }
 
 function enterRoom() {
-  state = enterStep(state);
+  act(['enter']);
   showRoom();
   showFromTop(app);
 }
 
 // A fresh run for the seed: starter deck, default loadout (i-line resist in
-// litho), normal scatter. It starts on the floor plan.
+// litho), normal scatter. The one place a run is built, for a new run and
+// for a resumed one alike, so a replay always starts from the same lot.
+function newRun(seed) {
+  return createRun({ seed, lotTypeId: LOT_TYPE_ID, deck: starterDeck(), loadout: defaultLoadout() });
+}
+
+// Starts the seed from the beginning, on the floor plan. Any old save goes.
 function startRun(seed) {
   diagnosis = null;
-  state = createRun({ seed, lotTypeId: LOT_TYPE_ID, deck: starterDeck(), loadout: defaultLoadout() });
+  state = newRun(seed);
+  actions = [];
+  clearRun();
   showMap();
 }
 
-safely(() => startRun(chooseSeed()));
+// Picks up the saved run, if there is one for this page. Returns true if it
+// did. Not when the address asks for another seed (the link wins), and not
+// when the save no longer replays or its run has already ended.
+function resumeSavedRun() {
+  const save = loadRun();
+  if (save === null) return false;
+  const fromAddress = parseSeed(window.location.search, null);
+  if (fromAddress !== null && fromAddress !== save.seed) return false;
+
+  const resumed = replayRun(newRun(save.seed), save.actions);
+  if (resumed === null || resumed.status !== 'running') return false;
+
+  // The state just before the last action, for screens that show what it
+  // changed (the room result, a side stop). Replaying all but the last
+  // action gives exactly that state.
+  const before = replayRun(newRun(save.seed), save.actions.slice(0, -1));
+  state = resumed;
+  actions = save.actions;
+  writeSeedToAddress(save.seed);
+  try {
+    showScreenAfter(save.actions.at(-1), before);
+  } catch (error) {
+    console.warn(`resume: could not draw the saved screen, starting fresh: ${error.message}`);
+    return false;
+  }
+  renderResumedNote(app, save.seed);
+  return true;
+}
+
+safely(() => {
+  if (!resumeSavedRun()) startRun(chooseSeed());
+});
