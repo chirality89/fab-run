@@ -2,9 +2,9 @@
 
 ## Current: M4 item 4 — starter pool vs unlocked pool; unlocked remedies appear in the deck and at procurement
 
-**Status: plan, waiting for David's OK.**
+**Status: plan. David answered Q1–Q4 (26 Oct 2026), all as proposed: unlocked practices join the deck automatically, the save version goes to 2, the thin first-run shop is accepted, and consumables stay off the Notebook page until they are in the game. Ready to build on David's go.**
 
-**Decisions settled:** O1 (diagnosing earns unlocks) is already settled. Q1–Q4 below need David's answers.
+**Decisions settled:** O1 (diagnosing earns unlocks) is already settled. Q1–Q4 are answered above.
 
 ### Task: a diagnosed failure mode's remedies join every later run
 
@@ -35,7 +35,8 @@
 **UI (`src/ui/`)**
 - [ ] `main.js`: `newRun(seed)` uses `unlockedIds(notebook)` for the deck and the shop. A resumed run uses the list saved with it.
 - [ ] `storage.js`: `saveRun` and `loadRun` carry `unlocked` (a list of text ids, else the save is junk).
-- [ ] `notebookView.js` and `notebookPage.js`: "Unlocks: …" under each entry, or "No remedy yet." for etch residue.
+- [ ] `notebookView.js` and `notebookPage.js`: "Unlocks: …" under each entry (practices, equipment and materials only, Q4), or "No remedy yet." for etch residue.
+- [ ] `tasks/todo.md` NEEDS NEW LOGIC: consumables (starter and unlocked) are not played anywhere yet (Q4).
 
 **Tests**
 - [ ] Hand-checked:
