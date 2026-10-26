@@ -143,7 +143,7 @@ test('the shop closes when the lot enters the next room', () => {
 // the optical endpoint detector (600) before etch:
 //   cash 1500 − 600 = 900;
 //   at etch, depth_variation 0.08 × 0.7 = 0.056;
-//   yield after etch 0.701607, against 0.685321 without it;
+//   yield after etch 0.798418, against 0.779789 without it;
 //   endpoint etch becomes legal.
 test('hand check: the endpoint detector bought before etch', () => {
   const { seed, corridor } = seedSellingEndpointBeforeEtch();
@@ -161,8 +161,8 @@ test('hand check: the endpoint detector bought before etch', () => {
   close(etchWithTool.lot.risks.depth_variation, 0.056, `depth variation at etch (seed ${seed})`);
   assert.deepEqual(legalCards(etchWithTool), ['endpointEtch'], `endpoint etch is playable (seed ${seed})`);
 
-  close(lotYield(resolveStep(etchWithTool).lot), 0.701607, `yield after etch with the detector (seed ${seed})`);
-  close(lotYield(resolveStep(enterStep(without)).lot), 0.685321, `yield after etch without it (seed ${seed})`);
+  close(lotYield(resolveStep(etchWithTool).lot), 0.798418, `yield after etch with the detector (seed ${seed})`);
+  close(lotYield(resolveStep(enterStep(without)).lot), 0.779789, `yield after etch without it (seed ${seed})`);
 });
 
 // The rooms each route step is in, for the test below.

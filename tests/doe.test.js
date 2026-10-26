@@ -88,16 +88,16 @@ test('the tuned measure-all costs 12 minutes', () => {
 
 // Hand check (tasks/todo.md, M3 item 2d): scatter off, drift off. DOE the
 // timed over-etch after step 2, then play it at etch. Underlayer attack is
-// 0.05 × 1.25 = 0.0625 instead of 0.05 × 1.5 = 0.075. It is an even
-// pattern, so yield after etch = the plain card's result × e^(0.0125)
-// = × 1.012578. Residue ×0.3 is the same in both.
-test('hand check: the DOE-centred over-etch gives × 1.012578 after etch', () => {
+// 0.03 × 1.25 = 0.0375 instead of 0.03 × 1.5 = 0.045. It is an even
+// pattern, so yield after etch = the plain card's result × e^(0.0075)
+// = × 1.007528. Residue ×0.3 is the same in both.
+test('hand check: the DOE-centred over-etch gives × 1.007528 after etch', () => {
   const atStop = openStop(handCheckRun());
   const plain = onToEtch(atStop);   // the same stop, left without a choice
   const tuned = onToEtch(doeCard(atStop, 'timedOveretch'));
   assert.ok(legalCards(tuned).includes('timedOveretch'), `seed ${SEED}`);
-  close(tuned.lot.risks.underlayer_attack, 0.05, 'underlayer attack before playing');
+  close(tuned.lot.risks.underlayer_attack, 0.03, 'underlayer attack before playing');
   const plainAfter = resolveStep(playCard(plain, 'timedOveretch'));
   const tunedAfter = resolveStep(playCard(tuned, 'timedOveretch'));
-  close(lotYield(tunedAfter.lot) / lotYield(plainAfter.lot), 1.012578, `yield ratio (seed ${SEED})`);
+  close(lotYield(tunedAfter.lot) / lotYield(plainAfter.lot), 1.007528, `yield ratio (seed ${SEED})`);
 });

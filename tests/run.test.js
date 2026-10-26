@@ -77,9 +77,9 @@ test('fullPool holds every practice', () => {
   assert.ok(fullPool().includes('endpointEtch'));
 });
 
-test('idle, scatter off: yield 0.517954, rejected, cash 1500, 0 minutes played', () => {
+test('idle, scatter off: yield 0.589352, rejected, cash 1500, 0 minutes played', () => {
   const end = playIdle(scatterOff());
-  close(lotYield(end.lot), 0.517954, 'yield');
+  close(lotYield(end.lot), 0.589352, 'yield');
   assert.equal(end.status, 'rejected');
   assert.equal(end.cash, 1500);
   assert.equal(end.minutesUsed, 0);
@@ -92,8 +92,8 @@ test('idle, scatter off: cycle time 133 (litho 30 + 5 given back by the i-line r
 
 test('enterStep adds the step risks and deals only cards for this room', () => {
   const inEtch = enterStepNumber(scatterOff({ deck: ETCH_TEST_DECK }), ETCH);
-  close(inEtch.lot.risks.residue, 0.10, 'residue');
-  close(inEtch.lot.risks.underlayer_attack, 0.05, 'underlayer_attack');
+  close(inEtch.lot.risks.residue, 0.04, 'residue');
+  close(inEtch.lot.risks.underlayer_attack, 0.03, 'underlayer_attack');
   assert.deepEqual([...inEtch.hand].sort(), ['endpointEtch', 'timedOveretch']);
   assert.equal(inEtch.room.timeLeft, 8);
 });
@@ -112,8 +112,8 @@ test('timedOveretch costs 4 minutes and scales residue ×0.3, underlayer attack 
   assert.deepEqual(legalCards(inEtch), ['timedOveretch']);
   const after = playCard(inEtch, 'timedOveretch');
   assert.equal(after.room.timeLeft, 4);
-  close(after.lot.risks.residue, 0.03, 'residue');
-  close(after.lot.risks.underlayer_attack, 0.075, 'underlayer_attack');
+  close(after.lot.risks.residue, 0.012, 'residue');
+  close(after.lot.risks.underlayer_attack, 0.045, 'underlayer_attack');
   assert.deepEqual(after.hand, []);
   assert.equal(resolveStep(after).minutesUsed, 4);
 });
@@ -274,7 +274,7 @@ test('PM in the Q-time corridor: qtime_oxide 0.08, final yield × e^(−0.04), +
   const start = createRun({ seed, scatterStrength: 0, toolDrift: false });
   const straight = playIdle(start);
   const withPm = playIdleWithStop(start, QTIME_CORRIDOR, 'pm');
-  close(lotYield(straight.lot), 0.517954, `straight on everywhere is today's idle run (seed ${seed})`);
+  close(lotYield(straight.lot), 0.589352, `straight on everywhere is today's idle run (seed ${seed})`);
   close(lotYield(withPm.lot) / lotYield(straight.lot), 0.960789, `yield ratio e^(-0.04) (seed ${seed})`);
   assert.equal(withPm.cycleTime, straight.cycleTime + 40, `seed ${seed}`);
 

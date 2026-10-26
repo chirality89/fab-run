@@ -32,17 +32,17 @@ function idleToEtch(changes = {}) {
   return enterStep(state);
 }
 
-test('yield at etch: 0.913931 raw, shown as 91.4', () => {
+test('yield at etch: 0.941765 raw, shown as 94.2', () => {
   const inEtch = idleToEtch();
-  close(lotYield(inEtch.lot), 0.913931, 'raw yield e^(-0.09)');
-  assert.equal(roomView(inEtch).yieldPercent, 91.4, `seed ${SEED}`);
+  close(lotYield(inEtch.lot), 0.941765, 'raw yield e^(-0.06)');
+  assert.equal(roomView(inEtch).yieldPercent, 94.2, `seed ${SEED}`);
 });
 
-test('expected loss at etch: 22.8610 points, text says 22.9', () => {
+test('expected loss at etch: 16.1976 points, text says 16.2', () => {
   const view = roomView(idleToEtch());
-  assert.ok(Math.abs(view.expectedLossPoints - 22.8610) < 1e-4,
-    `expected loss: got ${view.expectedLossPoints}, expected 22.8610 (seed ${SEED})`);
-  assert.equal(view.expectedLossText, 'This room will cost about 22.9 points of yield if nothing changes.');
+  assert.ok(Math.abs(view.expectedLossPoints - 16.1976) < 1e-4,
+    `expected loss: got ${view.expectedLossPoints}, expected 16.1976 (seed ${SEED})`);
+  assert.equal(view.expectedLossText, 'This room will cost about 16.2 points of yield if nothing changes.');
 });
 
 test('room header: etch, step 4 of 9, seed shown equals the run seed', () => {
@@ -116,7 +116,7 @@ test('yield band uses the raw fraction, not the rounded percent', () => {
   assert.equal(yieldBand(0.40), 'warn');
   assert.equal(yieldBand(0.3996), 'bad', 'shows as 40.0% but is below the scrap line');
   const view = roomView(idleToEtch());
-  close(view.yieldFraction, 0.913931, 'yieldFraction');
+  close(view.yieldFraction, 0.941765, 'yieldFraction');
   assert.equal(view.yieldBand, 'ok');
 });
 
@@ -141,32 +141,32 @@ test('playing timed over-etch: 4 of 8 min left, card leaves the hand', () => {
   assert.deepEqual(view.hand, []);
 });
 
-test('playing timed over-etch: expected loss drops from 22.9 to 19.7 points', () => {
+test('playing timed over-etch: expected loss drops from 16.2 to 15.2 points', () => {
   const view = roomView(playCard(idleToEtch(), 'timedOveretch'));
-  assert.ok(Math.abs(view.expectedLossPoints - 19.7066) < 1e-4,
-    `expected loss: got ${view.expectedLossPoints}, expected 19.7066 (seed ${SEED})`);
-  assert.equal(view.expectedLossText, 'This room will cost about 19.7 points of yield if nothing changes.');
+  assert.ok(Math.abs(view.expectedLossPoints - 15.1772) < 1e-4,
+    `expected loss: got ${view.expectedLossPoints}, expected 15.1772 (seed ${SEED})`);
+  assert.equal(view.expectedLossText, 'This room will cost about 15.2 points of yield if nothing changes.');
 });
 
-test('run etch with nothing played: 91.4% -> 68.5%, 22.9 points lost', () => {
+test('run etch with nothing played: 94.2% -> 78.0%, 16.2 points lost', () => {
   const before = idleToEtch();
   const view = resultView(before, resolveStep(before));
-  assert.equal(view.yieldBeforePercent, 91.4, `seed ${SEED}`);
-  assert.equal(view.yieldAfterPercent, 68.5);
-  close(view.yieldAfterFraction, 0.685321, 'yield after etch, idle');
-  assert.equal(view.lossText, 'This room cost 22.9 points of yield.');
-  assert.equal(view.yieldBand, 'warn', 'below the 70% spec, above the scrap line');
+  assert.equal(view.yieldBeforePercent, 94.2, `seed ${SEED}`);
+  assert.equal(view.yieldAfterPercent, 78.0);
+  close(view.yieldAfterFraction, 0.779789, 'yield after etch, idle');
+  assert.equal(view.lossText, 'This room cost 16.2 points of yield.');
+  assert.equal(view.yieldBand, 'ok', 'at 78.0% the lot is now above the 70% spec after etch (was warn at 68.5%)');
   assert.equal(view.status, 'running');
   assert.equal(view.outcomeText, 'The lot moves on to step 5: Resist strip + wet clean.');
   assert.equal(view.sites.length, 25);
 });
 
-test('run etch after timed over-etch: 91.4% -> 71.7%, 19.7 points lost', () => {
+test('run etch after timed over-etch: 94.2% -> 79.0%, 15.2 points lost', () => {
   const before = playCard(idleToEtch(), 'timedOveretch');
   const view = resultView(before, resolveStep(before));
-  assert.equal(view.yieldAfterPercent, 71.7, `seed ${SEED}`);
-  close(view.yieldAfterFraction, 0.716865, 'yield after etch, over-etch');
-  assert.equal(view.lossText, 'This room cost 19.7 points of yield.');
+  assert.equal(view.yieldAfterPercent, 79.0, `seed ${SEED}`);
+  close(view.yieldAfterFraction, 0.789992, 'yield after etch, over-etch');
+  assert.equal(view.lossText, 'This room cost 15.2 points of yield.');
 });
 
 test('resultView names the scrap when the lot dies', () => {

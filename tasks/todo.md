@@ -1,8 +1,12 @@
 # Fab Run — Task Tracker
 
-## Planned: M4.5 items 1 and 2 — land the pending lane work; remove the fixed etch and litho yield tax
+## M4.5 items 1 and 2 — land the pending lane work (item 1, waits for PR #23 to merge); remove the fixed etch and litho yield tax (item 2, DONE 26 Oct 2026)
 
-**Status: PLAN for David's OK (26 Oct 2026). No code is changed until you say yes. Questions Q1–Q3 are at the end of each item.**
+**Status: David OK'd the plan and the test-value changes. Item 2 is built and verified: `npm test` 233/233, `npm run screens` 74/74, bot clean on 200 runs, `physics-reviewer` passed all four numbers. Item 1 is still to do.**
+
+**Item 2 done:** the five numbers are in `lotTypes.js`, the 15 test values were updated to the hand-computed ones in the table below, and `SAVE_VERSION` is 3 (`fabrun.run.v3`). One value not in the table: `view.test.js` run-etch yield band went from `warn` to `ok`, because the lot is now at 78.0% after etch, above the 70% spec. The reviewer's comment fix is in.
+
+**Open from the physics review (for David):** etch still shows about 0.19 landing (0.11 of its own + the latent depth variation 0.08 from the stack), against 0.04 at litho. That can teach "etch is the dirty step" when the cause is upstream. Either the etch screen labels it as carried in from the stack, or 0.08 gets a smaller size. Goes with the etch-stop item.
 
 ### M4.5 item 1 — bring Lane F's reports and Lane D's commit onto `main`
 

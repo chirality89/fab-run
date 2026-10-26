@@ -41,7 +41,7 @@ Current milestone: **M4.5 — Winnable and readable** (David, 26 Oct 2026: do th
 ## M4.5 — Winnable and readable (from Lane F's playtest reports)
 Items are Lane F issue numbers (`docs/playtest/summary.md`) and physics-review claims. Each item is planned in `tasks/todo.md` first. Exit test is in `tasks/next-stages.md`.
 - [ ] Bring Lane F's reports and Lane D's native-oxide commit onto `main`
-- [ ] Remove the fixed etch and litho yield tax, so tool health and choices drive the loss (issue 1, claim 8)
+- [x] Remove the fixed etch and litho yield tax, so tool health and choices drive the loss (issue 1, claim 8)
 - [ ] Etch-stop logic (claim 11; needs new engine logic, ask first)
 - [ ] SPC flags that predict, and a flagged tool that costs more (issue 4)
 - [ ] Show card and shop item effects before you commit (issue 6); placeholder stops stop charging for nothing (issue 5)

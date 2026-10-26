@@ -18,6 +18,11 @@
 // Every room must be a key of ROOMS and every pattern a key of PATTERNS
 // (content.js); tests/lotTypes.test.js checks this. Risk sizes are
 // PLACEHOLDERS until the M7 bot balance pass. Agreed with David, 24 Oct 2026.
+// Etch and litho sizes were cut on 26 Oct 2026 (M4.5 item 2, David's OK): a
+// centred etch recipe already includes its over-etch, and a centred litho
+// recipe prints on target CD. What is left is small: residue in slow-etching
+// spots, rare punch-through, a faint edge ring, and dose/focus scatter. Tool
+// wear (drift) and the cards decide the rest.
 
 export const LOT_TYPES = {
   cuLine: {
@@ -39,10 +44,10 @@ export const LOT_TYPES = {
         adds: { particles: 0.01 },
         realizes: ['particles', 'flakes'] },
       { room: 'litho', label: 'Litho (trench)',
-        adds: { particles: 0.01, cd_error: 0.06 },
+        adds: { particles: 0.01, cd_error: 0.03 },
         realizes: ['particles', 'cd_error'] },
       { room: 'etch', label: 'Etch (trench)',
-        adds: { particles: 0.01, residue: 0.10, underlayer_attack: 0.05, edge_ring: 0.05 },
+        adds: { particles: 0.01, residue: 0.04, underlayer_attack: 0.03, edge_ring: 0.03 },
         realizes: ['particles', 'residue', 'underlayer_attack', 'edge_ring', 'depth_variation'] },
       // The oxide grows while the lot waits here, but only bites in the
       // next step, once the barrier traps it. `qtime` marks the corridor

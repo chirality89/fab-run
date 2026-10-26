@@ -40,8 +40,9 @@ import { normalizeSeed } from '../engine/rng.js';
 // ignored instead of replayed wrongly.
 // The notebook (M4) has its own key, so bumping this never touches it.
 // 2 (26 Oct 2026): the save also holds the run's unlocked list (M4 item 4).
-export const SAVE_VERSION = 2;
-export const SAVE_KEY = 'fabrun.run.v2';   // bump the v2 together with SAVE_VERSION
+// 3 (26 Oct 2026): the etch and litho risk sizes changed (M4.5 item 2), so an old save would replay to a different yield.
+export const SAVE_VERSION = 3;
+export const SAVE_KEY = 'fabrun.run.v3';   // bump the v3 together with SAVE_VERSION
 
 // The browser's localStorage, or null. Even LOOKING it up throws in some
 // browsers when storage is blocked, hence the try. Node has none.
