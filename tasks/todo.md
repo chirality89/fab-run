@@ -1,5 +1,52 @@
 # Fab Run — Task Tracker
 
+## Planned: M4.5 item 5 — show effects before you commit (issue 6); placeholders stop charging for nothing (issue 5)
+
+**Status: PLAN for David's OK (26 Oct 2026). No code is changed until you say yes. Questions Q1–Q3 are at the end.**
+
+This is the next M4.5 item that does not wait on a physics call from David. (Items 3 etch-stop and 7 starter deck wait on your answers; item 1 waits for PR #23.)
+
+### Part A — show what a card or item does, before you commit (Lane F issue 6)
+
+**What it is today**
+- A card in the hand shows its name, minutes, cash and its `tradeoff` sentence. A shop item shows its price and `tradeoff`. Neither shows its numbers.
+- The numbers exist only on the DOE screen (`pmView.js` `recipeText`, e.g. "4 min · residue ×0.3 · underlayer attack ×1.5"), and that helper only knows `defectMult`.
+- Players priced items by replaying whole runs (the min-maxer measured the copper bath at about 4 points for 200 cash).
+
+**What you'll see after this part**
+- Under each card's tradeoff, one effects line, e.g. **"residue ×0.3 · underlayer attack ×1.5 (×0.5 with an etch stop)"**.
+- On a playable card in the hand, also **"About 1.0 point less lost in this room"** (or "more"). It is worked out the same way as the existing "This room will cost about X" forecast, which the personas found accurate: play the card on a copy of the lot and compare.
+- On each shop item, the same effects line, plus which room it acts in.
+
+**Steps**
+- [ ] New `src/ui/effectsText.js`: one effect in plain words, for every operation the content uses: `defectMult` ("residue ×0.3"), `setFlag` ("sets an etch stop"), `enables` ("lets you play Endpoint etch"), `reveal`, `timeCost`, `cashCost`, `toolHealth` (said as "services the tool", never a number, as David chose for events), `decayPerUse`, `addRisk`. An unknown operation shows its own name, so nothing is invented.
+- [ ] `pmView.js` uses the shared helper instead of its own `recipeText`. The DOE screen's text stays identical (its tests prove it).
+- [ ] `view.js`: `cardView` gets `effectsText` and `pointsChange`; `shopItemView` gets `effectsText`.
+- [ ] `render.js` and `floorPlan.js`: draw the new line(s), with the existing `card-summary` style (no new colours).
+- [ ] Tests: hand-written expected strings for timed over-etch, the endpoint detector, the copper bath; `pointsChange` for timed over-etch on seed 123456 equals the forecast difference already in `view.test.js` (16.1976 − 15.1772 = 1.0204, shown "about 1.0"). Screens at both sizes; phone tests `--repeat-each=5`, since the cards get taller.
+
+### Part B — placeholders that cost (Lane F issue 5)
+
+Three things charge the player for nothing:
+
+1. **The Metrology side stop** says "(coming in a later update)" and still costs 20 minutes of cycle time, plus Q-time risk if it is in the Q-time corridor.
+2. **"Measure all 25 sites"** costs 150 cash and 20 minutes and does nothing visible: it sets `room.revealed`, which no screen reads, and the wafer map already shows all 25 sites anyway.
+3. **The ship report says** "(Unlocks start to count in a later update.)". That has been false since M4 item 4 (unlocks now join your next run).
+
+**Steps**
+- [ ] Remove the stale sentence in 3 (`render.js`). A plain bug fix, no question.
+- [ ] 1 and 2 per your answers to Q2 and Q3.
+- [ ] If the map's offers change (Q2 option A), the seeds draw different side stops, so `SAVE_VERSION` goes 3 → 4 and test helpers that *search* for a seed (they already allow this) may pick another seed. Expected values themselves stay the same; if any must change I show you old and new first.
+- [ ] `npm test`, `npm run screens`, the bot; tick the box; lessons if anything surprises me.
+
+**Q1 (the points preview).** Show "about N points less lost in this room" on playable cards (my recommendation; it reuses the forecast players already trust), or the multipliers only?
+
+**Q2 (the Metrology side stop).** A) stop offering it on the map until it does something (my recommendation; a choice that only costs time is a trap); B) keep it, but it costs 0 minutes and says "nothing to measure yet"; C) build it now (what should it reveal? that is a design and physics call and probably belongs with the readable-diagnosis item).
+
+**Q3 ("Measure all 25 sites").** A) take it out of the starter deck until the game hides something a measurement could reveal (my recommendation; a starter card that does nothing teaches players to ignore cards); B) keep it, but make it free; C) make it reveal something now (same design call as Q2 C). Note: taking it out leaves the metrology room with no card at all, which the "decision in every room" item (your starter deck answer) will fill.
+
+---
+
 ## M4.5 items 1 and 2 — land the pending lane work (item 1, waits for PR #23 to merge); remove the fixed etch and litho yield tax (item 2, DONE 26 Oct 2026)
 
 **Status: David OK'd the plan and the test-value changes. Item 2 is built and verified: `npm test` 233/233, `npm run screens` 74/74, bot clean on 200 runs, `physics-reviewer` passed all four numbers. Item 1 is still to do.**
