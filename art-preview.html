@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fab Run card art preview</title>
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="src/theme/tokens.css">
+<link rel="stylesheet" href="src/ui/cards.css">
+<style>
+  /* Page layout only. The card frame itself is all in src/ui/cards.css. */
+  .preview { max-width: 1200px; margin: 0 auto; padding: 24px 16px 48px; }
+  .preview-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+  .preview h1 { font-size: 32px; }
+  .preview h2 { font-size: 22px; margin: 32px 0 12px; }
+  .preview p { margin: 4px 0 0; color: var(--muted); max-width: 60ch; }
+  .preview-theme {
+    min-height: var(--touch); min-width: var(--touch); padding: 0 16px;
+    font: 500 14px var(--mono); color: var(--on-blue); background: var(--blue);
+    border: 0; border-radius: var(--radius-small); cursor: pointer;
+  }
+  .preview-theme:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+  .preview-grid { display: flex; flex-wrap: wrap; gap: 16px; }
+  /* A hand is one row; on a phone it slides sideways inside itself. */
+  .preview-hand { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 8px; }
+  .preview-legend { display: flex; flex-wrap: wrap; gap: 8px 16px; margin: 0; padding: 0; list-style: none; }
+  .preview-legend li { display: flex; align-items: center; gap: 6px; font: 400 13px var(--mono); }
+  .preview-swatch { width: 28px; height: 18px; border: 1px solid var(--ink); }
+  .preview-swatch svg { display: block; width: 100%; height: 100%; background: var(--view-dark); }
+</style>
+</head>
+<body>
+<main class="preview">
+  <div class="preview-top">
+    <div>
+      <h1>Card art preview</h1>
+      <p>Every card in <code>src/content/content.js</code> in the shared frame. Not part of the game; for checking the art. Serve the repo (<code>python3 -m http.server 8000</code>) and open <code>/art-preview.html</code>.</p>
+    </div>
+    <button class="preview-theme" id="theme" type="button">Theme: system</button>
+  </div>
+
+  <h2>Cross-section materials</h2>
+  <ul class="preview-legend" id="legend"></ul>
+
+  <h2>Practices</h2>
+  <div class="preview-grid" id="practices"></div>
+  <h2>Equipment</h2>
+  <div class="preview-grid" id="equipment"></div>
+  <h2>Materials</h2>
+  <div class="preview-grid" id="materials"></div>
+  <h2>Consumables</h2>
+  <div class="preview-grid" id="consumables"></div>
+  <h2>Phone hand (0.75×)</h2>
+  <p>How a hand of three looks at phone size.</p>
+  <div class="preview-grid preview-hand" id="hand"></div>
+</main>
+
+<script type="module">
+// This script only draws the preview page. It reads the content tables and
+// never changes them. Later, when the game's hand uses this frame, the
+// card-text helpers below move into src/ui/view.js with tests.
+import { ROOMS, PRACTICES, EQUIPMENT, MATERIALS, CONSUMABLES } from './src/content/content.js';
+
+const ALL_ITEMS = [...PRACTICES, ...EQUIPMENT, ...MATERIALS, ...CONSUMABLES];
+
+// --- Card text -----------------------------------------------------------
+
+// The defect patterns in plain words, as they read on a card.
+const PATTERN_WORDS = {
+  particles: 'Particles', residue: 'Residue', underlayer_attack: 'Underlayer attack',
+  depth_variation: 'Depth variation', edge_ring: 'Edge ring', cd_error: 'CD error',
+  dishing: 'Dishing', rr_drift: 'Polish rate drift', void: 'Voids',
+  qtime_oxide: 'Q-time oxide', implant_damage: 'Implant damage', junction_spread: 'Junction spread',
+};
+
+// "when" conditions in plain words.
+const CONDITION_WORDS = {
+  etch_stop: 'with an etch stop',
+  tightCD: 'on a tight-CD lot',
+  delayBeforeBake: 'if the lot waits before bake',
+  deepEtch: 'on a deep etch',
+  narrowFeatures: 'in narrow features',
+  rightPartChosen: 'if it is the right part',
+};
+
+const REVEAL_WORDS = {
+  allSites: 'Shows all 25 sites',
+  driftTelegraphEarly: 'Shows drift sooner',
+  toolFault: 'Shows what is wrong with a tool',
+  bathAge: 'Shows the bath\'s age',
+};
+
+function conditionWords(when) {
+  const key = when.flag || when.lot || when.equipment || when.material;
+  return CONDITION_WORDS[key] || `when ${key}`;
+}
+
+function nameOf(id) {
+  const item = ALL_ITEMS.find(entry => entry.id === id);
+  return item ? item.name : id;
+}
+
+// Turns one effect into a short phrase, or '' if it shows nothing.
+function effectPhrase(effect) {
+  switch (effect.op) {
+    case 'defectMult':  return `${PATTERN_WORDS[effect.pattern] || effect.pattern} ×${effect.mult}`;
+    case 'timeCost':    return effect.delta < 0 ? `Gives back ${-effect.delta} min` : `Adds ${effect.delta} min`;
+    case 'cashCost':    return `Costs $${effect.delta} more each room`;
+    case 'setFlag':     return effect.flag === 'etch_stop' ? 'Adds an etch stop' : `Sets ${effect.flag}`;
+    case 'reveal':      return REVEAL_WORDS[effect.what] || '';
+    case 'toolHealth':  return effect.delta >= 100 ? 'Repairs the tool fully' : `Tool health ${effect.delta > 0 ? '+' : '−'}${Math.abs(effect.delta)}`;
+    case 'enables':     return `Enables ${nameOf(effect.id)}`;
+    case 'decayPerUse': return `${PATTERN_WORDS[effect.target] || effect.target} ×${effect.mult} more with each use`;
+    default:            return '';
+  }
+}
+
+// The whole effect line. Two multipliers on the same pattern, the second
+// with a condition, read as one: "Underlayer attack ×1.5, or ×0.5 with an etch stop".
+function effectText(item) {
+  const sentences = [];
+  if (item.when && item.when.equipment) sentences.push(`Needs ${nameOf(item.when.equipment)}`);
+  if (item.when && item.when.lot === 'lastStepWasLitho') sentences.push('Only right after litho');
+  let previous = null;
+  for (const effect of item.effects) {
+    const conditional = effect.when ? ` ${conditionWords(effect.when)}` : '';
+    if (effect.op === 'defectMult' && previous && previous.op === 'defectMult'
+        && previous.pattern === effect.pattern && effect.when) {
+      sentences[sentences.length - 1] += `, or ×${effect.mult}${conditional}`;
+    } else {
+      const phrase = effectPhrase(effect);
+      if (phrase) sentences.push(phrase + conditional);
+    }
+    previous = effect;
+  }
+  if (item.resets && item.resets.field === 'shelfLife') sentences.push('Resets the resist\'s shelf life');
+  if (item.resets && item.resets.fraction) sentences.push('Restores half the bath');
+  return sentences.join('. ') + '.';
+}
+
+// "4 min", "$600", or "20 min · $150".
+function costText(cost) {
+  const parts = [];
+  if (cost.time !== undefined) parts.push(`${cost.time} min`);
+  if (cost.cash !== undefined) parts.push(`$${cost.cash}`);
+  return parts.join(' · ');
+}
+
+const RARITY_COUNT = { standard: 1, advanced: 2, emerging: 3 };
+
+function kindText(item) {
+  if (item.kind === 'material') return `material · ${item.slot}`;
+  return item.kind;
+}
+
+// --- SVG files -------------------------------------------------------------
+
+// SVG files are fetched as text and put straight into the page, so the
+// page's CSS (tokens.css, cards.css) colors them. An <img> could not.
+// A missing file shows "art missing" in the window instead of a blank.
+const svgCache = new Map();
+const MISSING_ART = '<svg viewBox="0 0 260 140"><text class="art-label-on-dark" x="130" y="74" text-anchor="middle">art missing</text></svg>';
+async function loadSvg(path) {
+  if (!svgCache.has(path)) {
+    svgCache.set(path, fetch(path).then(reply => (reply.ok ? reply.text() : MISSING_ART)).catch(() => MISSING_ART));
+  }
+  return svgCache.get(path);
+}
+
+// --- Building one card -------------------------------------------------------
+
+function element(tag, className, text) {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (text !== undefined) node.textContent = text;
+  return node;
+}
+
+async function buildCard(item, { small = false } = {}) {
+  const room = item.room || 'any';
+  const card = element('article', `frame frame-${item.kind}${small ? ' frame-small' : ''}`);
+  card.dataset.room = room;
+  card.setAttribute('aria-label', item.name);
+
+  // 1–2. Room band and cost chip.
+  const band = element('header', 'frame-band');
+  const roomLabel = element('span', 'frame-room');
+  const icon = element('span', 'frame-icon');
+  icon.innerHTML = await loadSvg(`src/art/icons/${room}.svg`);
+  roomLabel.append(icon, room === 'any' ? 'Any room' : ROOMS[room].name);
+  band.append(roomLabel, element('span', 'frame-cost', costText(item.cost)));
+
+  // 3. Art window, styled by kind.
+  const art = element('div', 'frame-window');
+  if (item.kind === 'practice') {
+    art.innerHTML = await loadSvg(`src/art/sections/${item.id}.svg`);
+  } else {
+    art.append(element('span', 'frame-ceiling'), element('span', 'frame-floor'));
+    if (item.kind === 'equipment') {
+      for (let i = 0; i < 4; i++) art.append(element('i', 'frame-bolt'));
+    }
+    if (item.kind === 'consumable') art.append(element('span', 'frame-tag', 'Single use'));
+  }
+
+  // 4. Kind, shelf life (materials) and rarity.
+  const body = element('div', 'frame-body');
+  const kind = element('div', 'frame-kind');
+  const marks = element('span', 'frame-marks');
+  if (item.shelfLife) {
+    const shelf = element('span', 'frame-shelf');
+    shelf.setAttribute('role', 'img');
+    shelf.setAttribute('aria-label', `Shelf life: ${item.shelfLife} rooms`);
+    for (let i = 0; i < item.shelfLife; i++) shelf.append(element('span', 'frame-tick'));
+    marks.append(shelf);
+  }
+  const rarity = element('span', 'frame-rarity');
+  rarity.setAttribute('role', 'img');
+  rarity.setAttribute('aria-label', `Rarity: ${item.rarity}`);
+  for (let i = 0; i < RARITY_COUNT[item.rarity]; i++) rarity.append(element('span', 'frame-diamond'));
+  marks.append(rarity);
+  kind.append(element('span', '', kindText(item)), marks);
+
+  // 5–7. Name, effect, tradeoff.
+  const tradeoff = element('p', 'frame-tradeoff');
+  tradeoff.append(element('b', '', 'Tradeoff'), ` ${item.tradeoff}`);
+  body.append(kind, element('h3', 'frame-name', item.name),
+    element('p', 'frame-effect', effectText(item)), tradeoff);
+
+  card.append(band, art, body);
+  return card;
+}
+
+async function fill(containerId, items, options) {
+  const container = document.getElementById(containerId);
+  for (const item of items) container.append(await buildCard(item, options));
+}
+
+// --- Material legend -----------------------------------------------------------
+
+const LEGEND = [
+  ['mat-si', 'Si'], ['mat-oxide', 'oxide'], ['mat-nitride', 'SiN'], ['mat-resist', 'resist'],
+  ['mat-barrier', 'barrier'], ['mat-seed', 'seed'], ['mat-cu', 'Cu'], ['mat-doped', 'doped Si'],
+  ['mat-particle', 'particle'],
+];
+const LEGEND_LINES = [
+  ['mat-junction', 'junction', 'M2 9h24'], ['mat-damage', 'damage', 'M10 5l8 8M18 5l-8 8'],
+  ['mat-plasma', 'plasma ions', 'M8 4v4M14 9v4M20 4v4'], ['mat-void', 'void', 'M6 3h16v12H6Z'],
+];
+function drawLegend() {
+  const list = document.getElementById('legend');
+  for (const [className, label] of LEGEND) {
+    const item = element('li');
+    const swatch = element('span', 'preview-swatch');
+    swatch.innerHTML = `<svg viewBox="0 0 28 18"><rect class="${className}" width="28" height="18"/></svg>`;
+    item.append(swatch, label);
+    list.append(item);
+  }
+  for (const [className, label, path] of LEGEND_LINES) {
+    const item = element('li');
+    const swatch = element('span', 'preview-swatch');
+    // Junction and damage marks sit on Si in the art, so show them on Si here.
+    const ground = ['mat-junction', 'mat-damage'].includes(className) ? '<rect class="mat-si" width="28" height="18"/>' : '';
+    swatch.innerHTML = `<svg viewBox="0 0 28 18">${ground}<path class="${className}" d="${path}"/></svg>`;
+    item.append(swatch, label);
+    list.append(item);
+  }
+}
+
+// --- Theme toggle: system → light → night ------------------------------------------
+
+const THEMES = ['system', 'light', 'dark'];
+const THEME_NAMES = { system: 'system', light: 'light', dark: 'night' };
+document.getElementById('theme').addEventListener('click', event => {
+  const root = document.documentElement;
+  const next = THEMES[(THEMES.indexOf(root.dataset.theme || 'system') + 1) % THEMES.length];
+  if (next === 'system') delete root.dataset.theme;
+  else root.dataset.theme = next;
+  event.currentTarget.textContent = `Theme: ${THEME_NAMES[next]}`;
+});
+
+drawLegend();
+await fill('practices', PRACTICES);
+await fill('equipment', EQUIPMENT);
+await fill('materials', MATERIALS);
+await fill('consumables', CONSUMABLES);
+// A sample hand: three starter practices from three rooms (etch, litho, metro).
+const handIds = ['timedOveretch', 'reworkLitho', 'measureAll'];
+await fill('hand', handIds.map(id => PRACTICES.find(practice => practice.id === id)), { small: true });
+document.body.dataset.ready = 'true';   // the screen test waits for this
+</script>
+</body>
+</html>

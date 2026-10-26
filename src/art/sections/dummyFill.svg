@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 140" role="img">
+  <title>Add dummy fill: after polishing, one wide Cu line sits in the oxide between small dummy Cu squares. All of them sit in trenches of the same depth on the SiN. The wide line dishes only a little.</title>
+  <rect class="mat-si"      x="0" y="112" width="260" height="28"/>
+  <rect class="mat-nitride" x="0" y="98"  width="260" height="14"/>
+  <rect class="mat-oxide"   x="0" y="62"  width="260" height="36"/>
+  <!-- The wide line. -->
+  <rect class="mat-barrier" x="80" y="62" width="80" height="36"/>
+  <rect class="mat-cu"      x="86" y="62" width="68" height="30"/>
+  <!-- Dummy fill: small squares that even out the metal density. -->
+  <rect class="mat-barrier" x="12" y="62" width="24" height="36"/>
+  <rect class="mat-cu"      x="18" y="62" width="12" height="30"/>
+  <rect class="mat-barrier" x="44" y="62" width="24" height="36"/>
+  <rect class="mat-cu"      x="50" y="62" width="12" height="30"/>
+  <rect class="mat-barrier" x="168" y="62" width="24" height="36"/>
+  <rect class="mat-cu"      x="174" y="62" width="12" height="30"/>
+  <rect class="mat-barrier" x="200" y="62" width="24" height="36"/>
+  <rect class="mat-cu"      x="206" y="62" width="12" height="30"/>
+  <rect class="mat-barrier" x="232" y="62" width="24" height="36"/>
+  <rect class="mat-cu"      x="238" y="62" width="12" height="30"/>
+  <!-- The wide line still dishes, but only a little. -->
+  <path class="art-hole" d="M86 62h68q-34 6-68 0Z"/>
+  <text class="art-label-on-dark" x="40"  y="52" text-anchor="middle">dummy</text>
+  <text class="art-label-on-dark" x="120" y="52" text-anchor="middle">wide line</text>
+  <text class="art-label-on-dark" x="212" y="52" text-anchor="middle">dummy</text>
+  <text class="art-label-on-dark" x="120" y="36" text-anchor="middle">slight dish</text>
+  <text class="art-label" x="6" y="109">SiN</text>
+  <text class="art-label" x="6" y="132">Si</text>
+  <!-- Scale bar. Thin films are drawn at least 6 px thick, so it is a guide, not a ruler. -->
+  <path class="mat-measure" d="M208 16h44M208 12v8M252 12v8"/>
+  <text class="art-label-on-dark" x="252" y="9" text-anchor="end">200 nm</text>
+</svg>

@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 140" role="img">
+  <title>Timed over-etch: a trench cut through the oxide under a resist mask. The extra time has also cut a notch into the SiN underlayer at the bottom.</title>
+  <!-- Stack, top to bottom: resist mask, oxide, SiN underlayer, Si. -->
+  <rect class="mat-si"      x="0"   y="108" width="260" height="32"/>
+  <rect class="mat-nitride" x="0"   y="94"  width="260" height="14"/>
+  <!-- Oxide on both sides of the trench (the gap between them is the trench). -->
+  <rect class="mat-oxide"   x="0"   y="52"  width="110" height="42"/>
+  <rect class="mat-oxide"   x="150" y="52"  width="110" height="42"/>
+  <rect class="mat-resist"  x="0"   y="38"  width="110" height="14"/>
+  <rect class="mat-resist"  x="150" y="38"  width="110" height="14"/>
+  <!-- The over-etch: once the oxide cleared, the trench kept going into the SiN. -->
+  <rect class="art-hole" x="110" y="94" width="40" height="10"/>
+  <text class="art-label-on-dark" x="160" y="30">notch into SiN</text>
+  <!-- Plasma ions coming straight down into the opening. -->
+  <path class="mat-plasma" d="M122 16v8M130 24v8M138 12v8"/>
+  <text class="art-label" x="6" y="49">resist</text>
+  <text class="art-label" x="6" y="77">oxide</text>
+  <text class="art-label" x="6" y="105">SiN</text>
+  <text class="art-label" x="6" y="128">Si</text>
+  <!-- Scale bar. Thin films are drawn at least 6 px thick, so it is a guide, not a ruler. -->
+  <path class="mat-measure" d="M208 16h44M208 12v8M252 12v8"/>
+  <text class="art-label-on-dark" x="252" y="9" text-anchor="end">200 nm</text>
+</svg>
