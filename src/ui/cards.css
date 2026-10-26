@@ -27,11 +27,13 @@
 /* Consumables belong to no room: plain surface band, plain backdrop. */
 .frame[data-room="any"]     { --room: var(--surface); --room-tint: var(--bg); --room-shade1: var(--line); --room-shade2: var(--muted); }
 
-/* --- The frame itself: 260 × 380 at 1× ---------------------------------- */
+/* --- The frame itself: 260 × 420 at 1× ----------------------------------
+   420, not the 380 in card-art-plan.md: David chose a taller card on 26 Oct
+   so the longest tradeoffs fit at 13 px. */
 .frame {
   box-sizing: border-box;
   width: 260px;
-  height: 380px;
+  height: 420px;
   flex: none;            /* never squeezed narrower in a row of cards */
   display: flex;
   flex-direction: column;
@@ -41,7 +43,7 @@
   border: 2px solid var(--ink);
   border-radius: 12px;
 }
-/* In a 375 px phone hand the whole card shrinks to 0.75× (195 × 285).
+/* In a 375 px phone hand the whole card shrinks to 0.75× (195 × 315).
    zoom keeps the layout box small too, unlike transform: scale. */
 .frame-small { zoom: 0.75; }
 
@@ -149,9 +151,12 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 10px 14px 12px;
+  padding: 8px 14px 10px;
   min-height: 0;
 }
+/* Nothing in the body may shrink: if the text is too long, it overflows
+   (and the screen test catches it) instead of squeezing the name away. */
+.frame-body > * { flex: none; }
 
 /* 4. Kind and rarity: mono label left, marks right. */
 .frame-kind {
@@ -223,6 +228,7 @@
 .mat-seed     { fill: var(--mat-seed); }
 .mat-cu       { fill: var(--mat-cu); }
 .mat-doped    { fill: var(--mat-doped); }
+.mat-polymer  { fill: var(--mat-polymer); }   /* the CMP pad */
 .mat-particle { fill: var(--mat-particle); stroke: var(--view-dark); stroke-width: 1; }  /* edge so it shows on pale oxide */
 .mat-plasma   { fill: none; stroke: var(--mat-plasma); stroke-width: 2; stroke-linecap: round; }
 .mat-junction { fill: none; stroke: var(--mat-junction); stroke-width: 2; stroke-dasharray: 6 4; }

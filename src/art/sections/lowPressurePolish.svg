@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 140" role="img">
+  <title>Low-pressure final polish: the polishing pad presses lightly on a wide Cu line in oxide. With less pressure the pad bends less into the line, so the line dishes only a little.</title>
+  <rect class="mat-si"      x="0"  y="112" width="260" height="28"/>
+  <rect class="mat-oxide"   x="0"  y="62"  width="260" height="50"/>
+  <!-- The wide line in its barrier liner. -->
+  <rect class="mat-barrier" x="70" y="62"  width="120" height="40"/>
+  <rect class="mat-cu"      x="76" y="62"  width="108" height="34"/>
+  <!-- The pad resting on the wafer, bending only a little into the line.
+       Short arrows above it: a light down force. -->
+  <path class="mat-polymer" d="M0 48h260v14H184q-54 7-108 0H0Z"/>
+  <path class="mat-measure" d="M40 30v10M36 36l4 4l4-4M220 30v10M216 36l4 4l4-4"/>
+  <text class="art-label" x="6" y="59">pad, light press</text>
+  <text class="art-label" x="130" y="86" text-anchor="middle">Cu</text>
+  <text class="art-label" x="6"  y="88">oxide</text>
+  <text class="art-label" x="6"  y="132">Si</text>
+  <!-- Scale bar. Thin films are drawn at least 6 px thick, so it is a guide, not a ruler. -->
+  <path class="mat-measure" d="M208 16h44M208 12v8M252 12v8"/>
+  <text class="art-label-on-dark" x="252" y="9" text-anchor="end">200 nm</text>
+</svg>

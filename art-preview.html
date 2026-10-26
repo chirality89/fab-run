@@ -74,6 +74,7 @@ const PATTERN_WORDS = {
   depth_variation: 'Depth variation', edge_ring: 'Edge ring', cd_error: 'CD error',
   dishing: 'Dishing', rr_drift: 'Polish rate drift', void: 'Voids',
   qtime_oxide: 'Q-time oxide', implant_damage: 'Implant damage', junction_spread: 'Junction spread',
+  flakes: 'Chamber flakes', gate_oxide: 'Gate oxide failures', channeling_tail: 'Channeling tail',
 };
 
 // "when" conditions in plain words.
@@ -84,6 +85,7 @@ const CONDITION_WORDS = {
   deepEtch: 'on a deep etch',
   narrowFeatures: 'in narrow features',
   rightPartChosen: 'if it is the right part',
+  thinGateOxide: 'on a thin gate oxide',
 };
 
 const REVEAL_WORDS = {
@@ -91,6 +93,8 @@ const REVEAL_WORDS = {
   driftTelegraphEarly: 'Shows drift sooner',
   toolFault: 'Shows what is wrong with a tool',
   bathAge: 'Shows the bath\'s age',
+  oxideThickness: 'Shows the oxide thickness',
+  implantDose: 'Shows the implant dose',
 };
 
 function conditionWords(when) {
@@ -118,23 +122,25 @@ function effectPhrase(effect) {
   }
 }
 
-// The whole effect line. Two multipliers on the same pattern, the second
-// with a condition, read as one: "Underlayer attack ×1.5, or ×0.5 with an etch stop".
+// The whole effect line. A conditional multiplier joins the earlier one on
+// the same pattern, so they read as one: "Underlayer attack ×1.5, or ×0.5
+// with an etch stop". (The two need not be next to each other in the list.)
 function effectText(item) {
   const sentences = [];
   if (item.when && item.when.equipment) sentences.push(`Needs ${nameOf(item.when.equipment)}`);
   if (item.when && item.when.lot === 'lastStepWasLitho') sentences.push('Only right after litho');
-  let previous = null;
+  if (item.when && item.when.lot === 'siliconFrontEnd') sentences.push('Silicon front-end lots only');
+  const sentenceForPattern = {};   // pattern → which sentence names it
   for (const effect of item.effects) {
     const conditional = effect.when ? ` ${conditionWords(effect.when)}` : '';
-    if (effect.op === 'defectMult' && previous && previous.op === 'defectMult'
-        && previous.pattern === effect.pattern && effect.when) {
-      sentences[sentences.length - 1] += `, or ×${effect.mult}${conditional}`;
+    const earlier = sentenceForPattern[effect.pattern];
+    if (effect.op === 'defectMult' && effect.when && earlier !== undefined) {
+      sentences[earlier] += `, or ×${effect.mult}${conditional}`;
     } else {
       const phrase = effectPhrase(effect);
       if (phrase) sentences.push(phrase + conditional);
+      if (effect.op === 'defectMult' && !effect.when) sentenceForPattern[effect.pattern] = sentences.length - 1;
     }
-    previous = effect;
   }
   if (item.resets && item.resets.field === 'shelfLife') sentences.push('Resets the resist\'s shelf life');
   if (item.resets && item.resets.fraction) sentences.push('Restores half the bath');

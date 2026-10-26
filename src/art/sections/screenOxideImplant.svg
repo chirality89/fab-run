@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 140" role="img">
+  <title>Implant through a screen oxide: ions pass through a thin oxide on the Si, which scatters them so they channel less. The doped layer ends in a short tail, but a few knock-on damage marks sit just under the oxide.</title>
+  <rect class="mat-si"    x="0" y="48" width="260" height="92"/>
+  <!-- The doped layer under the screen oxide; short tail, so the junction is shallow. -->
+  <rect class="mat-doped" x="0" y="48" width="260" height="38"/>
+  <path class="mat-junction" d="M0 86h260"/>
+  <rect class="mat-oxide" x="0" y="40" width="260" height="8"/>
+  <!-- Ions come straight down, then leave the oxide at scattered angles. -->
+  <path class="mat-plasma" d="M60 14v10M110 14v10M160 14v10"/>
+  <path class="mat-plasma" d="M60 50l-5 8M110 50l6 8M160 50l-3 8"/>
+  <!-- Knock-on damage just under the oxide. -->
+  <path class="mat-damage" d="M196 54l6 6M202 54l-6 6M226 58l6 6M232 58l-6 6"/>
+  <text class="art-label-on-dark" x="6"   y="34">screen oxide</text>
+  <text class="art-label" x="6"   y="76">doped Si</text>
+  <text class="art-label" x="180" y="80">knock-on</text>
+  <text class="art-label" x="6"   y="128">Si</text>
+  <!-- Scale bar. Thin films are drawn at least 6 px thick, so it is a guide, not a ruler. -->
+  <path class="mat-measure" d="M208 16h44M208 12v8M252 12v8"/>
+  <text class="art-label-on-dark" x="252" y="9" text-anchor="end">200 nm</text>
+</svg>

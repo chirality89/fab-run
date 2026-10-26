@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 140" role="img">
+  <title>HF-last clean: on the left, Si under a thin chemical oxide with trapped metal contamination; on the right, the same surface after the dilute HF dip, bare and hydrogen-terminated, ready for gate oxidation before native oxide regrows.</title>
+  <rect class="mat-si"    x="0"   y="90" width="260" height="50"/>
+  <!-- Left half, before the dip: chemical oxide with trapped metals (short dark dashes). -->
+  <rect class="mat-oxide" x="0"   y="82" width="128" height="8"/>
+  <path class="mat-damage" d="M30 86h2M66 86h2M100 86h2"/>
+  <!-- Right half, after: hydrogen on the bare Si surface (short ticks). -->
+  <path class="mat-measure" d="M140 90v-3M150 90v-3M160 90v-3M170 90v-3M180 90v-3M190 90v-3M200 90v-3M210 90v-3M220 90v-3M230 90v-3M240 90v-3M250 90v-3"/>
+  <path class="mat-measure" d="M130 30v104"/>
+  <text class="art-label-on-dark" x="6"   y="34">oxide ~1 nm</text>
+  <text class="art-label-on-dark" x="6"   y="50">before</text>
+  <text class="art-label-on-dark" x="6"   y="66">oxide + metals</text>
+  <text class="art-label-on-dark" x="138" y="50">after HF</text>
+  <text class="art-label-on-dark" x="138" y="66">bare, H on top</text>
+  <text class="art-label" x="6" y="120">Si</text>
+  <!-- Scale bar. Thin films are drawn at least 6 px thick, so it is a guide, not a ruler. -->
+  <path class="mat-measure" d="M208 16h44M208 12v8M252 12v8"/>
+  <text class="art-label-on-dark" x="252" y="9" text-anchor="end">200 nm</text>
+</svg>
