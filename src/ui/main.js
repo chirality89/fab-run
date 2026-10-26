@@ -18,7 +18,7 @@
 
 import { normalizeSeed } from '../engine/rng.js';
 import { createRun, starterDeck, defaultLoadout } from '../engine/run.js';
-import { applyAction, saveRun, loadRun, clearRun, replayRun } from './storage.js';
+import { applyAction, saveRun, loadRun, clearRun, replayRun, loadNotebook, saveNotebook } from './storage.js';
 import { roomView, resultView, mapView, stopView, shopView, parseSeed } from './view.js';
 import {
   renderRoom, renderResult, renderShip, renderError, renderResumedNote, focusNextAction, showFromTop,
@@ -27,7 +27,7 @@ import { renderMap, renderStop, renderShop, renderPm, renderEvent } from './floo
 import { eventView } from './eventView.js';
 import { pmView } from './pmView.js';
 import { shipView } from './shipView.js';
-import { emptyNotebook, diagnoseLot } from '../engine/notebook.js';
+import { diagnoseLot } from '../engine/notebook.js';
 
 const LOT_TYPE_ID = 'cuLine';
 
@@ -59,7 +59,9 @@ function chooseSeed() {
 const app = document.getElementById('app');
 let state = null;   // the whole run; replaced, never edited
 let actions = [];   // every action taken this run, in order: what the save holds
-let notebook = emptyNotebook();   // diagnosed failure modes; kept across runs (in memory until M4 item 2)
+// Diagnosed failure modes, kept across runs under their own storage key
+// (storage.js), so a new run or a run-save version bump never touches them.
+let notebook = loadNotebook();
 let diagnosis = null;   // this lot's diagnose result (notebook.js), or null before the guess
 
 // Runs a screen-drawing step and shows any error in a visible box.
@@ -198,15 +200,17 @@ function showShipReport() {
   renderShip(app, shipView(state, notebook, diagnosis), { onDiagnose, onReplay, onNewSeed });
 }
 
-// The player names a failure mode on the ship report (M4 item 1). The
-// notebook lives in memory for now; M4 item 2 saves it under its own key.
-// Not an action for the run save: the run has ended, so its save is gone.
+// The player names a failure mode on the ship report (M4 item 1). A right
+// answer is saved to the notebook's own key at once (M4 item 2); if storage
+// is blocked it still counts for this visit. Not an action for the run
+// save: the run has ended, so its save is gone.
 function onDiagnose(failureModeId) {
   safely(() => {
     const done = diagnoseLot(state, notebook, failureModeId);
     state = done.state;
     notebook = done.notebook;
     diagnosis = done.result;
+    if (done.result.correct && !done.result.alreadyKnown) saveNotebook(notebook);
     showShipReport();
   });
 }

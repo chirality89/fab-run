@@ -12,7 +12,9 @@ import { whyCannotBuy } from '../src/engine/shop.js';
 import { whyCannotPm, whyCannotDoe } from '../src/engine/run.js';
 import {
   SAVE_KEY, SAVE_VERSION, readJson, writeJson, saveRun, loadRun, clearRun, applyAction, replayRun,
+  NOTEBOOK_KEY, loadNotebook, saveNotebook,
 } from '../src/ui/storage.js';
+import { diagnosisFor } from '../src/engine/notebook.js';
 
 const SEED = 123456;   // its corridor after step 2 offers procurement (tasks/todo.md)
 
@@ -299,4 +301,91 @@ test('clearRun removes the save, and the run key leaves other keys alone', () =>
   assert.equal(clearRun(storage), true);
   assert.equal(loadRun(storage), null);
   assert.deepEqual(readJson(NOTEBOOK_KEY, storage), { entries: ['keyholeVoid'] });
+});
+
+// --- the notebook (M4 item 2) --------------------------------------------
+
+const KEYHOLE = { id: 'fm_keyhole', seed: 123456 };
+const PARTICLES = { id: 'fm_particles', seed: 777 };
+const notebookOf = (...entries) => ({ version: 1, entries });
+
+test('notebook: save, then load gives the same entries', () => {
+  const storage = fakeStorage();
+  assert.deepEqual(loadNotebook(storage), notebookOf());   // nothing saved yet
+  assert.equal(saveNotebook(notebookOf(KEYHOLE, PARTICLES), storage), true);
+  assert.deepEqual(loadNotebook(storage), notebookOf(KEYHOLE, PARTICLES));
+});
+
+test('notebook: blocked storage loads empty, saving says no, nothing throws', () => {
+  assert.deepEqual(loadNotebook(blockedStorage()), notebookOf());
+  assert.equal(saveNotebook(notebookOf(KEYHOLE), blockedStorage()), false);
+  assert.deepEqual(loadNotebook(undefined), notebookOf());   // Node has no localStorage
+});
+
+test('notebook: junk under the key loads as what is usable, never throws', () => {
+  const storage = fakeStorage();
+  for (const junk of ['not json {', '42', 'null', '"text"', '{"version":1,"entries":"x"}', '[]']) {
+    storage.setItem(NOTEBOOK_KEY, junk);
+    assert.deepEqual(loadNotebook(storage), notebookOf(), `junk: ${junk}`);
+  }
+  // Bad entries are dropped, a duplicate id keeps its first entry.
+  writeJson(NOTEBOOK_KEY, { version: 1, entries: [
+    KEYHOLE, null, 'fm_residue', { id: 7, seed: 1 }, { id: 'fm_residue' }, { id: '', seed: 1 },
+    { id: 'fm_residue', seed: Infinity }, { id: 'fm_keyhole', seed: 999 }, PARTICLES,
+  ] }, storage);
+  assert.deepEqual(loadNotebook(storage), notebookOf(KEYHOLE, PARTICLES));
+});
+
+test('notebook: a run-save version bump and clearRun leave it untouched', () => {
+  const storage = fakeStorage();
+  saveRun(SEED, [['enter']], storage);
+  saveNotebook(notebookOf(KEYHOLE), storage);
+  const notebookText = storage.getItem(NOTEBOOK_KEY);
+
+  // A newer build raised SAVE_VERSION: the old run save is now ignored...
+  writeJson(SAVE_KEY, { version: SAVE_VERSION + 1, seed: SEED, actions: [['enter']] }, storage);
+  assert.equal(loadRun(storage), null);
+  // ...and the page clears it and starts fresh. The notebook stays, byte for byte.
+  clearRun(storage);
+  assert.equal(storage.getItem(NOTEBOOK_KEY), notebookText);
+  assert.deepEqual(loadNotebook(storage), notebookOf(KEYHOLE));
+});
+
+test('notebook: an id no longer in the content is kept, and the diagnosis ignores it', () => {
+  const storage = fakeStorage();
+  const gone = { id: 'fm_renamed_long_ago', seed: 5 };
+  saveNotebook(notebookOf(gone, KEYHOLE), storage);
+  const notebook = loadNotebook(storage);
+  assert.deepEqual(notebook, notebookOf(gone, KEYHOLE));
+  saveNotebook(notebook, storage);
+  assert.deepEqual(loadNotebook(storage), notebookOf(gone, KEYHOLE));
+
+  // A lot played straight through (it has losses to diagnose): its diagnosis
+  // is the same with or without the unknown id in the notebook.
+  let state = createRun({ seed: SEED });
+  while (state.status === 'running') {
+    state = applyAction(applyAction(state, ['enter']), ['run']);
+    if (state.status === 'running') state = applyAction(state, ['walk', null]);
+  }
+  const withoutIt = diagnosisFor(state, notebookOf());
+  assert.ok(withoutIt.candidates.length > 0, `seed ${SEED} should have something to diagnose`);
+  assert.deepEqual(diagnosisFor(state, notebookOf(gone)), withoutIt);
+});
+
+test('notebook: one saved by a newer version is left exactly as it was', () => {
+  const storage = fakeStorage();
+  const newer = JSON.stringify({ version: 2, pages: { fm_keyhole: { seed: 1 } } });
+  storage.setItem(NOTEBOOK_KEY, newer);
+  assert.deepEqual(loadNotebook(storage), notebookOf());
+  assert.equal(saveNotebook(notebookOf(PARTICLES), storage), false);
+  assert.equal(storage.getItem(NOTEBOOK_KEY), newer);
+});
+
+test('notebook: two open tabs each save an entry; both are kept', () => {
+  const storage = fakeStorage();
+  const tabA = loadNotebook(storage);
+  const tabB = loadNotebook(storage);   // opened before tab A saved
+  saveNotebook({ ...tabA, entries: [...tabA.entries, KEYHOLE] }, storage);
+  saveNotebook({ ...tabB, entries: [...tabB.entries, PARTICLES] }, storage);
+  assert.deepEqual(loadNotebook(storage), notebookOf(KEYHOLE, PARTICLES));
 });

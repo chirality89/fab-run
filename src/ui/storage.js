@@ -104,6 +104,67 @@ export function clearRun(storage = browserStorage()) {
   return removeKey(SAVE_KEY, storage);
 }
 
+// --- the notebook (M4 item 2) --------------------------------------------
+//
+// The notebook is the player's long-term progress, so it is never thrown
+// away the way an old run save is. Its key has no version in its name; the
+// version lives inside the object, so a later change can upgrade an old
+// notebook instead of discarding it (CLAUDE.md §11).
+
+export const NOTEBOOK_KEY = 'fabrun.notebook';
+export const NOTEBOOK_VERSION = 1;   // the shape notebook.js writes: { version, entries: [{ id, seed }] }
+
+// True for an entry this code can use: a failure-mode id (text) and the
+// seed it was found on (a number). Ids no longer in content.js still count:
+// they are kept, so they come back if the content does, and the game simply
+// never offers them (David, 26 Oct 2026, Q3).
+function isGoodEntry(entry) {
+  return entry !== null && typeof entry === 'object'
+    && typeof entry.id === 'string' && entry.id !== ''
+    && typeof entry.seed === 'number' && Number.isFinite(entry.seed);
+}
+
+// The usable entries of a stored value, without duplicates (first one wins),
+// as fresh { id, seed } objects. Anything else in the value is dropped.
+function goodEntries(stored) {
+  if (stored === null || typeof stored !== 'object' || !Array.isArray(stored.entries)) return [];
+  const seen = new Set();
+  const entries = [];
+  for (const entry of stored.entries) {
+    if (!isGoodEntry(entry) || seen.has(entry.id)) continue;
+    seen.add(entry.id);
+    entries.push({ id: entry.id, seed: entry.seed });
+  }
+  return entries;
+}
+
+// True when the stored notebook was written by a NEWER version of the game
+// (a newer page was opened, then an older cached one). This code must not
+// read or overwrite it (David, 26 Oct 2026, Q2).
+function isNewerNotebook(stored) {
+  return stored !== null && typeof stored === 'object'
+    && typeof stored.version === 'number' && stored.version > NOTEBOOK_VERSION;
+}
+
+// The saved notebook, or an empty one when there is none, it is junk, it is
+// from a newer version, or storage is blocked. Never throws.
+export function loadNotebook(storage = browserStorage()) {
+  const stored = readJson(NOTEBOOK_KEY, storage);
+  if (isNewerNotebook(stored)) return { version: NOTEBOOK_VERSION, entries: [] };
+  return { version: NOTEBOOK_VERSION, entries: goodEntries(stored) };
+}
+
+// Saves the notebook. It first reads what is stored and keeps every entry
+// from both (by id), so two open tabs can't erase each other's entries
+// (Q4). True if saved; false if storage is blocked or the stored notebook
+// is from a newer version (then it is left exactly as it was).
+export function saveNotebook(notebook, storage = browserStorage()) {
+  const stored = readJson(NOTEBOOK_KEY, storage);
+  if (isNewerNotebook(stored)) return false;
+  const merged = goodEntries({ entries: [...goodEntries(stored), ...goodEntries(notebook)] });
+  return writeJson(NOTEBOOK_KEY, { version: NOTEBOOK_VERSION, entries: merged }, storage);
+}
+
 // --- replaying the actions -----------------------------------------------
 
 // What each action name does: the engine function it calls. Each action is
