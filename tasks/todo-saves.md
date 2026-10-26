@@ -82,6 +82,8 @@ On load, the game builds a fresh run for the seed and plays the actions again th
   - scrap after step 1 replays.
   - Deleting `pm` from the table once makes the first of these fail; restored.
 - After the merge: `npm test` 206/206, `npm run screens` 40/40.
+- 2026-10-26: merged `main` again at 55d56ef (Lanes C and D: content batch 3, card art). No conflicts. New test: a full-deck run over seeds 123456–123495, playing every legal card and taking every stop, replays exactly. It played all 13 practices a Cu-line run can play and did a DOE on 12, Lane C's new cards included. The 6 never played can't be on the Cu line: implant and diffusion rooms aren't on the route, two need `siliconFrontEnd`, and `reworkLitho`'s trait is never set yet.
+- After this merge: `npm test` 214/215, `npm run screens` 44/48. The failures are the same on plain `main` at 55d56ef: `tokens.test.js` "every practice has a cross-section" and the 4 `art-preview.spec.js` tests (Lane C's new practices have no art yet; Lane D is fixing it). None come from this branch.
 - Lane A's ship screen is now on `main`, so Part 3 (the `main.js` hook) can start when David says.
 - `main.js` now keeps the notebook in memory, and saving it is M4 item 2. That isn't in this lane, but it can use `readJson`/`writeJson` with its own key.
 

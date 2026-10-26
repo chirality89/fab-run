@@ -5,7 +5,9 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createRun, legalCards } from '../src/engine/run.js';
+import { createRun, legalCards, fullPool } from '../src/engine/run.js';
+import { PRACTICES } from '../src/content/content.js';
+import { LOT_TYPES } from '../src/content/lotTypes.js';
 import { whyCannotBuy } from '../src/engine/shop.js';
 import { whyCannotPm, whyCannotDoe } from '../src/engine/run.js';
 import {
@@ -31,8 +33,9 @@ function blockedStorage() {
 }
 
 // A player that records every action it takes, the way main.js will.
-function recordingPlayer(seed) {
-  const player = { state: createRun({ seed }), actions: [] };
+// `deck` is the starter deck unless a test passes another (fullPool()).
+function recordingPlayer(seed, deck = undefined) {
+  const player = { state: createRun({ seed, deck }), deck, actions: [] };
   player.act = (...action) => {
     player.state = applyAction(player.state, action);
     player.actions.push(action);
@@ -108,7 +111,7 @@ function saveAndResume(player) {
   const storage = fakeStorage();
   assert.equal(saveRun(player.state.seed, player.actions, storage), true, `save failed (seed ${SEED})`);
   const save = loadRun(storage);
-  return replayRun(createRun({ seed: save.seed }), save.actions);
+  return replayRun(createRun({ seed: save.seed, deck: player.deck }), save.actions);
 }
 
 test('resuming mid-run gives exactly the same state, and the same ending', () => {
@@ -185,6 +188,49 @@ test('every kind of action replays: saved after any action, the run resumes exac
     if (player.state.corridor !== null) takeEveryStop(player);
     playRoom(player);
   }
+});
+
+// Plays a whole run with every practice in the deck: in each room it plays
+// legal cards until none is left, and takes every side stop.
+function playFullPoolRun(seed) {
+  const player = recordingPlayer(seed, fullPool());
+  while (player.state.status === 'running') {
+    if (player.state.corridor !== null) takeEveryStop(player);
+    if (player.state.room === null) player.act('enter');
+    let legal = legalCards(player.state);
+    while (legal.length > 0) {
+      player.act('play', legal[0]);
+      legal = legalCards(player.state);
+    }
+    player.act('run');
+  }
+  return player;
+}
+
+test('every practice the Cu line can play, and DOE versions, replay from a save', () => {
+  const played = new Set();
+  const upgraded = new Set();
+  for (let seed = SEED; seed < SEED + 40; seed++) {
+    const player = playFullPoolRun(seed);
+    assert.deepEqual(saveAndResume(player), player.state, `full deck, end of run (seed ${seed})`);
+    for (const [name, value] of player.actions) {
+      if (name === 'play') played.add(value);
+      if (name === 'doe') upgraded.add(value);
+    }
+  }
+  // Every practice a Cu-line run CAN play was played at least once over
+  // these seeds, and some as DOE versions, so the replay covered them.
+  // Left out: cards for rooms the Cu line never enters (implant, diffusion),
+  // cards that need a lot trait the Cu line doesn't have (siliconFrontEnd),
+  // and cards whose trait nothing sets yet (lastStepWasLitho, run.test.js).
+  const cuLine = LOT_TYPES.cuLine;
+  const routeRooms = new Set(cuLine.route.map(step => step.room));
+  const canPlayOnCuLine = (card) =>
+    routeRooms.has(card.room) && (!card.when?.lot || cuLine.traits.includes(card.when.lot));
+  const neverPlayed = PRACTICES.filter(canPlayOnCuLine).map(card => card.id).filter(id => !played.has(id));
+  assert.deepEqual(neverPlayed, [], `never played in seeds ${SEED}–${SEED + 39}`);
+  assert.ok(upgraded.size > 0, 'no DOE in these seeds');
+  console.log(`full-deck replay: ${played.size} practices played, DOE on ${[...upgraded].join(', ')}`);
 });
 
 test('scrapping the lot replays too', () => {
