@@ -55,7 +55,8 @@ test('createRun: defaults are the cuLine, the starter deck, i-line resist loaded
   assert.equal(state.seed, SEED);
   assert.equal(state.rngState, SEED);
   assert.equal(state.lotTypeId, 'cuLine');
-  assert.deepEqual(state.deck, ['timedOveretch', 'measureAll', 'reworkLitho']);
+  // measureAll is a starter card but is not dealt yet (run.js NOT_DEALT_YET).
+  assert.deepEqual(state.deck, ['timedOveretch', 'reworkLitho']);
   assert.deepEqual(state.deck, starterDeck());
   assert.deepEqual(state.slots, { resist: { id: 'resistIline', shelfLife: 8, decay: 1 } });
   assert.equal(state.cash, 1500);
@@ -118,8 +119,10 @@ test('timedOveretch costs 4 minutes and scales residue ×0.3, underlayer attack 
   assert.equal(resolveStep(after).minutesUsed, 4);
 });
 
+// measureAll is not dealt yet (NOT_DEALT_YET), but the card still works
+// when a deck holds it, so these tests give it one.
 test('measureAll pays its base cash and time', () => {
-  const inMetro = enterStepNumber(scatterOff(), METRO);
+  const inMetro = enterStepNumber(scatterOff({ deck: ['measureAll'] }), METRO);
   const after = playCard(inMetro, 'measureAll');
   assert.equal(after.cash, 1350);
   assert.equal(after.room.timeLeft, 0);
@@ -139,7 +142,7 @@ test('illegal cards are refused with an error naming the card', () => {
   const shortOfTime = { ...inEtch, room: { ...inEtch.room, timeLeft: 3 } };
   assert.throws(() => playCard(shortOfTime, 'timedOveretch'), /timedOveretch.*time/);
   // Not enough cash.
-  const inMetro = enterStepNumber(scatterOff(), METRO);
+  const inMetro = enterStepNumber(scatterOff({ deck: ['measureAll'] }), METRO);
   assert.throws(() => playCard({ ...inMetro, cash: 100 }, 'measureAll'), /measureAll.*cash/);
 });
 

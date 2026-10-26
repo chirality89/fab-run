@@ -10,20 +10,15 @@ import { whyCannotPm, whyCannotDoe } from '../engine/run.js';
 import { cardInRun } from '../engine/doe.js';
 import { spcView } from './spcView.js';
 import { nextUseText } from './view.js';
-
-// A pattern name in words: 'underlayer_attack' → 'underlayer attack'.
-const words = pattern => pattern.replace(/_/g, ' ');
+import { effectText } from './effectsText.js';
 
 // A card's cost and effects in one line, e.g.
-// "4 min · residue ×0.3 · underlayer attack ×1.5 · underlayer attack ×0.5 with etch_stop".
+// "4 min · residue ×0.3 · underlayer attack ×1.5 · underlayer attack ×0.5 with etch stop".
+// Only the yield effects: flags and reveals read the same before and after a DOE.
 function recipeText(card) {
   const parts = [`${card.cost.time ?? 0} min`];
   if (card.cost.cash) parts.push(`${card.cost.cash} cash`);
-  for (const effect of card.effects) {
-    if (effect.op !== 'defectMult') continue;   // flags and reveals read the same before and after
-    const condition = effect.when?.flag ? ` with ${words(effect.when.flag)}` : '';
-    parts.push(`${words(effect.pattern)} ×${effect.mult}${condition}`);
-  }
+  parts.push(...card.effects.filter(effect => effect.op === 'defectMult').map(effectText));
   return parts.join(' · ');
 }
 

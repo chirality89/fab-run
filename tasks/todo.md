@@ -1,8 +1,34 @@
 # Fab Run — Task Tracker
 
-## Planned: M4.5 item 5 — show effects before you commit (issue 6); placeholders stop charging for nothing (issue 5)
+## Done: M4.5 item 5 — show effects before you commit (issue 6); placeholders stop charging for nothing (issue 5)
 
-**Status: PLAN for David's OK (26 Oct 2026). No code is changed until you say yes. Questions Q1–Q3 are at the end.**
+**Status: built 26 Oct 2026. David took the recommendation on all three: Q1 show the points preview, Q2 A (metrology not offered until built), Q3 A (measure all not dealt until something is hidden).**
+
+**What was built**
+- `src/ui/effectsText.js` (new): every effect operation in plain words. `pmView.js` now uses it, and the DOE screen text is unchanged (its tests pass as they were).
+- `view.js`: a card in the hand has `effectsText`, and a playable one has `pointsChange` and `pointsText` ("About 1.0 point less lost in this room."). Shop items have `effectsText`. `render.js`, `floorPlan.js` and `room.css` draw them in dark text (`--ink`), with no new colours.
+- `map.js`: `SIDE_STOP_KINDS` leaves out any stop marked `placeholder` in `sideStops.js`, so metrology is never offered. A corridor now offers 2 or 3 of PM, procurement and event.
+- `run.js`: `NOT_DEALT_YET = ['measureAll']`, kept out of the starter deck and `runDeck`. The card stays in `content.js` and in `fullPool()`, and it still works when a deck holds it (its tests give it one).
+- `render.js`: removed "(Unlocks start to count in a later update.)" from the ship report.
+- `SAVE_VERSION` 3 → 4 (`fabrun.run.v4`).
+
+**Tests changed, and why (no expected yield or cash value changed)**
+- The starter deck is now `['timedOveretch', 'reworkLitho']` (`run.test.js`), and the DOE offers on seed 123456 are `['timedOveretch', 'reworkLitho']` (`doe.test.js`). After CMP nothing is offered, since no dealt card is for metrology. Both follow directly from Q3.
+- The `measureAll` tests and the illegal-card test now give the card a deck explicitly.
+- `map.test.js`: the kinds test now says "only the built stops are offered", plus a new test: no metrology over 100 seeds.
+- `storage.test.js` `takeEveryStop`: it now turns its preference (PM, procurement, event) with the corridor number. Every corridor now offers PM or an event, so the old "PM first" never shopped, and no seed bought anything.
+- `saves.spec.js`: the "reload at a quiet stop" test used the metrology stop. It now uses the quiet event after CMP (no event matters that late).
+- New: `tests/effectsText.test.js`, four `view.test.js` tests (hand check: over-etch saves 16.1976 − 15.1772 = 1.0204 points), and the etch screen checks the effects and points lines.
+
+- `map.spec.js` "taking a side stop costs its minutes": it expected the placeholder text "comes in the next update". Seed 123456's first stop is now PM, so it checks only that the stop screen states its cost.
+
+**Checks:** `npm test` 243/243, `npm run screens` 74/74, the etch and shop phone tests passed 5 runs in a row, and the bot ran clean on 200 runs (no metrology stop taken). I checked the screenshots: the etch room at both sizes and the phone shop show the new lines in dark text, with no sideways scroll.
+
+**Noticed, not fixed (outside this item)**
+- A DOE can be offered on "Strip and re-expose", which is never playable today, because nothing sets `lastStepWasLitho`. A DOE on it is 100 cash for nothing. This goes with the "decision in every room" item.
+- The `floorPlan.js` "(coming in a later update)" text for placeholder stops can no longer show. I kept it for when a stop is marked placeholder again.
+
+**Original plan below.**
 
 This is the next M4.5 item that does not wait on a physics call from David. (Items 3 etch-stop and 7 starter deck wait on your answers; item 1 waits for PR #23.)
 

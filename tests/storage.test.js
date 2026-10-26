@@ -96,12 +96,18 @@ function usePmStop(player) {
 
 // After a room: take a side stop whenever one is offered and use it, so a
 // run tries every kind of action. Events take their first option.
+// Which kind it prefers turns with the corridor's number (PM, then
+// procurement, then event), so a run uses all three: since M4.5 item 5 every
+// corridor offers PM or an event, so a fixed "PM first" would never shop.
 function takeEveryStop(player) {
   const offers = player.state.map[player.state.corridor].offers;
-  if (offers.includes('pm')) {
+  const kinds = ['pm', 'procurement', 'event'];
+  const first = player.state.corridor % kinds.length;
+  const kind = [...kinds.slice(first), ...kinds.slice(0, first)].find(name => offers.includes(name));
+  if (kind === 'pm') {
     player.act('walk', 'pm');
     usePmStop(player);
-  } else if (offers.includes('event')) {
+  } else if (kind === 'event') {
     player.act('walk', 'event');
     if (player.state.event !== null) player.act('choose', 0);
   } else {

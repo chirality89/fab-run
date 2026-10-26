@@ -10,7 +10,9 @@ import {
 } from '../src/engine/run.js';
 import { lotYield } from '../src/engine/lot.js';
 import { seedSellingTestItems, SHOP_TEST_UNLOCKS } from './shopSeed.js';
-import { roomView, resultView, mapView, stopView, shopView, siteBand, yieldBand, parseSeed } from '../src/ui/view.js';
+import {
+  roomView, resultView, mapView, stopView, shopView, siteBand, yieldBand, parseSeed, pointsChangeText,
+} from '../src/ui/view.js';
 
 const SEED = 123456;
 const TOLERANCE = 1e-6;
@@ -361,4 +363,43 @@ test('eventView: consequences in words, tool health said as a service, Q-time wa
   assert.equal(view.options[1].consequences, '−100 cash');
   assert.equal(view.resultText, null);
   assert.equal(view.goText, 'Continue to step 6: Deposition (barrier + seed)');
+});
+
+// --- M4.5 item 5: effects shown before you commit -------------------------
+// Hand check: on seed 123456 the etch forecast is 16.1976 points with
+// nothing played and 15.1772 after timed over-etch (tests above), so
+// playing it saves 16.1976 − 15.1772 = 1.0204 points.
+
+test('a card in the hand shows its effects and how much it saves in this room', () => {
+  const [card] = roomView(idleToEtch()).hand;
+  assert.equal(card.id, 'timedOveretch', `seed ${SEED}`);
+  assert.equal(card.effectsText, 'residue ×0.3 · underlayer attack ×1.5 · underlayer attack ×0.5 with etch stop');
+  assert.ok(Math.abs(card.pointsChange - 1.0204) < 1e-4, `points change: got ${card.pointsChange} (seed ${SEED})`);
+  assert.equal(card.pointsText, 'About 1.0 point less lost in this room.');
+});
+
+test('an unplayable card shows its effects but no points line', () => {
+  const card = roomView(idleToEtch({ deck: fullPool() })).hand.find(entry => entry.id === 'endpointEtch');
+  assert.equal(card.playable, false, `seed ${SEED}`);
+  assert.equal(card.pointsChange, null);
+  assert.equal(card.pointsText, null);
+  assert.ok(card.effectsText.length > 0);
+});
+
+test('the points line: rounding, singular, "more", and nothing under 0.05', () => {
+  assert.equal(pointsChangeText(1.0204), 'About 1.0 point less lost in this room.');
+  assert.equal(pointsChangeText(2.46), 'About 2.5 points less lost in this room.');
+  assert.equal(pointsChangeText(-0.3), 'About 0.3 points more lost in this room.');
+  assert.equal(pointsChangeText(0.04), null);
+  assert.equal(pointsChangeText(0), null);
+});
+
+test('shop items show their effects', () => {
+  const view = shopView(shopAfterStep2());
+  const effects = Object.fromEntries(view.items.map(item => [item.id, item.effectsText]));
+  assert.deepEqual(effects, {
+    padConditioner: 'rr drift ×0.4 · −20 cash',
+    resistCAR: 'cd error ×0.6 · cd error ×1.4 (delay before bake only)',
+    resistThick: 'underlayer attack ×0.5 (deep etch only) · cd error ×1.3 · uses 10 min of room time',
+  });
 });

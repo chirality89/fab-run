@@ -55,9 +55,19 @@ const GATED_CARDS = new Set(
     .map(effect => effect.id),
 );
 
+// Practices kept out of every deck for now. "Measure all 25 sites" reveals
+// values, but no screen hides anything yet (the wafer map already shows all
+// 25 sites), so it would cost 150 cash and 20 minutes for nothing. It comes
+// back when the game hides something a measurement can reveal (David,
+// 26 Oct 2026, M4.5 item 5 Q3). The card stays in content.js and fullPool.
+export const NOT_DEALT_YET = ['measureAll'];
+
+// True for a practice that may go in a deck.
+const dealt = card => !NOT_DEALT_YET.includes(card.id);
+
 // The starter deck: the starter items (unlockedBy: null) that are practices.
 export function starterDeck() {
-  return PRACTICES.filter(card => STARTER_IDS.includes(card.id)).map(card => card.id);
+  return PRACTICES.filter(card => STARTER_IDS.includes(card.id) && dealt(card)).map(card => card.id);
 }
 
 // The deck for a run: the starter practices plus the practices in
@@ -67,7 +77,7 @@ export function starterDeck() {
 // more cards means more choice there, not clutter.
 export function runDeck(unlocked = []) {
   return PRACTICES
-    .filter(card => STARTER_IDS.includes(card.id) || unlocked.includes(card.id))
+    .filter(card => (STARTER_IDS.includes(card.id) || unlocked.includes(card.id)) && dealt(card))
     .map(card => card.id);
 }
 

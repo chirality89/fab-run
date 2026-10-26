@@ -126,6 +126,8 @@ function drawCard(card, actions) {
   node.append(top);
   if (card.doe) node.append(el('span', 'chip chip-doe', 'DOE'));   // upgraded at a DOE stop
   node.append(el('span', 'card-summary', card.summary));
+  if (card.effectsText) node.append(el('span', 'card-effects', card.effectsText));   // what it does, in numbers
+  if (card.pointsText) node.append(el('span', 'card-points', card.pointsText));      // what that does to this room
   if (!card.playable) node.append(el('span', 'card-reason', `Can't play: ${card.reason}`));
   return node;
 }
@@ -289,7 +291,7 @@ function drawDiagnose(view, actions) {
   }
   if (view.state === 'done' && view.earned) {
     const text = view.unlocks.length > 0
-      ? `Unlocks for later runs: ${view.unlocks.join(', ')}. (Unlocks start to count in a later update.)`
+      ? `Unlocks for later runs: ${view.unlocks.join(', ')}.`
       : 'It unlocks nothing yet.';
     box.append(el('p', 'map-key', text));
   }

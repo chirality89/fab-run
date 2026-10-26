@@ -44,7 +44,7 @@ Items are Lane F issue numbers (`docs/playtest/summary.md`) and physics-review c
 - [x] Remove the fixed etch and litho yield tax, so tool health and choices drive the loss (issue 1, claim 8)
 - [ ] Etch-stop logic (claim 11; needs new engine logic, ask first)
 - [ ] SPC flags that predict, and a flagged tool that costs more (issue 4)
-- [ ] Show card and shop item effects before you commit (issue 6); placeholder stops stop charging for nothing (issue 5)
+- [x] Show card and shop item effects before you commit (issue 6); placeholder stops stop charging for nothing (issue 5)
 - [ ] Diagnosis explains itself and offers only failure modes that could have been there (issue 2)
 - [ ] A real decision in every room (issue 3; needs David's starter deck call)
 - [ ] Phone layout and run-ending buttons (issues 8, 17); small fixes (issues 9, 10, 13, 14, 15, 16)

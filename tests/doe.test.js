@@ -18,7 +18,8 @@ const close = (actual, expected, label) =>
   assert.ok(Math.abs(actual - expected) < TOLERANCE, `${label}: got ${actual}, expected ${expected}`);
 
 // Seed 123456: the corridor after step 2 (index 1) offers PM/DOE, and its
-// DOE offers timed over-etch and measure all.
+// DOE offers timed over-etch and strip and re-expose (measure all is not
+// dealt since M4.5 item 5, so it is in no deck).
 const DOE_CORRIDOR = 1;
 const ETCH = 3;
 const handCheckRun = () => createRun({ seed: SEED, scatterStrength: 0, toolDrift: false });
@@ -43,9 +44,10 @@ function onToEtch(state) {
 
 test('a DOE stop offers 2–3 practices from the deck whose rooms are still ahead', () => {
   const atStop = openStop(handCheckRun());
-  assert.deepEqual(atStop.pm.doeOffers, ['timedOveretch', 'measureAll'], `seed ${SEED}`);
-  // After step 8 (CMP) only metrology is left: measure all is the only one.
-  assert.deepEqual(doeOffers(atStop, 7), ['measureAll']);
+  assert.deepEqual(atStop.pm.doeOffers, ['timedOveretch', 'reworkLitho'], `seed ${SEED}`);
+  // After step 8 (CMP) only metrology is left, and no card in the deck is
+  // for it, so there is nothing to offer.
+  assert.deepEqual(doeOffers(atStop, 7), []);
 });
 
 test('a DOE costs 100 cash and the card then plays as its DOE version', () => {
@@ -62,14 +64,14 @@ test('one choice per stop: after a DOE no PM, after a PM no DOE', () => {
   const atStop = openStop(handCheckRun());
   const afterDoe = doeCard(atStop, 'timedOveretch');
   assert.throws(() => pmTool(afterDoe, 'cmp'), /already used/);
-  assert.throws(() => doeCard(afterDoe, 'measureAll'), /already used/);
+  assert.throws(() => doeCard(afterDoe, 'reworkLitho'), /already used/);
   const afterPm = pmTool(atStop, 'cmp');
   assert.match(whyCannotDoe(afterPm, 'timedOveretch'), /already used/);
 });
 
 test('doeCard refuses a card not offered, too little cash, and no stop open', () => {
   const atStop = openStop(handCheckRun());
-  assert.throws(() => doeCard(atStop, 'reworkLitho'), /not offered/);
+  assert.throws(() => doeCard(atStop, 'preclean'), /not offered/);   // not in the deck
   assert.throws(() => doeCard({ ...atStop, cash: 50 }, 'timedOveretch'), /not enough cash/);
   const inRoom = enterStep(atStop);
   assert.equal(inRoom.pm, null, 'the stop closes on entering the next room');

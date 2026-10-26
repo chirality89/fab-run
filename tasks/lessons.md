@@ -350,3 +350,8 @@ The expected names were written from the items' ids, not read from `content.js`.
 ✅ Before writing an expected name or number from content, print it from `content.js` first
 ✅ When a brand-new test fails, check the expected value's source before touching the code
 
+
+## A test helper that always took the first offered stop stopped testing the shop (26 Oct 2026)
+- **What happened:** after the map stopped offering metrology, every corridor offered PM or an event. `takeEveryStop` in `storage.test.js` always took PM first, then event, so it never shopped, and the "every action replays" test found no seed that used `buy`.
+- **Root cause:** the helper's preference order quietly depended on which stops a corridor could offer. Taking a kind out of the pool changed what the helper could ever reach.
+- **Rule:** a test helper that has to cover every kind of choice should turn its preference with something that varies (here the corridor number), not use a fixed "first match" order. When a pool of choices changes, check which helpers pick from it.

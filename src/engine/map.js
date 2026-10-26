@@ -3,8 +3,6 @@
 //
 // The process rooms are the lot type's route, fixed and in order. Between
 // two rooms you may take ONE of the side stops offered, or go straight on.
-// What a stop does comes in M3 item 2; for now it only costs cycle time
-// (run.js walkCorridor).
 //
 // The map is made from the seed alone, with its own generator: the run's
 // seed mixed with a fixed constant (MAP_SEED_MIX). So building the map never
@@ -13,9 +11,14 @@
 
 import { normalizeSeed, randomInt, shuffle } from './rng.js';
 import { MIN_SIDE_STOP_OFFERS, MAX_SIDE_STOP_OFFERS } from '../content/balance.js';
+import { SIDE_STOPS } from '../content/sideStops.js';
 
-// The four kinds of side stop, in the order they are listed on screen.
-export const SIDE_STOP_KINDS = ['metrology', 'pm', 'procurement', 'event'];
+// The kinds of side stop a corridor can offer, in the order they are listed
+// on screen. A stop marked `placeholder` in sideStops.js is left out: it
+// would only cost time (David, 26 Oct 2026, M4.5 item 5 Q2). Today that is
+// metrology, so a corridor offers 2 or 3 of PM, procurement and event.
+export const SIDE_STOP_KINDS = ['metrology', 'pm', 'procurement', 'event']
+  .filter(kind => !SIDE_STOPS[kind].placeholder);
 
 // Any fixed number works. It differs from the bot's (tools/bot.js) so the
 // map and the bot never share a sequence.

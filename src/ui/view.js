@@ -13,10 +13,11 @@ import {
 } from '../content/balance.js';
 import { normalizeSeed } from '../engine/rng.js';
 import { lotYield, realizeRisks } from '../engine/lot.js';
-import { whyIllegal } from '../engine/run.js';
+import { whyIllegal, playCard } from '../engine/run.js';
 import { whyCannotBuy, findShopItem } from '../engine/shop.js';
 import { cardInRun } from '../engine/doe.js';
 import { spcView } from './spcView.js';
+import { effectsLine } from './effectsText.js';
 
 // A fraction (0..1) as a percent with one decimal, e.g. 0.913931 → 91.4.
 export function toPercent(fraction) {
@@ -90,18 +91,43 @@ function friendlyReason(card, reason) {
   return reason.charAt(0).toUpperCase() + reason.slice(1);
 }
 
+// How playing a card would change this room's expected loss: play it on a
+// copy of the state and compare the forecasts. Positive = less lost. Only
+// for a playable card. (playCard returns a new state; the real one is
+// untouched.)
+function pointsChange(state, step, cardId) {
+  const after = playCard(state, cardId);
+  return expectedLossPoints(state.lot, step) - expectedLossPoints(after.lot, step);
+}
+
+// The line under a playable card, e.g. "About 1.0 point less lost in this
+// room." Null when the change is under 0.05 points, e.g. a card that acts
+// in a later room (its effects line still says what it does).
+export function pointsChangeText(points) {
+  const rounded = Math.abs(points).toFixed(1);
+  if (rounded === '0.0') return null;
+  const unit = rounded === '1.0' ? 'point' : 'points';
+  return `About ${rounded} ${unit} ${points > 0 ? 'less' : 'more'} lost in this room.`;
+}
+
 // One card in the hand. The one-line summary is the card's own `tradeoff`
 // text from content.js, so the screen never invents physics. An upgraded
-// card shows its DOE version (doe.js cardInRun).
-function cardView(state, cardId) {
+// card shows its DOE version (doe.js cardInRun). Under it: what the card
+// does (effectsText.js) and, if playable, what that does to this room's
+// forecast (M4.5 item 5).
+function cardView(state, step, cardId) {
   const card = cardInRun(state, cardId);
   const reason = whyIllegal(state, cardId);
+  const points = reason === null ? pointsChange(state, step, cardId) : null;
   return {
     id: card.id,
     name: card.name,
     minutes: card.cost.time ?? 0,
     cash: card.cost.cash ?? 0,
     summary: card.tradeoff,
+    effectsText: effectsLine(card.effects),
+    pointsChange: points,
+    pointsText: points === null ? null : pointsChangeText(points),
     doe: state.upgraded.includes(cardId),
     playable: reason === null,
     reason: reason === null ? null : friendlyReason(card, reason),
@@ -144,7 +170,7 @@ export function roomView(state) {
     slots: slotsView(state, roomId),
     toolHealth: state.tools[roomId].health,   // not shown: the screen shows SPC only (David)
     spc: spcView(state, roomId),
-    hand: state.hand.map(cardId => cardView(state, cardId)),
+    hand: state.hand.map(cardId => cardView(state, step, cardId)),
     expectedLossPoints: lossPoints,
     expectedLossText: `This room will cost about ${lossPoints.toFixed(1)} points of yield if nothing changes.`,
   };
@@ -309,8 +335,9 @@ function continueText(route, corridorIndex) {
   return `Continue to step ${nextIndex + 1}: ${route[nextIndex].label}`;
 }
 
-// The placeholder screen after taking a side stop that does nothing yet
-// (metrology and events come later in M3). `before` is the state in
+// The plain screen after a side stop with nothing to choose: today an event
+// stop where no event matters any more (a quiet shift). A placeholder stop
+// would show here too, but the map no longer offers one (M4.5 item 5). `before` is the state in
 // the corridor, `after` what walkCorridor returned.
 export function stopView(before, after, stopKind) {
   const info = SIDE_STOPS[stopKind];
@@ -368,6 +395,7 @@ function shopItemView(state, route, itemId) {
     roomName: ROOMS[item.room].name,
     price: item.cost.cash,
     tradeoff: item.tradeoff,
+    effectsText: effectsLine(item.effects),
     nextUseText: nextUseText(route, state.shop.corridor + 1, item.room),
     replacesText: bought ? null : replacesText(state, item),
     bought,

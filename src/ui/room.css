@@ -163,6 +163,10 @@
 .card-name { font: 600 20px/1.15 var(--cond); }
 .card-cost { font-family: var(--mono); font-size: 14px; color: var(--muted); }
 .card-summary { display: block; margin: 4px 0 0; font-size: 15px; color: var(--muted); }
+/* What a card or item does, in numbers, and what a playable card would do
+   to this room's forecast (M4.5 item 5). Dark text, no new colours. */
+.card-effects { display: block; margin: 4px 0 0; font-size: 15px; color: var(--ink); }
+.card-points { display: block; margin: 4px 0 0; font-size: 15px; font-weight: 600; color: var(--ink); }
 .card-reason { display: block; margin: 6px 0 0; font-size: 15px; font-weight: 600; color: var(--bad); }
 
 /* --- Buttons: Run etch, Replay this seed, New seed ------------------------ */

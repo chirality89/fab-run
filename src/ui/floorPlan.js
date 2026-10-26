@@ -192,7 +192,7 @@ export function renderStop(container, view, actions) {
 }
 
 // One item on sale at the procurement stop: what it is, what it costs, its
-// tradeoff, where it acts next, and a Buy button (greyed out with the
+// tradeoff, what it does in numbers, where it acts next, and a Buy button (greyed out with the
 // reason when it can't be bought).
 function drawShopItem(item, actions) {
   const box = el('li', item.bought ? 'card shop-item shop-item-bought' : 'card shop-item');
@@ -200,6 +200,7 @@ function drawShopItem(item, actions) {
   top.append(el('span', 'card-name', item.name), el('span', 'card-cost', `${item.price} cash`));
   box.append(top, el('span', 'shop-kind', `${item.kindText} · ${item.roomName}`));
   box.append(el('span', 'card-summary', item.tradeoff));
+  if (item.effectsText) box.append(el('span', 'card-effects', item.effectsText));   // what it does, in numbers
   box.append(el('span', 'shop-next', item.nextUseText));
   if (item.replacesText) box.append(el('span', 'shop-next', item.replacesText));
   if (item.buyable) {
