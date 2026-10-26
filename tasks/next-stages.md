@@ -117,7 +117,7 @@ Taken from what went wrong before (`tasks/lessons.md`):
 
 **Lane A (engine, screens; this branch)**
 1. Land Lane F's reports and Lane D's commit on `main` (after PR #23 merges).
-2. Etch-stop rule and the route label; the etch forecast split (stack vs this etch).
+2. ~~Etch-stop rule and the route label; the etch forecast split (stack vs this etch).~~ Done 26 Oct 2026.
 3. SPC: trend rule, verdicts by rule, excursion wording; a flagged tool should cost more (issue 4).
 4. Diagnosis explains itself; offer only failure modes whose cause could have been there, including T-top only with CAR (issue 2).
 5. Skip the hand screen in a room with nothing to play (starter deck, part 2).
@@ -128,6 +128,8 @@ Taken from what went wrong before (`tasks/lessons.md`):
 2. Signatures readable from on-screen evidence (keyhole void, dishing, underlayer attack: claims 2, 3, 11).
 3. Q-time moisture text, slurry and audit rewording, gauge text, T-top's unlock.
 4. The Words page's terms (`glossary.js`), once Lane A has the page.
+
+*Note for Lane C (from Lane A, item 3, 26 Oct 2026):* `content.js` lines changed: `timedOveretch` (the etch-stop lines are now ×0.7 and, in the DOE version, ×0.84; its tradeoff says "much less if an etch stop is there") and `etchStopLayer` (tradeoff and physicsNote now mention protecting the film below). `etchStopLayer` stays unlocked by the notebook, not a starter card (David). The etch stop's protection itself lives in `lotTypes.js` (the etch step's `effects`), not on the card.
 
 **Lane D (look and feel: `tokens.css`, `cards.css`, `src/art/`)**
 1. Phone layout (issue 17) and run-ending button spacing (issue 8).

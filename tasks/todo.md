@@ -1,8 +1,18 @@
 # Fab Run — Task Tracker
 
-## Planned: M4.5 item 3 — etch-stop logic (claim 11), and the etch forecast says what is carried in
+## Done: M4.5 item 3 — etch-stop logic (claim 11), and the etch forecast says what is carried in
 
-**Status: PLAN for David's OK (26 Oct 2026). No code is changed until you say yes. Questions Q1–Q3 are at the end.**
+**Status: built 26 Oct 2026. David's answers: Q1 ×0.3; Q2 B (the stop card stays unlocked by the notebook, not a starter card); Q3 make the wording clearer.**
+
+**What was built**
+- `run.js`: a route step may carry `effects`, applied right after its risks enter (about 5 lines). `lotTypes.js`: etch has "underlayer attack ×0.3 with etch stop"; step 2 reads "Deposition (oxide)".
+- `content.js` (told Lane C): over-etch's stop line ×0.5 → ×0.7, the DOE version ×0.5 → ×0.84 (both ×1.05 net on a stop); the two cards' texts.
+- Forecast wording, made plainer than the plan: "About 6.8 of these points come from depth variation (etch depth differs center to edge). The lot brought this in from earlier steps; it was not added in this room." Shown under the forecast (`.carried-in`); left out under 0.05 points.
+- Hand checks (independent python model, seed 123456, scatter and drift off): stop + nothing 10.6861 points, yield after 0.834904; stop + over-etch 8.3540, 0.858225 (the DOE version gives the same); carried in 6.8 (no stop) and 2.8 (stop). Test value 0.075 → 0.105 as in the plan. `lotTypes.test.js` checks step effects.
+- `SAVE_VERSION` 5.
+
+**Original plan below.**
+
 
 **David's decision (26 Oct 2026):** the stop is a choice. The route label becomes "Deposition (oxide)", and the Etch-stop card adds the SiN stop. With the stop, etch adds much less underlayer attack, and over-etch on a stop is about ×1.05. The etch forecast says how much of its loss is carried in from the film stack.
 
