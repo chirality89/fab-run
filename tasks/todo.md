@@ -1,8 +1,8 @@
 # Fab Run — Task Tracker
 
-## Current: M4 item 3 — Notebook page: your diagnosed failure modes, their signatures and the seed each was found on
+## Done: M4 item 3 — Notebook page: your diagnosed failure modes, their signatures and the seed each was found on
 
-**Status: plan. David answered Q1–Q4 (26 Oct 2026): Q1, Q2 and Q4 as proposed; Q3 changed: remedies stay hidden until the unlock pool (M4 item 4) makes them real. Ready to build on David's go.**
+**Status: plan. David answered Q1–Q4 (26 Oct 2026): Q1, Q2 and Q4 as proposed; Q3 changed: remedies stay hidden until the unlock pool (M4 item 4) makes them real. Built the same day.**
 
 **Decisions settled:** none needed. O1 (diagnosing earns unlocks) is already settled. The tool-schematic art for notebook pages (S10) is an M6 item, so this page uses the plain panels the other screens use.
 
@@ -24,19 +24,19 @@
 - No art yet: the tool-schematic notebook pages are M6.
 
 **Code (all in `src/ui/`, one folder)**
-- [ ] New `notebookView.js`, about 60 lines, pure (runs in Node like the other views): `notebookView(notebook)` gives `{ entries: [{ id, name, sig, seed }], stillToFind, emptyText }`.
+- [x] New `notebookView.js`, about 60 lines, pure (runs in Node like the other views): `notebookView(notebook)` gives `{ entries: [{ id, name, sig, seed }], stillToFind, emptyText }`.
   - `modeName` **moves here** from `shipView.js`, which then imports it. It's 1 line moved, not new logic, so both screens name failure modes the same way.
-- [ ] New `notebookPage.js`, about 60 lines: `renderNotebook(container, view, { onBack })`. It's a new file because `render.js` (372 lines) would pass 400 (CLAUDE.md §4).
-- [ ] `floorPlan.js` and `render.js`: a Notebook button (44 px, with the double-tap guard) in the map and ship-report headers, about 10 lines.
-- [ ] `main.js`, about 20 lines: `showNotebook(back)` draws the page, and Back calls `back` (`showMap` or `showShipReport`), so the screen comes back as it was, including a diagnosis already made.
-- [ ] `room.css`: a few rules for the entry list, using `tokens.css` colors only.
+- [x] New `notebookPage.js`, about 60 lines: `renderNotebook(container, view, { onBack })`. It's a new file because `render.js` (372 lines) would pass 400 (CLAUDE.md §4).
+- [x] `floorPlan.js` and `render.js`: a Notebook button (44 px, with the double-tap guard) in the map and ship-report headers, about 10 lines.
+- [x] `main.js`, about 20 lines: `showNotebook(back)` draws the page, and Back calls `back` (`showMap` or `showShipReport`), so the screen comes back as it was, including a diagnosis already made.
+- [x] `room.css`: a few rules for the entry list, using `tokens.css` colors only.
 
 **Tests**
-- [ ] `tests/notebookView.test.js` (Node):
+- [x] `tests/notebookView.test.js` (Node):
   - an empty notebook gives no entries and the empty text, and `stillToFind` equals the number of failure modes;
   - two entries come out newest first, with their names, signatures and seeds, and `stillToFind` goes down by 2;
   - an unknown id is skipped and doesn't change `stillToFind`.
-- [ ] `tests/screens/notebook.spec.js`, desktop and phone:
+- [x] `tests/screens/notebook.spec.js`, desktop and phone:
   - an empty notebook from the floor plan opens and shows the empty text; Back returns to the floor plan;
   - after a right diagnosis on seed 123456, the ship report button reads "Notebook (1)", the page shows that entry, and Back returns to the ship report with the diagnosis still shown;
   - no sideways scroll at 375 px and no console errors; a screenshot of each;
@@ -53,6 +53,12 @@
 ### Acceptance criteria
 - From the floor plan or the ship report, you can open the Notebook page and see each diagnosed failure mode with its signature and seed, and Back returns you to the same screen.
 - `npm test` and `npm run screens` pass; the phone screen tests pass 5 runs in a row; screenshots are checked at both sizes.
+
+**Progress notes:**
+- 26 Oct 2026: the Notebook button lives in `render.js` (`notebookButton`), not in `notebookPage.js`, because `render.js` importing from `notebookPage.js`, which imports from `render.js`, would be a circular import. Now `render.js` is 379 lines.
+- The line under the list says "1 failure mode" and "Every failure mode is in your notebook." where those fit, not "1 failure modes".
+
+**Result:** done. New `notebookView.js` (the page's contents) and `notebookPage.js` (drawing). A "Notebook (n)" button sits in the floor-plan and ship-report headers, and Back returns to the same screen. `modeName` moved from `shipView.js` into `notebookView.js`. npm test 227/227, npm run screens 70/70, the new phone tests passed 5 runs in a row, and the screenshots were checked at both sizes.
 
 ---
 
