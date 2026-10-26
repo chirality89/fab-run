@@ -2,7 +2,7 @@
 
 ## Current: M4 item 3 — Notebook page: your diagnosed failure modes, their signatures and the seed each was found on
 
-**Status: plan. David answered Q1–Q4 (26 Oct 2026): Q1, Q2 and Q4 as proposed; Q3 changed: **remedies stay hidden until the unlock pool (M4 item 4) makes them real**. Ready to build on David's go.**
+**Status: plan. David answered Q1–Q4 (26 Oct 2026): Q1, Q2 and Q4 as proposed; Q3 changed: remedies stay hidden until the unlock pool (M4 item 4) makes them real. Ready to build on David's go.**
 
 **Decisions settled:** none needed. O1 (diagnosing earns unlocks) is already settled. The tool-schematic art for notebook pages (S10) is an M6 item, so this page uses the plain panels the other screens use.
 
