@@ -1,6 +1,6 @@
 # Next stages and lanes (proposal, 26 Oct 2026)
 
-**Status: proposal for David. `ROADMAP.md` is not changed until David rules on the questions at the bottom.**
+**Status: David said yes to Q1 (S1 before M5), 26 Oct 2026; S1 is now M4.5 in `ROADMAP.md`. Q2–Q5 are still open and block the items that name them.**
 
 ## Where we are
 

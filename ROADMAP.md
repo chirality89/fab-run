@@ -2,7 +2,7 @@
 
 Work top to bottom, one checkbox per session. Plan in `tasks/todo.md` first (see `PROJECT.md`). Tick the box here when done. Before starting a milestone, settle the `docs/decisions.md` items it depends on.
 
-Current milestone: **M5 — Randomness and a second lot**
+Current milestone: **M4.5 — Winnable and readable** (David, 26 Oct 2026: do this before M5; scope in `tasks/next-stages.md`)
 
 ## M0 — Move in
 - [x] Turn on GitHub Pages (Settings → Pages → Deploy from a branch → `main` / root); confirm the placeholder page loads at `https://chirality89.github.io/fab-run/` on desktop and phone
@@ -37,6 +37,18 @@ Current milestone: **M5 — Randomness and a second lot**
 - [x] Notebook saved in its own localStorage key; survives a run-state version bump
 - [x] Notebook page: list your diagnosed failure modes, with their signatures and the seed each was found on
 - [x] Starter pool vs unlocked pool; unlocked remedies appear in drafts and procurement
+
+## M4.5 — Winnable and readable (from Lane F's playtest reports)
+Items are Lane F issue numbers (`docs/playtest/summary.md`) and physics-review claims. Each item is planned in `tasks/todo.md` first. Exit test is in `tasks/next-stages.md`.
+- [ ] Bring Lane F's reports and Lane D's native-oxide commit onto `main`
+- [ ] Remove the fixed etch and litho yield tax, so tool health and choices drive the loss (issue 1, claim 8)
+- [ ] Etch-stop logic (claim 11; needs new engine logic, ask first)
+- [ ] SPC flags that predict, and a flagged tool that costs more (issue 4)
+- [ ] Show card and shop item effects before you commit (issue 6); placeholder stops stop charging for nothing (issue 5)
+- [ ] Diagnosis explains itself and offers only failure modes that could have been there (issue 2)
+- [ ] A real decision in every room (issue 3; needs David's starter deck call)
+- [ ] Phone layout and run-ending buttons (issues 8, 17); small fixes (issues 9, 10, 13, 14, 15, 16)
+- [ ] Lane F reruns the five personas on seeds 123456, 42, 777 and the exit test passes
 
 ## M5 — Randomness and a second lot
 - [ ] Lot modifiers, announced at run start; random lot type from the unlocked pool; fixed first run
