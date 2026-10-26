@@ -26,6 +26,17 @@ export function itemName(id) {
   return item ? item.name : id;
 }
 
+// A risk that enters the lot, with its size in yield points as well, since
+// "risk" is the game's own exponent and means nothing to a player (Lane F
+// issue 10): "+0.02 risk (about 2.0 points of yield): random dots across
+// the wafer". Points = 100 × (1 − e^−risk), the same rule as yield. For a
+// pattern that hits only some sites (edge ring) it is the lot average.
+// `amount` may be a number or text such as '0.010'.
+export function riskText(amount, pattern) {
+  const points = (100 * (1 - Math.exp(-Number(amount)))).toFixed(1);
+  return `+${amount} risk (about ${points} points of yield): ${PATTERNS[pattern] ?? words(pattern)}`;
+}
+
 // What a `reveal` shows, in words. Anything not listed is said from its id.
 const REVEAL_TEXT = {
   allSites: 'all 25 sites',
@@ -54,7 +65,7 @@ export function effectText(effect) {
   const when = conditionText(effect.when);
   switch (effect.op) {
     case 'defectMult': return `${words(effect.pattern)} ×${effect.mult}${when}`;
-    case 'addRisk': return `+${effect.amount} risk: ${PATTERNS[effect.pattern] ?? words(effect.pattern)}${when}`;
+    case 'addRisk': return `${riskText(effect.amount, effect.pattern)}${when}`;
     case 'timeCost': return effect.delta >= 0
       ? `uses ${effect.delta} min of room time${when}`
       : `gives ${-effect.delta} min more room time${when}`;

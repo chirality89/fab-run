@@ -359,7 +359,8 @@ test('eventView: consequences in words, tool health said as a service, Q-time wa
   const atAudit = { ...state, corridor: null, event: { corridor: 4, eventId: 'audit', chosen: null } };
   const view = eventView(atAudit);
   assert.equal(view.name, 'Quality audit');
-  assert.equal(view.options[0].consequences, '+30 min cycle time · +0.030 risk: native oxide grew while the lot waited (Q-time wait) · Wet clean tool serviced');
+  // Hand check: 100 × (1 − e^−0.03) = 2.96, shown as 3.0.
+  assert.equal(view.options[0].consequences, '+30 min cycle time · +0.030 risk (about 3.0 points of yield): native oxide grew while the lot waited (Q-time wait) · Wet clean tool serviced');
   assert.equal(view.options[1].consequences, '−100 cash');
   assert.equal(view.resultText, null);
   assert.equal(view.goText, 'Continue to step 6: Deposition (barrier + seed)');
