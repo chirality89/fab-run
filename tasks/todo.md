@@ -1,5 +1,60 @@
 # Fab Run — Task Tracker
 
+## Planned: M4.5 item 8 (part) — the small fixes (Lane F issues 8 labels, 9, 10, 13, 14, 15, 16)
+
+**Status: PLAN for David's OK (26 Oct 2026). No code is changed until you say yes. Questions Q1–Q3 are at the end.**
+
+Roadmap line: "Phone layout and run-ending buttons (issues 8, 17); small fixes (issues 9, 10, 13, 14, 15, 16)". The phone layout (17) and the spacing of run-ending buttons (8) are Lane D's look-and-feel work, so they are **not** in this plan. This plan is the Lane A part: words, numbers and messages. All of it is in `src/ui/` except where noted. No engine rule, no balance number and no saved action changes, so **no save version bump**.
+
+### Fixes with no question (I build these on your OK)
+
+**1. Cash that changes with no message (issue 9).**
+- *Today:* the pad conditioner takes 20 cash every time the lot enters CMP (its `cashCost` effect). Nothing says so; the student saw 950 turn into 930.
+- *Fix:* the room result says what the room cost in cash, and why: "Cash 950 → 930: In-situ pad conditioner −20." `resultView` compares cash before and after the room and names the equipment and material in that room that have a cash effect. A room with no cash change shows nothing new.
+- *Tests:* hand check with the pad conditioner bought (scatter off): CMP result reads exactly that line; a room with no cash change has no cash line.
+
+**2. A seed in the address that isn't a seed (issue 15).**
+- *Today:* `?seed=abc`, `-5` or a 20-digit number silently start a random seed from the clock. The min-maxer used it as a free reroll; a player sharing a bad link never knows.
+- *Fix:* the game still starts a fresh seed (there is no other sensible choice), but the first screen says so: "'abc' is not a seed (a whole number from 0 to 4294967295), so this is seed 1234567." The note sits where "Resumed seed …" sits today. A good seed or no seed shows nothing new.
+- *Tests:* `parseSeed` cases already exist; add the note text for `abc`, `-5`, `1.5`, `99999999999`, and no note for `123456` or no seed. A screen test opens `?seed=abc` at both sizes.
+
+**3. Risk numbers with no unit (issue 10, first half).**
+- *Today:* an event says "+0.02 risk: random dots across the wafer". "Risk" is our exponent, which no player knows.
+- *Fix:* say it in yield points too: "+0.02 risk (about 2.0 points of yield): random dots across the wafer". Points = 100 × (1 − e^−risk), worked out by the same rule as yield. It is the share of the lot, since even patterns hit every site alike; a shaped pattern (edge ring) is said the same way, which is right on average. Used in `eventView.js` and in `effectsText.js` (`addRisk`), so one helper.
+- *Tests:* hand-computed: 0.02 → 1.98 → "about 2.0 points", 0.04 → 3.92 → "about 3.9 points".
+
+**4. Six PM buttons that all say "PM this tool" (issue 8, label part).**
+- *Today:* every PM button reads "PM this tool", with the tool name far above it. The min-maxer serviced litho instead of etch.
+- *Fix:* the button reads "PM the Etch tool" (its screen-reader label already says that). The Continue button on a PM/DOE stop where nothing was chosen reads "Leave without a PM or DOE" so it is clear the 40 minutes are spent either way. That cost stays: taking the stop takes the tool time (decision O3).
+- *Tests:* the PM screen tests find buttons by these names.
+
+### Fixes that need your call
+
+**5. Wafer map rounding and label (issues 13 and 10, second half; review claim 10).**
+- *Today:* each tile rounds **down** (89.7 reads 89), so the map always reads lower than the headline yield (thirteen 99s and twelve 98s under a 99.1% headline). The label says "% of the 25 wafers still good there", but the number is an expected good fraction at that die position, not a count of wafers.
+- *Proposed:* round to the nearest whole percent, and relabel "Each site: % of this die position expected good across the lot." The band (pass, warning, fail) still comes from the printed number, so a tile's number and colour always agree.
+- The square 5×5 map stays for now. A round 21-site mask is your separate open call (claim 10) and Lane D's to draw.
+
+**6. Buying makes the score worse, and rejected lots are not paid (issue 14).**
+- *Today:* the ship report's score is cost per good die = (2000 + cash spent) ÷ good die. A 300-cash item has to raise yield by about 15% of what it is to pay for itself, so the rational move is to buy nothing. A rejected lot still shows a cost per die, with "Not paid".
+- *This is an economy design question, not a small fix.* Options: A) leave it for the M7 balance pass, and only reword the tile so it doesn't read as the score (my recommendation: M4.5's exit test is about shipping, and the item prices are placeholders anyway); B) change the score now (for example to profit: a price per good die on a shipped lot, minus the lot cost), which is new balance numbers and needs your price.
+
+**7. Nothing explains the words (issue 16).**
+- *Today:* lot, PM, DOE, CMP, CD and SPC are never spelled out. The student listed 36 terms.
+- *Proposed:* a **Words** page, opened like the Notebook page (a button in the floor plan and room headers), listing about 15 terms in one or two plain sentences each. The words would be data in a new `src/content/glossary.js` with `draft: true`, written by `content-drafter` and checked by `physics-reviewer`, then reviewed by you. That is Lane C content plus a Lane A page, so it is bigger than the others.
+
+**Steps (after your OK)**
+- [ ] Fixes 1–4, each with its tests, one commit each.
+- [ ] Fixes 5–7 as you decide.
+- [ ] `npm test`, `npm run screens` (the phone tests touched `--repeat-each=5`), the bot; screenshots checked.
+- [ ] Tracker, roadmap box only if the whole line is done (it isn't: 17 and the button spacing are Lane D's), lessons.
+
+**Q1 (map).** Round to nearest and relabel, as proposed?
+**Q2 (score).** A (leave the score for M7, only reword) or B (change it now: then what does a good die sell for)?
+**Q3 (glossary).** Build the Words page in this item, or make it its own item later?
+
+---
+
 ## Done: M4.5 item 5 — show effects before you commit (issue 6); placeholders stop charging for nothing (issue 5)
 
 **Status: built 26 Oct 2026. David took the recommendation on all three: Q1 show the points preview, Q2 A (metrology not offered until built), Q3 A (measure all not dealt until something is hidden).**
