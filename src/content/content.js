@@ -57,6 +57,8 @@ export const PATTERNS = {
   qtime_oxide:      'native oxide grew while the lot waited',
   implant_damage:   'crystal damage not repaired',
   junction_spread:  'dopant diffused too far',
+  gate_oxide:       'thin gate oxide that leaks or breaks down early',
+  channeling_tail:  'implanted dopant ran deep along crystal channels',
 };
 
 // ---------------------------------------------------------------------------
@@ -72,22 +74,22 @@ export const PATTERNS = {
 export const FAILURE_MODES = [
   { id: 'fm_particles',      draft: true, name: 'Handling particles', pattern: 'particles',
     sig: 'Random killed dies that move from lot to lot; particle adders climb on the wet clean SPC chart.',
-    unlocks: ['preclean'] },
+    unlocks: ['preclean', 'megasonicClean'] },
   { id: 'fm_chamber_flakes', draft: true, name: 'Chamber flaking', pattern: 'flakes',
     sig: 'Killed dies that appear at the deposition steps; particle adders on the deposition SPC chart climb between chamber cleans.',
-    unlocks: [] },
+    unlocks: ['shieldKit'] },
   { id: 'fm_residue',        draft: true, name: 'Etch residue', pattern: 'residue',
     sig: 'Opens spread evenly across the whole wafer after etch, while the etch rate falls on the etch SPC chart.',
     unlocks: [] },
   { id: 'fm_underlayer',     draft: true, name: 'Underlayer attack', pattern: 'underlayer_attack',
     sig: 'Leakage on the dies with the most over-etch; the cross-section shows a notch in the film below.',
-    unlocks: ['etchStopLayer', 'oesEndpoint', 'endpointEtch'] },
+    unlocks: ['etchStopLayer', 'oesEndpoint', 'endpointEtch', 'chamberSeasoning'] },
   { id: 'fm_edge_ring',      draft: true, name: 'Edge ring', pattern: 'edge_ring',
     sig: 'Only the outer ring of sites fails; inner sites are clean.',
     unlocks: ['eChuckUpgrade'] },
   { id: 'fm_dishing',        draft: true, name: 'Dishing', pattern: 'dishing',
     sig: 'Wide lines are thin and high-resistance; narrow lines are fine.',
-    unlocks: ['dummyFill'] },
+    unlocks: ['dummyFill', 'lowPressurePolish'] },
   { id: 'fm_rr_drift',       draft: true, name: 'Removal-rate drift', pattern: 'rr_drift',
     sig: 'The CMP removal rate walks steadily lot to lot on the SPC chart.',
     unlocks: ['padConditioner'] },
@@ -104,6 +106,24 @@ export const FAILURE_MODES = [
     when: { lot: 'delayBeforeBake' },   // only this cause: CD error also comes from dose, focus and litho drift
     sig: 'Lines come out with a T-shaped top when the lot waited between expose and bake.',
     unlocks: ['resistCAR', 'freshResist'] },
+  { id: 'fm_overhang_void',  draft: true, name: 'Overhang void', pattern: 'void',
+    sig: 'Opens on narrow, deep trenches; the cross-section shows either a void under a pinched mouth or voids at the lower sidewall where the seed is thin.',
+    unlocks: ['ionizedSeed', 'pulseReversePlating'] },
+  { id: 'fm_dose_offset',    draft: true, name: 'Dose offset', pattern: 'cd_error',
+    sig: 'Line width is off target by the same amount on every site and every wafer; SPC shows a step from the previous lot, and the scatter within the lot is small.',
+    unlocks: ['sendAheadWafer', 'barc'] },
+  { id: 'fm_channeling',     draft: true, name: 'Implant channeling', when: { lot: 'siliconFrontEnd' }, pattern: 'channeling_tail',
+    sig: 'Junctions are deeper than the dose and energy predict, on every site; the dopant depth profile has a long tail beyond the main peak.',
+    unlocks: ['tiltedImplant', 'screenOxideImplant', 'implantMonitor', 'parallelBeamStation'] },
+  { id: 'fm_gate_punch',     draft: true, name: 'Gate etch punch-through', when: { lot: 'siliconFrontEnd' }, pattern: 'underlayer_attack',
+    sig: 'Source/drain junction leakage and higher series resistance on every site and wafer, not just the most over-etched dies; oxide measured after the poly etch is thin or gone beside the gate, and the cross-section shows the silicon recessed or pitted there.',
+    unlocks: ['softLandGateEtch'] },
+  { id: 'fm_gate_breakdown', draft: true, name: 'Gate oxide breakdown', when: { lot: 'siliconFrontEnd' }, pattern: 'gate_oxide',
+    sig: 'On a ramped-voltage test the gate oxide breaks down at a low voltage, with a wide spread of breakdown voltage from site to site; the low-voltage breakdowns sit at random sites, thickness and capacitance-voltage are on target, and it is worse on lots with more particles or metal contamination.',
+    unlocks: ['hfLastClean'] },
+  { id: 'fm_gate_native_oxide', draft: true, name: 'Native oxide under the gate', when: { lot: 'siliconFrontEnd' }, pattern: 'qtime_oxide',
+    sig: 'Capacitance-voltage shows an electrical oxide thickness larger than the furnace recipe gives, and threshold voltage is shifted, but breakdown voltage is normal; the gap grows with the wait after the pre-gate clean.',
+    unlocks: ['oxideMonitor', 'verticalFurnace'] },
 ];
 
 // ---------------------------------------------------------------------------
@@ -198,16 +218,18 @@ export const PRACTICES = [
     effects: [
       { op: 'defectMult', pattern: 'underlayer_attack', mult: 0.3 },
       { op: 'defectMult', pattern: 'residue', mult: 1.3 },
+      { op: 'defectMult', pattern: 'underlayer_attack', mult: 1.5, when: { lot: 'thinGateOxide' } },
     ],
     upgrade: { name: 'Stop on endpoint, DOE-centred',
       effects: [
         { op: 'defectMult', pattern: 'underlayer_attack', mult: 0.35 },
         { op: 'defectMult', pattern: 'residue', mult: 1.15 },
+        { op: 'defectMult', pattern: 'underlayer_attack', mult: 1.5, when: { lot: 'thinGateOxide' } },
       ],
       tradeoff: 'Less residue in slow spots, but the short extra etch after the signal attacks the film below a little more.',
       physicsNote: 'A small fixed over-etch after the endpoint signal clears the last film in slow spots, while the underlayer is exposed a bit longer.' },
-    tradeoff: 'Stops right when the film clears, so slow spots can keep a little residue.',
-    physicsNote: 'Plasma emission changes when the etched film runs out; the tool stops on that signal instead of a fixed time.' },
+    tradeoff: 'Stops right when the film clears, so slow spots can keep a little residue. On a thin gate oxide the over-etch after endpoint, still in the main chemistry, can punch through.',
+    physicsNote: 'Plasma emission changes when the etched film runs out; the tool stops on that signal instead of a fixed time. A short over-etch in the same chemistry usually follows, to clear slow spots.' },
 
   { id: 'dummyFill', draft: true, kind: 'practice', room: 'litho', rarity: 'advanced',
     name: 'Add dummy fill to the mask', unlockedBy: 'fm_dishing',
@@ -258,6 +280,169 @@ export const PRACTICES = [
       physicsNote: 'A spike anneal has no soak; a faster ramp up and down (or a slightly lower peak) cuts the thermal budget further, so dopants move less, but less time near peak temperature leaves more lattice damage unrepaired.' },
     tradeoff: 'Repairs damage with less diffusion, but single-wafer processing is slow for a 25-wafer lot.',
     physicsNote: 'High temperature for seconds activates dopants and repairs the lattice before they move far (thermal budget).' },
+
+  { id: 'sendAheadWafer', draft: true, kind: 'practice', room: 'litho', rarity: 'standard',
+    name: 'Send-ahead wafer', unlockedBy: 'fm_dose_offset',
+    cost: { time: 10, cash: 40 },
+    effects: [
+      { op: 'defectMult', pattern: 'cd_error', mult: 0.5 },
+      { op: 'defectMult', pattern: 'particles', mult: 1.1 },
+    ],
+    upgrade: {
+      name: 'Send-ahead wafer, DOE-tuned', cost: { time: 7, cash: 40 },
+      effects: [
+        { op: 'defectMult', pattern: 'cd_error', mult: 0.55 },
+        { op: 'defectMult', pattern: 'particles', mult: 1.1 },
+      ],
+      tradeoff: 'Shorter wait for the measurement, but fewer sites are measured, so the dose correction is a little less exact.',
+      physicsNote: 'A DOE on the measurement plan finds the fewest sites that still estimate the mean line width. The send-ahead wafer is still exposed, baked and developed exactly like the lot, or its line width would not predict theirs. Fewer sites give a noisier mean, so the corrected dose lands a little farther from target.' },
+    tradeoff: 'Sets the dose from a measured wafer, but the lot waits for the measurement, and the send-ahead wafer is stripped and recoated, which adds handling particles.',
+    physicsNote: 'Line width changes with exposure dose. One wafer is exposed, developed and measured while the rest of the lot waits unexposed; the dose is then corrected for the rest of the lot.' },
+
+  { id: 'megasonicClean', draft: true, kind: 'practice', room: 'clean', rarity: 'standard',
+    name: 'Megasonic clean', unlockedBy: 'fm_particles',
+    cost: { time: 6, cash: 60 },
+    effects: [
+      { op: 'defectMult', pattern: 'particles', mult: 0.5 },
+    ],
+    upgrade: {
+      name: 'Megasonic clean, DOE-tuned power', cost: { time: 4, cash: 60 },
+      effects: [
+        { op: 'defectMult', pattern: 'particles', mult: 0.55 },
+      ],
+      tradeoff: 'Faster, but the shorter run at lower acoustic power removes a little fewer particles.',
+      physicsNote: 'A DOE on acoustic power and time finds a gentler point that stays below the damage threshold for fine features. Less energy and time in the liquid sweep off fewer of the smallest particles.' },
+    tradeoff: 'Strong particle removal, but slow and paid for. On patterned wafers, too much acoustic power can break fine features.',
+    physicsNote: 'High-frequency sound in the cleaning liquid makes a thin flow layer that sweeps small particles off the surface. Too much acoustic power can damage delicate fine-line structures.' },
+
+  { id: 'ionizedSeed', draft: true, kind: 'practice', room: 'dep', rarity: 'advanced',
+    name: 'Ionized PVD seed', unlockedBy: 'fm_overhang_void',
+    cost: { time: 9, cash: 90 },
+    effects: [
+      { op: 'defectMult', pattern: 'void', mult: 0.6 },
+      { op: 'defectMult', pattern: 'flakes', mult: 1.2 },
+      { op: 'toolHealth', delta: -5 },   // coil and shield deposits build up faster
+    ],
+    upgrade: {
+      name: 'Ionized PVD seed, DOE-biased', cost: { time: 9, cash: 90 },
+      effects: [
+        { op: 'defectMult', pattern: 'void', mult: 0.5 },
+        { op: 'defectMult', pattern: 'flakes', mult: 1.3 },
+        { op: 'toolHealth', delta: -5 },
+      ],
+      tradeoff: 'Better sidewall seed and fewer voids, but the higher coil power builds deposits on the coil and shields faster, and they crack and flake onto the wafers.',
+      physicsNote: 'Higher wafer bias re-sputters the overhang onto the sidewalls; higher coil power ionizes more metal but builds and heats deposits on the coil and shields faster, and those deposits crack and flake onto the wafers.' },
+    tradeoff: 'Better sidewall coverage in narrow trenches, but slower and dearer; the extra coil and shields in the plasma collect metal that flakes off, more so as the chamber drifts, and the deposits wear the chamber toward its next clean.',
+    physicsNote: 'Ionizing the sputtered metal lets a substrate bias steer it down into the feature, so the sidewall gets more seed and the opening overhangs less. Less overhang means the plated copper is less likely to pinch off the mouth and trap a void.' },
+
+  { id: 'lowPressurePolish', draft: true, kind: 'practice', room: 'cmp', rarity: 'standard',
+    name: 'Low-pressure final polish', unlockedBy: 'fm_dishing',
+    cost: { time: 6, cash: 30 },
+    effects: [
+      { op: 'defectMult', pattern: 'dishing', mult: 0.6 },
+    ],
+    upgrade: {
+      name: 'Low-pressure final polish, DOE-tuned', cost: { time: 8, cash: 40 },
+      effects: [
+        { op: 'defectMult', pattern: 'dishing', mult: 0.5 },
+      ],
+      tradeoff: 'Even less dishing in wide lines, but the polish is longer still and uses more slurry and pad.',
+      physicsNote: 'Preston: removal rate ≈ k × pressure × velocity. A DOE on down force and platen speed finds a lighter setting, so the pad bends less into wide features, but each wafer needs more minutes on the pad.' },
+    tradeoff: 'Less dishing in wide lines, but the polish takes longer and uses more slurry and pad per wafer.',
+    physicsNote: 'Preston: removal rate ≈ k × pressure × velocity, so a lighter down force removes less per second and the polish takes longer. Under pressure the pad bends down into wide features and keeps polishing the copper there; less pressure means less bending, so wide lines dish less.' },
+
+  { id: 'chamberSeasoning', draft: true, kind: 'practice', room: 'etch', rarity: 'standard',
+    name: 'Chamber seasoning', unlockedBy: 'fm_underlayer',
+    cost: { time: 3, cash: 40 },
+    effects: [
+      { op: 'defectMult', pattern: 'depth_variation', mult: 0.7 },
+      { op: 'defectMult', pattern: 'particles', mult: 1.2 },
+    ],
+    upgrade: {
+      name: 'Chamber seasoning, DOE-tuned', cost: { time: 5, cash: 55 },
+      effects: [
+        { op: 'defectMult', pattern: 'depth_variation', mult: 0.7 },
+        { op: 'defectMult', pattern: 'particles', mult: 1.1 },
+      ],
+      tradeoff: 'Fewer flaking particles from the wall film, but the plasma clean and recoat take more minutes and cost more.',
+      physicsNote: 'A short plasma clean strips the old wall film, then the DOE-tuned seasoning lays down a thin, well-adhered, low-stress coat that sheds less than a thick, stressed one.' },
+    tradeoff: 'A steadier chamber, but it spends minutes and dummy wafers, and the film coated on the walls can flake.',
+    physicsNote: 'Running conditioning wafers coats the chamber walls so they recombine and release radicals at a steady rate. Without it the first wafers see a different etch rate. Wall film can flake as particles.' },
+  { id: 'tiltedImplant', draft: true, kind: 'practice', room: 'implant', rarity: 'standard',
+    name: 'Larger-tilt implant', unlockedBy: 'fm_channeling',
+    cost: { time: 6 },
+    // Needs: S/D implant step (NMOS step 12) adds channeling_tail on entering, before this card is played.
+    effects: [
+      { op: 'defectMult', pattern: 'channeling_tail', mult: 0.6 },
+    ],
+    upgrade: {
+      name: 'Larger-tilt implant, DOE-tuned twist', cost: { time: 8 },
+      effects: [
+        { op: 'defectMult', pattern: 'channeling_tail', mult: 0.5 },
+      ],
+      tradeoff: 'A shorter tail, because the twist also avoids the crystal planes, but that twist no longer lines up with the gate edges, so the dose is split over four rotations instead of two, which takes longer.',
+      physicsNote: 'Even off the main axis, ions can still run along crystal planes (planar channeling). A DOE on the twist (the rotation about the wafer normal) finds an angle that avoids those planes too. Gates then sit at an angle to the beam, so shadows fall on more sides, and the dose is split over four rotations instead of two; each rotation adds handling and settling time.' },
+    tradeoff: 'A larger tilt than the standard one cuts the channeling tail further, but the tall gate casts a longer shadow on one side of each source or drain, so the implant is split in two with the wafer rotated between halves, which takes extra minutes.',
+    physicsNote: 'Ions fired along an open crystal direction travel far down open channels between rows of atoms, losing energy slowly (channeling), and make a deep tail on the dopant profile. The standard implant already tilts the wafer about 7 degrees off the axis; tilting further makes the ions hit atoms sooner still. The gate shadow grows with tilt (about gate height × tan(tilt)), so the implant is split into halves with the wafer rotated 180 degrees between them.' },
+
+  { id: 'screenOxideImplant', draft: true, kind: 'practice', room: 'implant', rarity: 'standard',
+    name: 'Implant through a screen oxide', unlockedBy: 'fm_channeling',
+    cost: { time: 4, cash: 30 },
+    // Needs: S/D implant step (NMOS step 12) adds channeling_tail and implant_damage on entering, before this card is played.
+    effects: [
+      { op: 'defectMult', pattern: 'channeling_tail', mult: 0.7 },
+      { op: 'defectMult', pattern: 'implant_damage', mult: 1.3 },
+    ],
+    upgrade: {
+      name: 'Screen-oxide implant, DOE-tuned thickness', cost: { time: 4, cash: 30 },
+      effects: [
+        { op: 'defectMult', pattern: 'channeling_tail', mult: 0.75 },
+        { op: 'defectMult', pattern: 'implant_damage', mult: 1.2 },
+      ],
+      tradeoff: 'Less knock-on damage for the anneal to repair, but a thinner oxide scatters the ions less, so channeling is cut by less.',
+      physicsNote: 'A DOE on oxide thickness finds a thinner layer. Fewer oxygen atoms are driven into the silicon, but fewer scattering events randomize the ion direction before it enters the crystal.' },
+    tradeoff: 'Less channeling, and the oxide catches beamline contamination, but ions knock oxygen out of the oxide into the silicon, which adds crystal damage the anneal must repair.',
+    physicsNote: 'A thin amorphous oxide on the silicon scatters the incoming ions, so they enter the crystal at random angles and channel less. It also catches metal and carbon contamination from the beamline, which is stripped away with the oxide. Collisions push oxygen atoms into the silicon (knock-on) and the oxide shifts the dopant peak shallower, so the dose and energy must be set to suit.' },
+
+  { id: 'softLandGateEtch', draft: true, kind: 'practice', room: 'etch', rarity: 'advanced',
+    name: 'Soft-landing gate etch', unlockedBy: 'fm_gate_punch',
+    cost: { time: 6 }, when: { lot: 'siliconFrontEnd' },
+    // Needs: gate etch step (NMOS step 11) adds underlayer_attack and residue on entering, before this card is played.
+    effects: [
+      { op: 'defectMult', pattern: 'underlayer_attack', mult: 0.7 },
+      { op: 'defectMult', pattern: 'underlayer_attack', mult: 0.5, when: { lot: 'thinGateOxide' } },
+      { op: 'defectMult', pattern: 'residue', mult: 1.1 },
+    ],
+    upgrade: {
+      name: 'Soft-landing gate etch, DOE-shortened', cost: { time: 5 },
+      effects: [
+        { op: 'defectMult', pattern: 'underlayer_attack', mult: 0.75 },
+        { op: 'defectMult', pattern: 'underlayer_attack', mult: 0.5, when: { lot: 'thinGateOxide' } },
+        { op: 'defectMult', pattern: 'residue', mult: 1.1 },
+      ],
+      tradeoff: 'Takes fewer minutes, but the later switch to the soft-landing chemistry protects the oxide a little less.',
+      physicsNote: 'The DOE switches to the soft-landing chemistry later and shortens it. The main etch, which is less selective, then runs closer to the oxide, and where the poly is thinnest it reaches the oxide before the switch.' },
+    tradeoff: 'Protects the thin gate oxide, but the slow final step takes most of the room\'s minutes, and polymer micromasking can leave small poly residues.',
+    physicsNote: 'Near the end the etch switches to a chemistry with high poly-to-oxide selectivity and low ion energy, so it removes the last poly without punching the thin oxide below. The polymer that makes it selective can micromask a little poly and leave small residues.' },
+
+  { id: 'hfLastClean', draft: true, kind: 'practice', room: 'clean', rarity: 'standard',
+    name: 'HF-last clean before gate oxidation', unlockedBy: 'fm_gate_breakdown',
+    cost: { time: 6, cash: 40 }, when: { lot: 'siliconFrontEnd' },
+    // Needs: SiN strip + pre-gate clean step (NMOS step 7) adds gate_oxide and qtime_oxide on entering. Play it in that step; the earlier clean (step 1) comes before the risk exists.
+    effects: [
+      { op: 'defectMult', pattern: 'gate_oxide', mult: 0.5 },
+      { op: 'defectMult', pattern: 'qtime_oxide', mult: 1.5 },
+    ],
+    upgrade: {
+      name: 'HF-last clean, DOE-tuned dip', cost: { time: 4, cash: 40 },
+      effects: [
+        { op: 'defectMult', pattern: 'gate_oxide', mult: 0.55 },
+        { op: 'defectMult', pattern: 'qtime_oxide', mult: 1.5 },
+      ],
+      tradeoff: 'Shorter dip, but it strips a little less of the thin oxide and its trapped metals; the Q-time window is as tight as before.',
+      physicsNote: 'A DOE on dip time finds a shorter etch. At the same HF concentration, oxide is removed at a finite rate, so less time leaves a little more chemical oxide and contamination, while the hydrogen-terminated surface still regrows native oxide when the lot waits.' },
+    tradeoff: 'A final dip in dilute HF strips the thin chemical oxide left by the earlier cleans and the contamination in it, but the bare silicon regrows native oxide as soon as the lot waits, so the Q-time window gets tighter.',
+    physicsNote: 'Dilute HF removes silicon dioxide and the metals trapped in it, leaving a hydrogen-terminated silicon surface that makes a cleaner, more uniform gate oxide. That surface is only stable for a short time; it regrows native oxide in air and moisture.' },
 ];
 
 // ---------------------------------------------------------------------------
@@ -307,6 +492,53 @@ export const EQUIPMENT = [
     ],
     tradeoff: 'Stable polish rate, but pads are consumed faster.',
     physicsNote: 'Pad glazing lowers the Preston coefficient over time; conditioning restores the surface by wearing it.' },
+
+  { id: 'parallelBeamStation', draft: true, kind: 'equipment', room: 'implant', rarity: 'advanced',
+    name: 'Parallel-beam scanned end station', unlockedBy: 'fm_channeling',
+    cost: { cash: 550 },
+    // Needs: S/D implant step (NMOS step 12) adds channeling_tail on entering. Implant is not on the Cu line.
+    effects: [
+      { op: 'defectMult', pattern: 'channeling_tail', mult: 0.8 },
+      { op: 'timeCost', delta: 3 },
+    ],
+    tradeoff: 'Every ion arrives at the same tilt across the wafer, so the tilt works at the edge as well as the centre, but collimating and scanning the beam cut the usable beam current, so each implant takes longer.',
+    physicsNote: 'Channeling depends on the angle between the ion and the crystal. If the beam fans out or the scan changes the angle across the wafer, some sites are tilted correctly and others sit near an open channel. A collimated (parallel) beam scanned over the wafer keeps the standard tilt (about 7 degrees) the same everywhere.' },
+
+  { id: 'verticalFurnace', draft: true, kind: 'equipment', room: 'diff', rarity: 'advanced',
+    name: 'Vertical furnace with load lock', unlockedBy: 'fm_gate_native_oxide',
+    cost: { cash: 480 },
+    // Needs: gate oxidation (NMOS step 8) realizes gate_oxide and qtime_oxide added at step 7.
+    // Anneal (NMOS step 13): both are already realized, so only the time cost applies there.
+    effects: [
+      { op: 'defectMult', pattern: 'qtime_oxide', mult: 0.85 },
+      { op: 'defectMult', pattern: 'gate_oxide', mult: 0.95 },
+      { op: 'timeCost', delta: 5 },
+    ],
+    tradeoff: 'Less air gets in when the boat loads, so less native oxide and fewer defects under the gate oxide, but the load lock purge cycle adds minutes to every furnace step.',
+    physicsNote: 'Loading a boat of wafers into a hot tube lets air in, and oxygen and moisture grow native oxide on the bare silicon before the film starts. A load lock purged with nitrogen keeps that air out; the purge cycle takes time. Oxide grown in air during loading is uncontrolled and can carry contamination, which harms gate oxide integrity. Simplified: in the game the load lock also trims oxide grown during the wait before the furnace.' },
+
+  { id: 'pulseReversePlating', draft: true, kind: 'equipment', room: 'plate', rarity: 'advanced',
+    name: 'Pulse-reverse plating supply', unlockedBy: 'fm_overhang_void',
+    cost: { cash: 500 },
+    // Needs: void (cuLine step 6) is on the lot when plating is entered. Plate is visited once on the Cu line.
+    effects: [
+      { op: 'defectMult', pattern: 'void', mult: 0.75 },
+      { op: 'timeCost', delta: 2 },
+      { op: 'cashCost', delta: 15 },
+    ],
+    tradeoff: 'Fewer pinched-mouth voids, but the reverse pulses undo some of the plating, so the net rate is lower, the bath breaks down its additives faster, and the anodic pulses can dissolve thin seed at the lower sidewall.',
+    physicsNote: 'A short reverse pulse removes copper preferentially at the feature mouth, where current density is highest, which keeps the opening from pinching off before the bottom fills. Because part of each cycle removes copper, net deposition is slower, and the extra anodic pulses also consume additives.' },
+
+  { id: 'shieldKit', draft: true, kind: 'equipment', room: 'dep', rarity: 'standard',
+    name: 'Textured chamber shield kit', unlockedBy: 'fm_chamber_flakes',
+    cost: { cash: 400 },
+    // Acts at every deposition visit (Cu line steps 2 and 6; NMOS steps 2, 5, 9, 15). Flakes come from tool drift, so with a healthy chamber it only costs cash.
+    effects: [
+      { op: 'defectMult', pattern: 'flakes', mult: 0.6 },
+      { op: 'cashCost', delta: 20 },
+    ],
+    tradeoff: 'Fewer flakes as the chamber ages, but the roughened shields are consumables that are swapped and re-textured, so each deposition pays for them whether or not the chamber has drifted.',
+    physicsNote: 'Film on chamber shields cracks and flakes when stress builds. A rough, textured shield surface grips the film mechanically, so it can grow thicker before it lifts off. The shields are replaced or re-textured at preventive maintenance, which costs money. Simplified: shields are a sputtering (PVD) measure, but in the game the kit acts at every deposition step.' },
 ];
 
 // ---------------------------------------------------------------------------
@@ -355,6 +587,19 @@ export const MATERIALS = [
     ],
     tradeoff: 'Bottom-up fill of narrow features, but it ages every lot and needs watching.',
     physicsNote: 'Suppressor, accelerator and leveler together make plating faster at the bottom of a feature than at its mouth (superfill). The additives are consumed in use.' },
+
+
+  { id: 'barc', draft: true, kind: 'material', slot: 'arc', room: 'litho', rarity: 'standard',
+    name: 'Bottom anti-reflective coating', unlockedBy: 'fm_dose_offset',
+    cost: { cash: 90 }, shelfLife: 6,
+    // Acts at each litho step: Cu trench, NMOS active and gate (cd_error is added on entering).
+    effects: [
+      { op: 'defectMult', pattern: 'cd_error', mult: 0.85 },
+      { op: 'defectMult', pattern: 'particles', mult: 1.1 },
+      { op: 'timeCost', delta: 4 },
+    ],
+    tradeoff: 'Steadier line width over reflective films, but it is one more coat and bake before the resist, which takes minutes and adds handling particles.',
+    physicsNote: 'Light that passes through the resist reflects off the film below and interferes with the incoming light (standing waves), so the dose in the resist changes with film thickness and topography and the line width varies. An absorbing coating under the resist cuts the reflection. It does nothing for dose or focus errors, which also drive line width. It must be opened later in the etch.' },
 ];
 
 // ---------------------------------------------------------------------------
@@ -390,6 +635,20 @@ export const CONSUMABLES = [
     resets: { slot: 'bath', field: 'decay', fraction: 0.5 },
     tradeoff: 'Recovers half the bath\'s lost performance; a full dump costs a new bath.',
     physicsNote: 'Measuring additive levels lets you top them up; breakdown products build up and eventually force a dump.' },
+
+  { id: 'oxideMonitor', draft: true, kind: 'consumable', rarity: 'standard',
+    name: 'Oxide monitor wafer', unlockedBy: 'fm_gate_native_oxide',
+    cost: { cash: 60 },
+    effects: [ { op: 'reveal', what: 'oxideThickness' } ],
+    tradeoff: 'Shows whether the furnace grows the right thickness, but it is a bare, freshly cleaned wafer: it says nothing about native oxide or contamination on your product wafers.',
+    physicsNote: 'A bare wafer runs through the oxidation and its oxide thickness is measured optically (ellipsometry). It separates the furnace from earlier steps: if the monitor is on target and product is not, the cause is upstream, such as a wait after clean.' },
+
+  { id: 'implantMonitor', draft: true, kind: 'consumable', rarity: 'standard',
+    name: 'Implant monitor wafer', unlockedBy: 'fm_channeling',
+    cost: { cash: 70 },
+    effects: [ { op: 'reveal', what: 'implantDose' } ],
+    tradeoff: 'Shows the dose and its uniformity from sheet resistance, but sheet resistance adds up all the dopant and cannot see how deep it went, so a channeling tail can hide.',
+    physicsNote: 'A bare wafer is implanted and annealed, then its sheet resistance is read with a four-point probe. Sheet resistance falls as active dose rises, so it checks dose and uniformity. A depth profile is needed to see the shape of the dopant.' },
 ];
 
 // Everything with unlockedBy: null is in the starter pool.

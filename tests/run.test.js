@@ -10,8 +10,14 @@ import {
   createRun, enterStep, legalCards, playCard, resolveStep, walkCorridor,
   starterDeck, fullPool, defaultLoadout, slotEntry,
 } from '../src/engine/run.js';
+import { PRACTICES } from '../src/content/content.js';
 
 const SEED = 123456;
+
+// The etch-hand tests name their deck instead of using fullPool(), so new
+// etch cards in content.js don't change the hand they check. preclean is a
+// deposition card, there to test "not in hand".
+const ETCH_TEST_DECK = ['timedOveretch', 'endpointEtch', 'preclean'];
 const TOLERANCE = 1e-6;
 const close = (actual, expected, label) =>
   assert.ok(Math.abs(actual - expected) < TOLERANCE, `${label}: got ${actual}, expected ${expected} (seed ${SEED})`);
@@ -67,7 +73,7 @@ test('createRun refuses a bad seed, an unknown lot type and an unknown card', ()
 });
 
 test('fullPool holds every practice', () => {
-  assert.equal(fullPool().length, 10);
+  assert.equal(fullPool().length, PRACTICES.length);
   assert.ok(fullPool().includes('endpointEtch'));
 });
 
@@ -85,7 +91,7 @@ test('idle, scatter off: cycle time 133 (litho 30 + 5 given back by the i-line r
 });
 
 test('enterStep adds the step risks and deals only cards for this room', () => {
-  const inEtch = enterStepNumber(scatterOff({ deck: fullPool() }), ETCH);
+  const inEtch = enterStepNumber(scatterOff({ deck: ETCH_TEST_DECK }), ETCH);
   close(inEtch.lot.risks.residue, 0.10, 'residue');
   close(inEtch.lot.risks.underlayer_attack, 0.05, 'underlayer_attack');
   assert.deepEqual([...inEtch.hand].sort(), ['endpointEtch', 'timedOveretch']);
@@ -121,7 +127,7 @@ test('measureAll pays its base cash and time', () => {
 });
 
 test('illegal cards are refused with an error naming the card', () => {
-  const inEtch = enterStepNumber(scatterOff({ deck: fullPool() }), ETCH);
+  const inEtch = enterStepNumber(scatterOff({ deck: ETCH_TEST_DECK }), ETCH);
   // `when` not met: endpoint etch without the detector.
   assert.deepEqual(legalCards(inEtch), ['timedOveretch']);
   assert.throws(() => playCard(inEtch, 'endpointEtch'), /endpointEtch.*condition/);
@@ -139,13 +145,13 @@ test('illegal cards are refused with an error naming the card', () => {
 
 test('with the detector installed, endpoint etch becomes legal', () => {
   const loadout = { ...defaultLoadout(), equipment: ['oesEndpoint'] };
-  const inEtch = enterStepNumber(scatterOff({ deck: fullPool(), loadout }), ETCH);
+  const inEtch = enterStepNumber(scatterOff({ deck: ETCH_TEST_DECK, loadout }), ETCH);
   assert.deepEqual([...legalCards(inEtch)].sort(), ['endpointEtch', 'timedOveretch']);
 });
 
 test('a card that an item enables is refused until it is enabled', () => {
   const loadout = { ...defaultLoadout(), equipment: ['oesEndpoint'] };
-  const inEtch = enterStepNumber(scatterOff({ deck: fullPool(), loadout }), ETCH);
+  const inEtch = enterStepNumber(scatterOff({ deck: ETCH_TEST_DECK, loadout }), ETCH);
   assert.throws(() => playCard({ ...inEtch, enabled: [] }, 'endpointEtch'), /endpointEtch.*not enabled/);
 });
 
