@@ -1,6 +1,57 @@
 # Fab Run — Task Tracker
 
-## Current: M4 item 1 — diagnose screen: name a failure mode from the evidence; a right answer writes the notebook
+## Current: M4 item 2 — the notebook is saved under its own key and survives a run-save version bump
+
+**Status: plan, waiting for David's OK.**
+
+### Task: keep the notebook between visits, safely, and never lose an entry
+
+**What you'll see**
+- Diagnose a failure mode right, close the tab, come back days later: it is still in your notebook. On the ship report, a candidate you already know shows "In your notebook", and a right answer you already have adds nothing.
+- Nothing else on screen changes. Showing the notebook itself is not this item (see Q5).
+
+**Why it needs care**
+- The run save (`fabrun.run.v1`) is **thrown away** whenever `SAVE_VERSION` goes up, which it will often, after any rule or number change. The notebook is the player's long-term progress, so it must never be thrown away that way (CLAUDE.md §11).
+- So the notebook gets **its own key with no version in its name**: `fabrun.notebook`. Its version lives inside the object (`{ version: 1, entries: [...] }`), so a later change can **upgrade** an old notebook instead of discarding it.
+
+**Code (all in `src/ui/`, one folder)**
+- [ ] `storage.js`, about 50 lines, built on Lane B's `readJson` / `writeJson`:
+  - `NOTEBOOK_KEY = 'fabrun.notebook'`.
+  - `loadNotebook(storage)`: the saved notebook, or an empty one when there is none, it is junk, or storage is blocked. Never throws.
+    - It keeps only well-formed entries (`{ id: text, seed: number }`) and drops duplicates.
+    - It **keeps** entries whose failure mode no longer exists in `content.js` (renamed or removed), so they come back if the content does. The game ignores them (Q3).
+    - A notebook with a **newer** version than this code knows is left untouched: the page plays with an empty notebook and never writes over it (Q2).
+  - `saveNotebook(notebook, storage)`: first reads what is stored and **merges** the two (union of entries by id), then writes. Two open tabs then can't erase each other's entries (Q4). True if saved.
+- [ ] `main.js`, about 10 lines: load the notebook when the page opens; save it right after a right diagnosis. `clearRun` and starting a new run never touch it.
+
+**Tests (`tests/storage.test.js`, pretend storage as Lane B's tests use)**
+- [ ] Save, then load: the same entries.
+- [ ] Blocked storage (every call throws): load gives an empty notebook, save returns false, nothing throws.
+- [ ] Junk under the key (not JSON, a number, entries not a list, bad entries): load gives what is usable, never throws.
+- [ ] **Version bump test:** save a run and a notebook, then load the run with a raised `SAVE_VERSION` (the run is ignored) and `clearRun`: the notebook is still there, unchanged.
+- [ ] Unknown failure-mode id: kept in storage after load and save, and `diagnosisFor` ignores it.
+- [ ] Newer notebook version: load gives empty, save leaves the stored value as it was.
+- [ ] Two tabs: tab A saves entry 1, tab B (loaded before) saves entry 2; the store holds both.
+- [ ] Screen test, desktop and phone: diagnose right on seed 123456, reload, check the stored notebook holds it and the ship report of a replayed run marks it as known. Phone with `--repeat-each=5`.
+
+**Size:** about 60 lines of code in `src/ui/` and about 120 lines of tests. One `src/` folder. No engine change; `notebook.js` already uses `{ version: 1, entries: [{ id, seed }] }`.
+
+### Questions for David (proposed answers; say if any is wrong)
+- **Q1 key name:** `fabrun.notebook`, version inside the object. Proposed: yes.
+- **Q2 newer version found** (a newer build was opened, then an older cached page): play with an empty notebook and don't overwrite it. Proposed: yes.
+- **Q3 entries for failure modes no longer in the content:** keep them stored, ignore them in play. Proposed: yes.
+- **Q4 two tabs:** merge on save, so no entry is ever lost. Proposed: yes.
+- **Q5 notebook screen:** the playtests found the notebook is mentioned but can't be opened anywhere. A small "Notebook" page listing your diagnosed failure modes, with their signatures and the seed you found them on, is a natural next step. Add it to ROADMAP M4 as its own item before the unlock pool, or leave it for later?
+- **Q6 reset:** no "erase my notebook" button for now. Testers can clear it from the browser's site data. Proposed: yes.
+
+### Acceptance criteria
+- `npm test` and `npm run screens` pass; the new phone test passes 5 runs in a row.
+- A right diagnosis survives a reload and a `SAVE_VERSION` bump; blocked storage still plays.
+- `tasks/lessons.md` gets any new rule; the ROADMAP box is ticked; David gets the 3-bullet summary.
+
+---
+
+## Done: M4 item 1 — diagnose screen: name a failure mode from the evidence; a right answer writes the notebook
 
 **Decision O1 settled (David, 25 Oct 2026): B, diagnosing a failure mode earns its unlocks.** David also said yes to Q2 (a 3-point line), Q3 (reveal a right answer on a wrong guess) and Q4 (ship now, with the gaps listed below).
 
