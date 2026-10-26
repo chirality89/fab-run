@@ -255,3 +255,15 @@ Yield is the average of the sites' survivals, not e to the power of the average 
 ✅ Split a yield loss where it happens: per site, then add the sites up. Check that the parts add up to the whole.
 ✅ Test an attribution with a pattern that saturates some sites next to one that is spread evenly
 ✅ A failure mode is a right answer only if its cause was present, not just its pattern (several causes can make the same pattern)
+
+## Two green PRs merged into a red main
+
+### What Happened
+PR #12 (Lane D, card art) and PR #16 (Lane C, content) were each green against main, and I merged them one after the other. Together they broke main. Lane D's test says every practice needs a cross-section, but Lane C's 9 new practices had none, and a line Lane C added made the "Stop on endpoint" card overflow its frame.
+
+### Root Cause
+Each PR was tested against main without the other. Neither branch had the other's rule or the other's content, so no one tested the two together before they landed.
+
+### Rule to Prevent
+✅ Before merging a second lane PR, merge both branches locally and run `npm test` and `npm run screens` on the combined result
+✅ When a lane adds a rule that covers all content ("every practice has art"), tell the content lane before either merges
