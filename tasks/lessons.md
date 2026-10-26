@@ -337,3 +337,16 @@ The test compared two results without checking that the results had anything in 
 ### Rule to Prevent
 ✅ When a test compares "with X" against "without X", first assert the result is not empty
 ✅ For diagnosis tests, play the lot through (the idle walk) so it has losses to diagnose
+
+## A test expected item names typed from memory
+
+### What Happened
+A new Notebook test expected "Additive bath" and "Electrostatic chuck upgrade". The items are named "Three-additive copper bath" and "Edge-tuned chuck", so the test failed on its first run.
+
+### Root Cause
+The expected names were written from the items' ids, not read from `content.js`.
+
+### Rule to Prevent
+✅ Before writing an expected name or number from content, print it from `content.js` first
+✅ When a brand-new test fails, check the expected value's source before touching the code
+

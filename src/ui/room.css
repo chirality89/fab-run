@@ -326,6 +326,7 @@
 .notebook-button { margin-top: 10px; }   /* white on the blue band, like other secondary buttons */
 .notebook-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .notebook-entry { border-color: var(--line); }   /* a page to read, not a button to press */
+.notebook-unlocks { display: block; margin-top: 6px; font-size: 15px; font-weight: 600; }
 .notebook-seed { display: block; margin-top: 6px; font-family: var(--mono); font-size: 14px; color: var(--muted); }
 .notebook-still { margin: 12px 0; color: var(--muted); }
 

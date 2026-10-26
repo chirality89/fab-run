@@ -8,13 +8,14 @@
 import { el, panel } from './dom.js';
 import { actionButton, showFromTop } from './render.js';
 
-// One diagnosed failure mode: its name, its signature and the seed it was
-// found on.
+// One diagnosed failure mode: its name, its signature, what it unlocks and
+// the seed it was found on.
 function drawEntry(entry) {
   const item = el('li', 'card notebook-entry');
   item.append(
     el('span', 'card-name', entry.name),
     el('span', 'card-summary', entry.sig),
+    el('span', 'notebook-unlocks', entry.unlocksText),
     el('span', 'notebook-seed', `Found on seed ${entry.seed}`),
   );
   return item;

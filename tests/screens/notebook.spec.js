@@ -132,3 +132,49 @@ test('after a right diagnosis the notebook lists it; Back returns to the ship re
   await expect(page.locator('.diagnose-button')).toHaveCount(0);   // still one guess per lot
   expect(errors, `console errors (seed ${SEED})`).toEqual([]);
 });
+
+// --- the unlocked pool (M4 item 4) -----------------------------------------
+
+const PLATING_STEP = 7;
+const KEYHOLE_NOTEBOOK = { version: 1, entries: [{ id: 'fm_keyhole', seed: 1 }] };
+
+// Goes straight on, running every room idle, until the lot stands in the
+// room of step `step`.
+async function walkIntoStep(page, step) {
+  await page.goto(PAGE);
+  await press(page, goButton(page));
+  for (let done = 1; done < step; done++) {
+    await pressAfterChange(page, runButton(page));
+    await pressAfterChange(page, button(page, 'Continue to the corridor'));
+    await expect(title(page)).toHaveText('Floor plan');
+    await pressAfterChange(page, goButton(page));
+  }
+  await expect(title(page)).toHaveText('Plating');
+}
+
+test('with keyhole void in the notebook, the plating room deals Low-current start', async ({ page }) => {
+  test.slow();   // walks six rooms: triple the usual 30 s limit
+  const errors = watchForErrors(page);
+  await page.addInitScript(notebook => {
+    localStorage.setItem('fabrun.notebook', JSON.stringify(notebook));
+  }, KEYHOLE_NOTEBOOK);
+  await page.goto(PAGE);
+  await expect(notebookButton(page)).toHaveText('Notebook (1)');
+  await pressAfterChange(page, notebookButton(page));
+  await expect(page.locator('.notebook-unlocks')).toHaveText('Unlocks: Low-current start step, Three-additive copper bath');
+  await screenshot(page, '24-notebook-unlocks');
+
+  await walkIntoStep(page, PLATING_STEP);
+  await expect(page.locator('.hand .card-name', { hasText: 'Low-current start step' })).toHaveCount(1);
+  await expectNoSidewaysScroll(page);
+  await screenshot(page, '25-plating-unlocked-card');
+  expect(errors, `console errors (seed ${SEED})`).toEqual([]);
+});
+
+test('with an empty notebook, the plating room deals nothing', async ({ page }) => {
+  test.slow();
+  const errors = watchForErrors(page);
+  await walkIntoStep(page, PLATING_STEP);
+  await expect(page.locator('.hand-empty')).toBeVisible();
+  expect(errors, `console errors (seed ${SEED})`).toEqual([]);
+});

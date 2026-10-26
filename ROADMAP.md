@@ -2,7 +2,7 @@
 
 Work top to bottom, one checkbox per session. Plan in `tasks/todo.md` first (see `PROJECT.md`). Tick the box here when done. Before starting a milestone, settle the `docs/decisions.md` items it depends on.
 
-Current milestone: **M4 — Notebook and unlocks**
+Current milestone: **M5 — Randomness and a second lot**
 
 ## M0 — Move in
 - [x] Turn on GitHub Pages (Settings → Pages → Deploy from a branch → `main` / root); confirm the placeholder page loads at `https://chirality89.github.io/fab-run/` on desktop and phone
@@ -36,7 +36,7 @@ Current milestone: **M4 — Notebook and unlocks**
 - [x] Diagnose screen: name a failure mode from the evidence; right answer writes the notebook
 - [x] Notebook saved in its own localStorage key; survives a run-state version bump
 - [x] Notebook page: list your diagnosed failure modes, with their signatures and the seed each was found on
-- [ ] Starter pool vs unlocked pool; unlocked remedies appear in drafts and procurement
+- [x] Starter pool vs unlocked pool; unlocked remedies appear in drafts and procurement
 
 ## M5 — Randomness and a second lot
 - [ ] Lot modifiers, announced at run start; random lot type from the unlocked pool; fixed first run

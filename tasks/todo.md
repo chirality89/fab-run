@@ -1,8 +1,8 @@
 # Fab Run — Task Tracker
 
-## Current: M4 item 4 — starter pool vs unlocked pool; unlocked remedies appear in the deck and at procurement
+## Done: M4 item 4 — starter pool vs unlocked pool; unlocked remedies appear in the deck and at procurement
 
-**Status: plan. David answered Q1–Q4 (26 Oct 2026), all as proposed: unlocked practices join the deck automatically, the save version goes to 2, the thin first-run shop is accepted, and consumables stay off the Notebook page until they are in the game. Ready to build on David's go.**
+**Status: done. David answered Q1–Q4 (26 Oct 2026), all as proposed: unlocked practices join the deck automatically, the save version goes to 2, the thin first-run shop is accepted, and consumables stay off the Notebook page until they are in the game. Built the same day.**
 
 **Decisions settled:** O1 (diagnosing earns unlocks) is already settled. Q1–Q4 are answered above.
 
@@ -20,12 +20,12 @@
 - The Notebook page now shows each entry's remedies: "Unlocks: Low-current start step, Additive bath". It lists only remedies the game can use (see Q4).
 
 **Engine (`src/engine/`)**
-- [ ] `notebook.js`: `unlockedIds(notebook)` gives the ids that the notebook's failure modes unlock, in content order. Unknown ids are skipped.
-- [ ] `run.js`:
+- [x] `notebook.js`: `unlockedIds(notebook)` gives the ids that the notebook's failure modes unlock, in content order. Unknown ids are skipped.
+- [x] `run.js`:
   - `createRun({ …, unlocked = [] })` keeps the list in `state.unlocked`.
   - `runDeck(unlocked)` gives the starter practices plus the unlocked practices, in content order (Q1).
   - The default stays `[]`, so the bot and the existing tests play exactly as before.
-- [ ] `shop.js`: an item is for sale if it is a starter item **or** is in `state.unlocked`. `SHOP_SELLS_LOCKED_ITEMS` becomes `false` in `balance.js`.
+- [x] `shop.js`: an item is for sale if it is a starter item **or** is in `state.unlocked`. `SHOP_SELLS_LOCKED_ITEMS` becomes `false` in `balance.js`.
 
 **Why the run keeps its own list (and a save-version bump)**
 - A run's pool is fixed **when the run starts**. A diagnosis made in another tab mid-run must not change this run's deck. If it did, the same seed and the same actions would no longer give the same run (CLAUDE.md §8), and a resumed save would replay differently.
@@ -33,31 +33,31 @@
 - `SAVE_VERSION` goes 1 → 2, so a run in progress when this ships is dropped once and starts fresh. **The notebook is not touched**: it has its own key, which is exactly what M4 item 2 was for.
 
 **UI (`src/ui/`)**
-- [ ] `main.js`: `newRun(seed)` uses `unlockedIds(notebook)` for the deck and the shop. A resumed run uses the list saved with it.
-- [ ] `storage.js`: `saveRun` and `loadRun` carry `unlocked` (a list of text ids, else the save is junk).
-- [ ] `notebookView.js` and `notebookPage.js`: "Unlocks: …" under each entry (practices, equipment and materials only, Q4), or "No remedy yet." for etch residue.
-- [ ] `tasks/todo.md` NEEDS NEW LOGIC: consumables (starter and unlocked) are not played anywhere yet (Q4).
+- [x] `main.js`: `newRun(seed)` uses `unlockedIds(notebook)` for the deck and the shop. A resumed run uses the list saved with it.
+- [x] `storage.js`: `saveRun` and `loadRun` carry `unlocked` (a list of text ids, else the save is junk).
+- [x] `notebookView.js` and `notebookPage.js`: "Unlocks: …" under each entry (practices, equipment and materials only, Q4), or "No remedy yet." for etch residue.
+- [x] `tasks/todo.md` NEEDS NEW LOGIC: consumables (starter and unlocked) are not played anywhere yet (Q4).
 
 **Tests**
-- [ ] Hand-checked:
+- [x] Hand-checked:
   - `unlockedIds` of {keyhole, edge ring} is `['slowStartPlate', 'eChuckUpgrade', 'additiveBath', …]` in content order;
   - an empty notebook unlocks nothing;
   - an unknown id is skipped.
-- [ ] `runDeck([])` equals the starter deck, and `runDeck` of the keyhole unlocks adds `slowStartPlate` only (the bath isn't a practice).
-- [ ] Shop:
+- [x] `runDeck([])` equals the starter deck, and `runDeck` of the keyhole unlocks adds `slowStartPlate` only (the bath isn't a practice).
+- [x] Shop:
   - with `unlocked: []`, no locked item is ever in stock (100 seeds, every corridor);
   - an unlocked item can be in stock.
   - `shopSeed.js` passes `unlocked` for its 3 test items, so the shop tests' expected items stay the same. Only the seed it finds may move, as its header comment already allows.
-- [ ] Saves:
+- [x] Saves:
   - `unlocked` round-trips;
   - a v1 save is ignored;
   - a resumed run uses its saved list even after the notebook grew.
-- [ ] Screens, desktop and phone:
+- [x] Screens, desktop and phone:
   - with a stored notebook holding keyhole void, the plating room deals Low-current start;
   - with an empty one, it deals nothing there.
   - The shop screen tests store the notebook entries their items need (via `addInitScript`).
   - The phone tests run with `--repeat-each=5`.
-- [ ] Bot runs clean (unchanged default: `unlocked: []`).
+- [x] Bot runs clean (unchanged default: `unlocked: []`).
 
 **Size:** about 30 lines in `src/engine/`, 1 line in `balance.js`, about 40 in `src/ui/`, and about 180 lines of tests. **It touches `src/engine/`, `src/content/` and `src/ui/`, so this plan is the ask (CLAUDE.md §3).**
 
@@ -83,6 +83,21 @@
 - After a right diagnosis, the next run's deck holds that failure mode's practices, and procurement can sell its equipment and materials. Before any diagnosis, neither does.
 - A resumed run replays exactly, even if the notebook changed meanwhile.
 - `npm test`, `npm run screens` and the bot pass; the phone tests pass 5 runs in a row; screenshots are checked.
+
+**Progress notes:**
+- 26 Oct 2026, the tests that relied on the shop selling everything. The shop, shop view and full-deck save tests now play as a player whose notebook unlocks what they need:
+  - `tests/shopSeed.js` has `SHOP_TEST_NOTEBOOK` (removal-rate drift and T-top: the pad conditioner and the DUV resist; no practices, so the deck stays the starter deck);
+  - and `FULL_NOTEBOOK_UNLOCKS` (every failure mode).
+  - Their expected items didn't change. The shop test seed moved from 123717 to 123456, which `shopSeed.js` was written to allow.
+  - The shop screen tests store `SHOP_TEST_NOTEBOOK` in the page before it loads.
+- **David, please note:** the save tests' expected save now includes `unlocked: []` (for example `{ seed, unlocked: [], actions }`). That's the new save shape from this plan, not a value bent to make a test pass.
+- Two expected names in a test I wrote this session were wrong: I guessed "Additive bath" and "Electrostatic chuck upgrade". They are now the real names, "Three-additive copper bath" and "Edge-tuned chuck". Lesson added.
+
+**Result:** done.
+- Diagnosed failure modes add their practices to every later run's deck, and their equipment and materials to the shop.
+- Each run keeps its unlocked list, and the run save stores it (`SAVE_VERSION` 2).
+- The Notebook page shows "Unlocks: …".
+- npm test 233/233, npm run screens 72/72, the changed phone tests passed 5 runs in a row, the bot ran clean, and the screenshots were checked.
 
 ---
 
@@ -1326,3 +1341,4 @@ Content in `src/content/content.js` that needs engine behavior beyond the eight 
 - `shelfLife`: counts rooms visited; at 0 the material stops helping
 - Dead cards: a practice whose target pattern was already realized earlier on the route (e.g. `etchStopLayer` at the second dep visit) should be greyed out or hidden
 - Tool wear: tool health stays at 100 in run.js; no rule yet for how much a room wears its tool
+- Consumables: no engine code plays them yet (the starter qual wafer and spare part, and the unlocked bath analysis, fresh resist, implant monitor and oxide monitor). They are left off the Notebook page's "Unlocks" until they can be used (David, 26 Oct 2026)
