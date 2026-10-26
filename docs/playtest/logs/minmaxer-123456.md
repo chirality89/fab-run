@@ -78,7 +78,7 @@ I try: Event.
 Mood: curious
 
 ### Step 12 — Event: Hot lot request
-Screenshot: docs/playtest/shots/minmaxer/123456-19-event-hot.png
+Screenshot: docs/playtest/shots/minmaxer/123456-18-event-hot.png
 I see: Run it hot: −30 min cycle time · +150 cash · +0.02 risk: random dots across the wafer. Keep its place in line: nothing changes. Continue button too.
 I think: This event has a NEGATIVE time cost: 10 min to stop, −30 back, net −20 min, plus 150 cash. The "risk" is 0.02 of something with no unit. Free money. Taking it.
 I try: Run it hot. Cash 1010 → 1160.
