@@ -293,7 +293,6 @@ test('junk in the save is ignored', () => {
 
 test('clearRun removes the save, and the run key leaves other keys alone', () => {
   const storage = fakeStorage();
-  const NOTEBOOK_KEY = 'fabrun.notebook.v1';   // stands in for the M4 notebook
   writeJson(NOTEBOOK_KEY, { entries: ['keyholeVoid'] }, storage);
 
   saveRun(SEED, [['enter']], storage);

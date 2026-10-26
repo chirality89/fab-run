@@ -325,3 +325,15 @@ The helper didn't look at where the lot stood.
 
 ### Rule to Prevent
 ✅ Helpers that walk a run start from wherever the lot stands (door, room, corridor, shop)
+
+## A test passed on a lot that had nothing to test
+
+### What Happened
+A test checked that an unknown notebook id doesn't change the diagnosis. It used a lot scrapped on its first move. That lot lost nothing, so there were no choices at all, and "the same with or without the id" was true for an empty list.
+
+### Root Cause
+The test compared two results without checking that the results had anything in them.
+
+### Rule to Prevent
+✅ When a test compares "with X" against "without X", first assert the result is not empty
+✅ For diagnosis tests, play the lot through (the idle walk) so it has losses to diagnose

@@ -34,7 +34,7 @@ Current milestone: **M4 — Notebook and unlocks**
 
 ## M4 — Notebook and unlocks (needs O1)
 - [x] Diagnose screen: name a failure mode from the evidence; right answer writes the notebook
-- [ ] Notebook saved in its own localStorage key; survives a run-state version bump
+- [x] Notebook saved in its own localStorage key; survives a run-state version bump
 - [ ] Notebook page: list your diagnosed failure modes, with their signatures and the seed each was found on
 - [ ] Starter pool vs unlocked pool; unlocked remedies appear in drafts and procurement
 

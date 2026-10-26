@@ -112,17 +112,20 @@ test('scrap the lot in a corridor: asks once, Keep goes back, Yes ends the run',
 });
 
 // The diagnose choices for seed 123456 played straight through, worked out
-// by the engine itself, so the test knows which button is right.
-function idleDiagnosis() {
+// by the engine itself, so the test knows which button is right (a right one
+// not yet in `notebook`).
+function idleDiagnosis(notebook = emptyNotebook()) {
   let state = createRun({ seed: SEED });
   while (state.status === 'running') {
     state = resolveStep(enterStep(state));
     if (state.status === 'running') state = walkCorridor(state, null);
   }
-  const { rightIds, candidates } = diagnosisFor(state, emptyNotebook());
+  const { rightIds, candidates } = diagnosisFor(state, notebook);
   const nameOf = id => findFailureMode(id).name;
+  const rightId = candidates.find(id => rightIds.includes(id) && !notebook.entries.some(entry => entry.id === id));
   return {
-    right: nameOf(candidates.find(id => rightIds.includes(id))),
+    rightId,
+    right: nameOf(rightId),
     wrong: nameOf(candidates.find(id => !rightIds.includes(id))),
   };
 }
@@ -160,5 +163,35 @@ test('diagnose: a wrong guess writes nothing and names what did hurt the lot', a
   await walkToShipReport(page);
   await pressAfterChange(page, page.locator('.diagnose-button', { hasText: wrong }));
   await expect(page.locator('.diagnose-text')).toHaveText(/^Not this one\. What did hurt this lot: .+ It is not written in your notebook/);
+  expect(errors, `console errors (seed ${SEED})`).toEqual([]);
+});
+
+// M4 item 2: the notebook is saved under its own key, so a reload keeps it.
+// Once the first right answer is in the notebook, the same lot offers a
+// right answer the player doesn't have yet, which shows the page loaded it.
+test('notebook: a right diagnosis survives a reload, and the next lot builds on it', async ({ page }) => {
+  test.slow();   // walks the whole route twice: triple the usual 30 s limit
+  const errors = watchForErrors(page);
+  const readNotebook = () => page.evaluate(() => JSON.parse(localStorage.getItem('fabrun.notebook')));
+  const nameOf = id => findFailureMode(id).name;
+  const first = idleDiagnosis();
+  await walkToShipReport(page);
+  await pressAfterChange(page, page.locator('.diagnose-button', { hasText: first.right }));
+  const firstId = first.rightId;
+  expect(await readNotebook(), `stored notebook (seed ${SEED})`)
+    .toEqual({ version: 1, entries: [{ id: firstId, seed: SEED }] });
+
+  // Reload and play the same seed again: the notebook was loaded, so the
+  // choices offer a right answer that isn't in it yet.
+  const second = idleDiagnosis({ version: 1, entries: [{ id: firstId, seed: SEED }] });
+  expect(second.rightId, `a new right answer on seed ${SEED}`).not.toBe(firstId);
+  await walkToShipReport(page);
+  await expect(page.locator('.diagnose-button', { hasText: second.right })).toHaveCount(1);
+  await expect(page.locator('.diagnose-button', { hasText: nameOf(firstId) })).toHaveCount(0);
+  await pressAfterChange(page, page.locator('.diagnose-button', { hasText: second.right }));
+  await expect(page.locator('.diagnose-text')).toHaveText(`Diagnosed: ${second.right}. Written in your notebook.`);
+  expect(await readNotebook(), `stored notebook (seed ${SEED})`).toEqual({ version: 1, entries: [
+    { id: firstId, seed: SEED }, { id: second.rightId, seed: SEED },
+  ] });
   expect(errors, `console errors (seed ${SEED})`).toEqual([]);
 });
