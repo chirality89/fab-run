@@ -2,7 +2,7 @@
 
 ## Current: M4 item 2 — the notebook is saved under its own key and survives a run-save version bump
 
-**Status: plan, waiting for David's OK.**
+**Status: plan OK'd by David (26 Oct 2026): Q1–Q4 and Q6 as proposed; Q5 yes, the Notebook page is its own M4 item. Building.**
 
 ### Task: keep the notebook between visits, safely, and never lose an entry
 
