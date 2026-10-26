@@ -106,7 +106,7 @@ test('the art steps differ enough to read as separate flat faces', () => {
 test('labels on the microscope window and on light films are 4.5:1 or better', () => {
   assertContrast(LIGHT, '--view-ink', '--view-dark', 4.5);
   for (const film of ['--mat-si', '--mat-oxide', '--mat-nitride', '--mat-resist',
-    '--mat-seed', '--mat-doped', '--mat-particle']) {
+    '--mat-seed', '--mat-doped', '--mat-particle', '--mat-polymer']) {
     assertContrast(LIGHT, '--on-fill', film, 4.5);
   }
 });
@@ -114,7 +114,7 @@ test('labels on the microscope window and on light films are 4.5:1 or better', (
 test('cross-section shapes stand out from the dark window and from Si', () => {
   // Shapes, not text, so the WCAG 3:1 rule for graphics applies.
   for (const shape of ['--mat-si', '--mat-oxide', '--mat-nitride', '--mat-resist', '--mat-seed',
-    '--mat-cu', '--mat-doped', '--mat-particle', '--mat-plasma', '--mat-void']) {
+    '--mat-cu', '--mat-doped', '--mat-particle', '--mat-plasma', '--mat-void', '--mat-polymer']) {
     assertContrast(LIGHT, shape, '--view-dark', 3);
   }
   assertContrast(LIGHT, '--mat-junction', '--mat-si', 3);

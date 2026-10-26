@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 140" role="img">
+  <title>Chamber seasoning: inside an etch chamber, the walls carry a thin even coat laid down by conditioning wafers, so the plasma over the wafer etches at a steady rate. A flake of wall coat is falling.</title>
+  <!-- Chamber walls (metal) with the seasoning coat on their inner faces. -->
+  <rect class="mat-barrier" x="0"   y="20"  width="14"  height="120"/>
+  <rect class="mat-barrier" x="246" y="20"  width="14"  height="120"/>
+  <rect class="mat-barrier" x="0"   y="10"  width="260" height="10"/>
+  <rect class="mat-oxide"   x="14"  y="20"  width="6"   height="120"/>
+  <rect class="mat-oxide"   x="240" y="20"  width="6"   height="120"/>
+  <rect class="mat-oxide"   x="14"  y="20"  width="232" height="6"/>
+  <!-- The wafer on its chuck at the bottom, plasma ions above it. -->
+  <rect class="mat-si"      x="60"  y="112" width="140" height="10"/>
+  <rect class="mat-barrier" x="70"  y="122" width="120" height="18"/>
+  <path class="mat-plasma" d="M90 84v8M110 92v8M130 84v8M150 92v8M170 84v8"/>
+  <!-- A flake of wall coat breaking off. -->
+  <circle class="mat-particle" cx="226" cy="76" r="4"/>
+  <text class="art-label-on-dark" x="28"  y="44">wall coat</text>
+  <text class="art-label-on-dark" x="186" y="96">flake</text>
+  <text class="art-label-on-dark" x="28"  y="106">wafer</text>
+</svg>

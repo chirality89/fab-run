@@ -155,3 +155,24 @@ All checked against `--view-dark` so they read on the microscope window (3:1 or 
 - ROADMAP M6 ticks: "Card art setup" (tokens part; the content `art` field is still open), "Shared card frame", "Practice art".
 - Lesson, **Rounded numbers hid a failing contrast step**: my contrast script printed 1.345 as "1.35", so etch shade1 looked like it met the 1.35:1 rule and didn't. Root cause: judged a limit from a rounded printout. Rule: ✅ compare raw ratios against limits in code (the test does), print rounded only for people. ✅ Never copy a "passes" judgement from rounded output.
 - Lesson, **Cards shrank in a one-row hand**: a fixed-width card in a `nowrap` flex row was squeezed below 260 px and its text overflowed. Root cause: flex items shrink by default. Rule: ✅ fixed-size UI pieces get `flex: none`. ✅ The art-preview screen test checks no card text overflows.
+
+---
+
+## Follow-up (26 Oct 2026): art for Lane C's 9 practices; main was red
+
+Lane A reported that after PR #12 and PR #16 merged, `main` failed in Lane D's area: Lane C's 9 new practices had no cross-section, and the "Stop on endpoint" card's text no longer fit. David OK'd the plan: restart the branch from main, draw the 9 in style C, physics-review them, fix the overflow without loosening tests, one PR.
+
+- [x] 9 cross-sections in `src/art/sections/`: sendAheadWafer, megasonicClean, hfLastClean, ionizedSeed, lowPressurePolish, chamberSeasoning, softLandGateEtch, tiltedImplant, screenOxideImplant. New class `.mat-polymer` (existing token `--mat-polymer`) for the CMP pad and the polymer cap on a residue; it is added to the contrast tests.
+- [x] Card text: the preview page had no words for Lane C's conditions, so "Stop on endpoint" printed "Underlayer attack ×1.5 when thinGateOxide" as an extra sentence. Now: "Underlayer attack ×0.3, or ×1.5 on a thin gate oxide" (a conditional multiplier joins the earlier one on the same pattern, even when not next to it), "Silicon front-end lots only", and words for the new patterns and the two new monitor-wafer reveals (those printed a bare ".").
+- [x] **Card size.** Lane C's longer tradeoffs (up to 243 characters) don't fit 260 × 380 at 13 px. Worse, the body's flex layout squeezed the *name* to nothing on 11 cards, and the overflow test didn't notice. David chose a taller card: **260 × 420** (phone 195 × 315). Body padding trimmed 4 px so the two longest cards fit. Nothing in the body may shrink now (`flex: none`).
+- [x] Tests made stricter, not looser: every card name must show at least one line; every effect line must be plain words (no bare ".", no raw ids).
+- [x] physics-reviewer pass. Fixed: send-ahead lines narrow by a little, same pitch as the lot; megasonic broken line left a stub; HF-last shows the H-terminated surface and labels the oxide "~1 nm"; the CMP pad now rests on the wafer and bends a little into the line; soft-landing residue has a polymer cap and the title says "in the open area"; tilted-implant rays at about 20° so the 16 px shadow matches h × tan(tilt), labelled "half 1 of 2".
+
+**Open questions for David (drawn with a default; say if it's wrong)**
+- **Chamber seasoning coat:** drawn as oxide-like (SiOx coat, as in a poly/gate etch chamber). In an oxide etcher it would be fluorocarbon polymer. Which chamber is the etch room?
+- **Tilt angle:** "larger tilt" is drawn at about 20° (standard about 7°). OK?
+- **HF-last scale:** the ~1 nm chemical oxide is drawn 8 px thick next to a 200 nm bar; I labelled it "oxide ~1 nm". preclean.svg has the same issue and is unlabelled. Label both, or drop the scale bar on these two?
+
+**For David to copy over:** `docs/card-art-plan.md` still says 260 × 380; change it to 260 × 420. Lesson, **A long text squeezed the card name away**: the overflow test only checked that the body didn't scroll, and flex let the name shrink to zero height instead. Root cause: flex items shrink by default, and the test measured the container, not the parts. Rule: ✅ fixed parts of a card get `flex: none`. ✅ Test that each part is visible, not only that the container doesn't overflow.
+
+**Result:** `npm test` 205/205, screen tests 50/50 at 1280×800 and 375×812; screenshots checked by eye.

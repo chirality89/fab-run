@@ -49,6 +49,16 @@ test('every card draws in the frame with no errors', async ({ page }) => {
   expect(errors).toEqual([]);
 });
 
+test('every effect line is in plain words', async ({ page }) => {
+  await openPreview(page);
+  // An effect the page has no words for once printed as a bare "." or as a
+  // raw id ("when thinGateOxide"). Add the words to art-preview.html.
+  const unclear = await page.locator('.frame-effect').evaluateAll(lines => lines
+    .map(line => line.textContent)
+    .filter(text => text.replace(/[.\s]/g, '') === '' || /\bwhen [a-z]+[A-Z]|undefined/.test(text)));
+  expect(unclear).toEqual([]);
+});
+
 test('no card text runs off the bottom of its card', async ({ page }) => {
   await openPreview(page);
   // The tradeoff is the last thing on a card; its bottom edge must sit
@@ -60,6 +70,15 @@ test('no card text runs off the bottom of its card', async ({ page }) => {
     })
     .map(card => card.getAttribute('aria-label')));
   expect(overflowing).toEqual([]);
+  // Long text once squeezed the name to nothing without overflowing the
+  // body (tasks/todo-d.md), so also check every name shows at least one line.
+  const nameless = await page.locator('.frame').evaluateAll(cards => cards
+    .filter(card => {
+      const name = card.querySelector('.frame-name');
+      return name.clientHeight < parseFloat(getComputedStyle(name).fontSize);
+    })
+    .map(card => card.getAttribute('aria-label')));
+  expect(nameless).toEqual([]);
 });
 
 test('the page never scrolls sideways and the theme button is big enough to tap', async ({ page }) => {

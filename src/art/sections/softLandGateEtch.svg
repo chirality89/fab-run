@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 140" role="img">
+  <title>Soft-landing gate etch: a poly-Si gate under its resist mask on a thin gate oxide. The last poly was cleared with a gentle, selective step, so the gate oxide is left whole; a small poly residue, capped by polymer, is left in the open area.</title>
+  <rect class="mat-si"     x="0"   y="100" width="260" height="40"/>
+  <!-- Thin gate oxide: still whole after the etch. -->
+  <rect class="mat-oxide"  x="0"   y="94"  width="260" height="6"/>
+  <!-- The poly-Si gate and its resist mask. -->
+  <rect class="mat-doped"  x="100" y="44"  width="56"  height="50"/>
+  <rect class="mat-resist" x="100" y="32"  width="56"  height="12"/>
+  <!-- A small poly residue left where polymer masked the etch. -->
+  <rect class="mat-doped"  x="44"  y="86"  width="8"   height="8"/>
+  <rect class="mat-polymer" x="44" y="82"  width="8"   height="4"/>
+  <!-- Gentle ions: short, sparse dashes. -->
+  <path class="mat-plasma" d="M70 52v6M196 52v6M220 60v6"/>
+  <text class="art-label" x="128" y="74" text-anchor="middle">poly</text>
+  <text class="art-label-on-dark" x="6"   y="78">residue</text>
+  <text class="art-label-on-dark" x="164" y="88">oxide whole</text>
+  <text class="art-label-on-dark" x="6"   y="26">soft landing</text>
+  <text class="art-label" x="6" y="124">Si</text>
+  <!-- Scale bar. Thin films are drawn at least 6 px thick, so it is a guide, not a ruler. -->
+  <path class="mat-measure" d="M208 16h44M208 12v8M252 12v8"/>
+  <text class="art-label-on-dark" x="252" y="9" text-anchor="end">200 nm</text>
+</svg>

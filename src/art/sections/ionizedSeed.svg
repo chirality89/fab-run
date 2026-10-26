@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 140" role="img">
+  <title>Ionized PVD seed: a narrow trench in oxide lined with barrier. Ionized metal is steered straight down, so the seed covers the sidewalls and bottom and the overhang at the mouth stays small.</title>
+  <rect class="mat-si"      x="0"   y="128" width="260" height="12"/>
+  <rect class="mat-oxide"   x="0"   y="48"  width="260" height="80"/>
+  <!-- The trench, lined with barrier, then seed on the walls and bottom. -->
+  <rect class="mat-barrier" x="0"   y="42"  width="260" height="6"/>
+  <rect class="mat-barrier" x="104" y="42"  width="52"  height="80"/>
+  <rect class="mat-seed"    x="0"   y="36"  width="260" height="6"/>
+  <rect class="mat-seed"    x="110" y="36"  width="40"  height="80"/>
+  <rect class="art-hole"    x="116" y="36"  width="28"  height="74"/>
+  <!-- Only a small overhang at the mouth. -->
+  <path class="mat-seed" d="M116 36h4v6h-4Z"/>
+  <path class="mat-seed" d="M144 36h-4v6h4Z"/>
+  <!-- Ionized metal coming straight down into the trench. -->
+  <path class="mat-plasma" d="M124 12v8M130 20v8M136 12v8"/>
+  <text class="art-label-on-dark" x="6"   y="26">steered down</text>
+  <text class="art-label" x="6"   y="90">oxide</text>
+  <text class="art-label" x="162" y="90">seed on walls</text>
+  <!-- Scale bar. Thin films are drawn at least 6 px thick, so it is a guide, not a ruler. -->
+  <path class="mat-measure" d="M208 16h44M208 12v8M252 12v8"/>
+  <text class="art-label-on-dark" x="252" y="9" text-anchor="end">200 nm</text>
+</svg>

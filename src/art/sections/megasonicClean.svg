@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 140" role="img">
+  <title>Megasonic clean: sound waves in the cleaning liquid lift small particles off a wafer with fine oxide lines. On the right, one fine line has broken and fallen over, as too much acoustic power can do.</title>
+  <rect class="mat-si"    x="0"   y="100" width="260" height="40"/>
+  <!-- Fine oxide lines on the Si. -->
+  <rect class="mat-oxide" x="20"  y="76"  width="8"   height="24"/>
+  <rect class="mat-oxide" x="52"  y="76"  width="8"   height="24"/>
+  <rect class="mat-oxide" x="84"  y="76"  width="8"   height="24"/>
+  <rect class="mat-oxide" x="116" y="76"  width="8"   height="24"/>
+  <rect class="mat-oxide" x="148" y="76"  width="8"   height="24"/>
+  <!-- A line broken off: a stub left standing, the rest lying on the Si. -->
+  <rect class="mat-oxide" x="180" y="94"  width="8"   height="6"/>
+  <rect class="mat-oxide" x="190" y="92"  width="20"  height="8"/>
+  <rect class="mat-oxide" x="212" y="76"  width="8"   height="24"/>
+  <!-- Sound waves in the liquid (wavy lines). -->
+  <path class="mat-measure" d="M6 40q8-6 16 0t16 0t16 0t16 0t16 0t16 0t16 0t16 0"/>
+  <!-- Particles lifted off the surface, with arrows showing them leave. -->
+  <circle class="mat-particle" cx="40"  cy="62" r="4"/>
+  <circle class="mat-particle" cx="104" cy="58" r="5"/>
+  <path class="mat-measure" d="M40 54v-6M104 49v-6"/>
+  <text class="art-label-on-dark" x="6"   y="26">megasonic</text>
+  <text class="art-label-on-dark" x="166" y="70">broken</text>
+  <text class="art-label" x="6" y="124">Si</text>
+  <!-- Scale bar. Thin films are drawn at least 6 px thick, so it is a guide, not a ruler. -->
+  <path class="mat-measure" d="M208 16h44M208 12v8M252 12v8"/>
+  <text class="art-label-on-dark" x="252" y="9" text-anchor="end">200 nm</text>
+</svg>

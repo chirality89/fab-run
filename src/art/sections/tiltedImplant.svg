@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 140" role="img">
+  <title>Larger-tilt implant: ions arrive at an angle beside a poly-Si gate. The doped layers sit shallow with only a short tail, but the gate shadows a strip of Si on one side, so the implant is split in two with the wafer turned between halves. This is the first half.</title>
+  <rect class="mat-si"    x="0"   y="80" width="260" height="60"/>
+  <!-- Doped layers either side of the gate; the strip right of the gate is in its shadow. -->
+  <rect class="mat-doped" x="0"   y="80" width="100" height="22"/>
+  <rect class="mat-doped" x="166" y="80" width="94"  height="22"/>
+  <path class="mat-junction" d="M0 102h100M166 102h94"/>
+  <!-- The gate: thin oxide, poly. -->
+  <rect class="mat-oxide" x="100" y="74" width="50"  height="6"/>
+  <rect class="mat-doped" x="100" y="34" width="50"  height="40"/>
+  <!-- Tilted ions coming from the upper left. -->
+  <path class="mat-plasma" d="M30 18l5 14M58 24l5 14M172 24l5 14M200 18l5 14M228 24l5 14"/>
+  <text class="art-label" x="125" y="58" text-anchor="middle">poly</text>
+  <text class="art-label-on-dark" x="6"   y="14">tilted ions, half 1 of 2</text>
+  <text class="art-label-on-dark" x="152" y="62">shadow</text>
+  <path class="mat-measure" d="M158 66v10"/>
+  <text class="art-label" x="6" y="96">doped Si</text>
+  <text class="art-label" x="6" y="128">Si</text>
+  <!-- Scale bar. Thin films are drawn at least 6 px thick, so it is a guide, not a ruler. -->
+  <path class="mat-measure" d="M208 16h44M208 12v8M252 12v8"/>
+  <text class="art-label-on-dark" x="252" y="9" text-anchor="end">200 nm</text>
+</svg>
