@@ -1,5 +1,72 @@
 # Fab Run — Task Tracker
 
+## Planned: M4.5 item 3 — etch-stop logic (claim 11), and the etch forecast says what is carried in
+
+**Status: PLAN for David's OK (26 Oct 2026). No code is changed until you say yes. Questions Q1–Q3 are at the end.**
+
+**David's decision (26 Oct 2026):** the stop is a choice. The route label becomes "Deposition (oxide)", and the Etch-stop card adds the SiN stop. With the stop, etch adds much less underlayer attack, and over-etch on a stop is about ×1.05. The etch forecast says how much of its loss is carried in from the film stack.
+
+### What it is today (the claim 11 defects)
+- The route says "Deposition (SiN + oxide)", but only the "Deposit SiN etch stop" card sets the `etch_stop` flag.
+- The stop does **nothing** to the base underlayer attack. Etch adds 0.03 attack whether or not the stop is there. Only the over-etch card looks at the flag.
+- Timed over-etch multiplies attack by ×1.5, then ×0.5 more with a stop: **×0.75 net**, so etching longer on a stop *lowers* attack, which is backwards. The DOE version does the same (×1.25 × 0.5 = ×0.625).
+- No engine path lets a choice made in one room (deposition) scale a risk that only enters later (at etch). That is the "new logic" the reviewer flagged.
+
+### The engine change (small; this is the part that needs your OK, CLAUDE.md §6)
+A route step in `lotTypes.js` gets an optional `effects` list. These are ordinary content effects, from the existing list of operations. `enterStep` applies them right after the step's own risks enter, and before drift, equipment and cards. Each effect's `when` is checked as for any card.
+
+```
+{ room: 'etch', label: 'Etch (trench)',
+  adds: { particles: 0.01, residue: 0.04, underlayer_attack: 0.03, edge_ring: 0.03 },
+  // An etch stop below the oxide: the etch reaches the nitride and slows
+  // almost to a halt, so it attacks far less of the film below.
+  effects: [ { op: 'defectMult', pattern: 'underlayer_attack', mult: 0.3, when: { flag: 'etch_stop' } } ],
+  realizes: [...] }
+```
+
+- **No new effect operation**: it reuses `defectMult` and `when: { flag }`, which already exist. The only new thing is that a *route step* may carry effects, which is about 5 lines in `run.js` and one in the comment at the top of `lotTypes.js`.
+- `tests/lotTypes.test.js` checks that every step effect uses a known operation and a known pattern.
+
+### Content changes (Lane C's file; I make only these and tell Lane C)
+- `lotTypes.js` step 2 label: "Deposition (SiN + oxide)" → **"Deposition (oxide)"**.
+- `timedOveretch`: the etch-stop line goes ×0.5 → **×0.7**, so the net on a stop is ×1.5 × 0.7 = **×1.05**. It stays ×1.5 without a stop. The DOE version goes ×0.5 → **×0.84**, so ×1.25 × 0.84 = **×1.05** on a stop too. Its text "unless an etch stop is there" becomes "much less if an etch stop is there".
+- `etchStopLayer` text: its tradeoff and physicsNote mention that the stop also protects the film below.
+- `physics-reviewer` checks all of it before I call it done.
+
+### What the numbers do (hand-computed, seed 123456, scatter and drift off; I reproduced today's values exactly first)
+
+| At etch | Today | After |
+|---|---|---|
+| No stop, nothing played | 16.20 points lost | 16.20 (unchanged) |
+| No stop, timed over-etch | 15.18 | 15.18 (unchanged) |
+| With stop, nothing played | 10.69 | **10.69** (attack 0.03 → 0.009; depth was already ×0.4) |
+| With stop, timed over-etch | 9.47 (×0.75 on 0.03) | **8.35** (0.009 × 1.05) |
+
+- **Every test on a run without the stop keeps its values**, and that is most of them, including the idle run. The one test that checks the ×0.75 (`resolve.test.js`, "0.075 with it") changes to 0.105 (0.1 × 1.5 × 0.7). I'll show it to you before editing.
+- **Side effect worth knowing:** without a stop, underlayer attack on a healthy etch is 2.96 points, just under the 3-point diagnosis line (`DIAGNOSE_MIN_POINTS`). So "Underlayer attack" counts as a right answer only after an over-etch (4.4 points) or on a worn tool. That is the physics the reviewer asked for (claim 11b: it used to be "right" on every run).
+
+### The etch forecast split (David: "label it")
+- *Today:* "This room will cost about 16.2 points of yield if nothing changes."
+- *After:* "This room will cost about 16.2 points of yield if nothing changes. About 6.8 of them come from etch depth variation set before this room (the film stack)." Figures for seed 123456; the depth share is worked out by the existing per-pattern split in `lot.js`.
+- Which patterns count as "set before this room" comes from data: the lot type's `startRisks` (depth variation and dishing, set by the stack and the layout). So CMP's forecast says the same about dishing. The text names the pattern from `PATTERNS`.
+- If the carried-in share is under 0.05 points (for example, the stop cut it), the extra sentence is left out.
+
+### Steps
+- [ ] `run.js`: route step `effects`, applied after the step's risks. Engine test: with the flag, etch's attack is 0.009; without it, 0.03.
+- [ ] `lotTypes.js`: the label and the etch step's effect. `content.js`: the two over-etch numbers and the text. `lotTypes.test.js`: step effects are valid.
+- [ ] Hand-checked tests from the table above; `resolve.test.js` value per Q-approval.
+- [ ] `view.js`: the forecast's carried-in sentence; a hand-checked test (6.81 of 16.20 on seed 123456).
+- [ ] `SAVE_VERSION` 4 → 5 (a run with the stop would replay to a different yield).
+- [ ] `physics-reviewer`; `npm test`, `npm run screens`, the bot; tracker, roadmap, lessons; tell Lane C about the `content.js` lines touched.
+
+**Q1 (how much the stop protects).** ×0.3 on underlayer attack (a selective nitride stop cuts the attack to about a third)? Or a different factor? This is your physics call.
+
+**Q2 (who can choose the stop).** Today the stop card is **not a starter card**: it is unlocked by diagnosing underlayer attack, which (see above) needs an over-etch first. Options: A) make "Deposit SiN etch stop" a starter card now, so the deposition room has a real decision from the first run (my recommendation; it is exactly the starter-deck decision you made, and it gives the dep room its card); B) leave it unlocked by the notebook, and let Lane C choose the dep room's starter card. Note: A changes the starter deck, so seed 123456's deposition rooms deal a card; tests that walk deposition doing nothing are unaffected, but tests that list the starter deck or DOE offers change (deck text only, no yield value).
+
+**Q3 (forecast wording).** Is "About 6.8 of them come from etch depth variation set before this room (the film stack)." clear for a new player, or do you want other words?
+
+---
+
 ## Done: M4.5 item 8 (part) — the small fixes (Lane F issues 8 labels, 9, 10, 13, 14, 15; 16 moved to its own item)
 
 **Status: built 26 Oct 2026. David took the recommendations: Q1 round to nearest and relabel; Q2 A (leave the score for M7, only reword the cost tile); Q3 the glossary becomes its own roadmap item ("Words page").**
