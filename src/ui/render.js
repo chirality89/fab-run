@@ -362,3 +362,11 @@ export function renderError(container, error) {
   box.append(el('pre', 'error-text', String(error && error.stack ? error.stack : error)));
   container.replaceChildren(box);
 }
+
+// One line at the top after a reload picked up a saved run: "Resumed seed
+// 123456". It sits above the screen just drawn and goes with the next redraw.
+export function renderResumedNote(container, seed) {
+  const note = el('p', 'resumed-note', `Resumed seed ${seed}`);
+  note.setAttribute('role', 'status');
+  container.prepend(note);
+}
