@@ -502,7 +502,7 @@ test('etch stop, timed over-etch: 8.3540 points, yield after 0.858225 (attack ×
 });
 
 test('etch forecast says how much is carried in: 6.8 of 16.2 points, 2.8 with the stop', () => {
-  const carried = 'The lot brought this in from earlier steps; it was not added in this room.';
+  const carried = 'The film stack set how big this is before the lot got here: without an etch stop, trench depth follows the etch rate across the wafer.';
   assert.equal(roomView(idleToEtch()).carriedInText,
     `About 6.8 of these points come from depth variation (etch depth differs center to edge). ${carried}`);
   assert.equal(roomView(stopToEtch()).carriedInText,

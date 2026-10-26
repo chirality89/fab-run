@@ -148,13 +148,13 @@ function expectedLossPoints(lot, step) {
   return (lotYield(lot) - lotYield(after)) * 100;
 }
 
-// How much of this room's forecast comes from risk the lot brought in, not
-// risk added here (physics review: say what is carried in from the stack;
-// David, 26 Oct 2026). "Brought in" means the lot type's startRisks
-// patterns (set by the film stack and the layout), so etch names depth
-// variation and CMP names dishing. E.g. "About 6.8 of these points come
-// from depth variation (etch depth differs center to edge). The lot brought
-// this in from earlier steps; it was not added in this room."
+// How much of this room's forecast comes from a risk whose size was set
+// before this room (physics review: say what is carried in from the stack;
+// David, 26 Oct 2026). Those are the lot type's startRisks patterns, and
+// the reason for each is its startRiskNotes sentence (lotTypes.js), so etch
+// names depth variation and CMP names dishing. E.g. "About 6.8 of these
+// points come from depth variation (etch depth differs center to edge). The
+// film stack set how big this is before the lot got here: …"
 // Null when that share is under 0.05 points.
 export function carriedInText(lot, step, lotType) {
   const after = realizeRisks(lot, step.realizes);
@@ -165,7 +165,7 @@ export function carriedInText(lot, step, lotType) {
   if (parts.length === 0) return null;
   return parts.map(({ pattern, points }) =>
     `About ${points.toFixed(1)} of these points come from ${words(pattern)} (${PATTERNS[pattern]}). `
-    + 'The lot brought this in from earlier steps; it was not added in this room.').join(' ');
+    + (lotType.startRiskNotes?.[pattern] ?? '')).join(' ').trim();
 }
 
 // What the room's equipment and materials did to cash as the lot came in,

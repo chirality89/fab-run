@@ -5,12 +5,15 @@
 //                 risk it ADDS on entering (pattern → amount) and the
 //                 patterns it REALIZES when it resolves (turns that risk
 //                 into yield loss, see lot.js realizeRisks).
-//   • startRisks  risk the lot carries before the first step. It is set by
-//                 the film stack and the layout, and waits for the room
-//                 where it shows up.
 //                 A step may also carry `effects`: ordinary content effects
 //                 (content.js operations) applied right after its risks
 //                 enter, e.g. scaling a risk when an earlier room set a flag.
+//   • startRisks  risk the lot carries before the first step. It is set by
+//                 the film stack and the layout, and waits for the room
+//                 where it shows up.
+//   • startRiskNotes  one sentence per startRisks pattern: what set its size
+//                 before the room where it bites. The room forecast shows it
+//                 (view.js carriedInText).
 //   • traits      facts about this lot that cards check with when: { lot }
 //                 (content.js). Only static traits belong here.
 //
@@ -36,6 +39,10 @@ export const LOT_TYPES = {
     // stack and the layout. Etch stop (dep) and dummy fill (litho) scale
     // them before the rooms where they bite (etch and CMP).
     startRisks: { depth_variation: 0.08, dishing: 0.08 },
+    startRiskNotes: {
+      depth_variation: 'The film stack set how big this is before the lot got here: without an etch stop, trench depth follows the etch rate across the wafer.',
+      dishing: 'The layout set how big this is: wide lines dish in any polish. Dummy fill at litho or a gentler polish here reduces it.',
+    },
 
     // Every processing step adds a little handling particles and realizes
     // them at once (metrology adds none).
@@ -84,6 +91,6 @@ export const LOT_TYPES = {
     ],
 
     tradeoff: 'Copper conducts better than aluminum, but it cannot be dry-etched, so the route etches trenches in oxide and polishes the copper back, which brings dishing and erosion.',
-    physicsNote: 'Single inlaid (damascene) line: deposit an etch stop and oxide, pattern and etch trenches, clean, line them with a barrier and seed, fill with electroplated copper, then CMP away the copper above the trenches. The barrier keeps copper out of the oxide; any native oxide left under it raises line resistance. Simplified: anneal, cap and post-CMP clean are not shown.',
+    physicsNote: 'Single inlaid (damascene) line: deposit oxide (optionally on a SiN etch stop), pattern and etch trenches, clean, line them with a barrier and seed, fill with electroplated copper, then CMP away the copper above the trenches. The barrier keeps copper out of the oxide; any native oxide left under it raises line resistance. Simplified: anneal, cap and post-CMP clean are not shown.',
   },
 };

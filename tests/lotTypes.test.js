@@ -158,3 +158,11 @@ test('every route step effect uses a known operation, a known pattern and a flag
     }
   }
 });
+
+test('every startRisks pattern has a startRiskNotes sentence (the forecast shows it)', () => {
+  for (const lotType of ALL_LOT_TYPES) {
+    for (const pattern of Object.keys(lotType.startRisks)) {
+      assert.ok(lotType.startRiskNotes?.[pattern], `${lotType.id}: no startRiskNotes for ${pattern}`);
+    }
+  }
+});

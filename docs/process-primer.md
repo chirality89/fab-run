@@ -23,7 +23,7 @@ Every layer in a fab is the same loop: **make a film → coat resist → expose 
 ## Lot type 1: inlaid Cu line (single damascene)
 
 1. Clean.
-2. Deposit a SiN etch stop, then the SiO₂ dielectric.
+2. Deposit the SiO₂ dielectric, optionally on a SiN etch stop (a player choice in the game: without it, trench depth follows the etch time and rate).
 3. Pattern the trench.
 4. Etch the trench, stopping on SiN.
 5. Strip and clean.

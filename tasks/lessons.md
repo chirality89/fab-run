@@ -360,3 +360,8 @@ The expected names were written from the items' ids, not read from `content.js`.
 - **What happened:** M4.5 item 5 took metrology off the map, but the floor-plan legend was built from every stop in `sideStops.js`, so it still said "MET Metrology". No test checked the legend, and I didn't look at a floor-plan screenshot after that item.
 - **Root cause:** two lists described the same thing (the stops in content, the stops the map offers), and I changed only one of them.
 - **Rule:** when a change takes something out of the game, search for every place that lists it (legends, keys, help text), and look at the screenshot of every screen that could show it, not only the screens the change was about.
+
+## 26 Oct 2026 — "Carried in" told the player the room was blameless
+- **What happened:** the etch forecast's new sentence said depth variation "was not added in this room". The physics review caught that it is false: without a stop, depth variation comes from this etch's own rate non-uniformity, and dishing is made by the polish itself. Only how big each risk gets was set earlier (stack, layout).
+- **Root cause:** I wrote plain words for "startRisks" (risk entered at the start) and read that as "caused earlier". Where a risk enters the model is not where the physics happens.
+- **Rule:** text that explains a model mechanic must say what the physics does, not what the code does. Have `physics-reviewer` read player-facing explanations, not only effect numbers, and keep the reason per pattern in data next to the pattern.

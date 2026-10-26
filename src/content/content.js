@@ -147,7 +147,7 @@ export const PRACTICES = [
         // ×1.25 × 0.84 = ×1.05 on a stop, the same as the plain card.
         { op: 'defectMult', pattern: 'underlayer_attack', mult: 0.84, when: { flag: 'etch_stop' } },
       ],
-      tradeoff: 'Still attacks the film below, but less: the DOE found the shortest over-etch that still clears.',
+      tradeoff: 'Still attacks the film below, but less: the DOE found the shortest over-etch that still clears. On an etch stop, the same as the plain card.',
       physicsNote: 'A designed experiment across over-etch times finds where residue is gone but punch-through has barely started, so less extra time is needed for the same clearing.',
     },
     tradeoff: 'Clears residue but attacks the film below, much less if an etch stop is there.',

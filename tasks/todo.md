@@ -7,7 +7,8 @@
 **What was built**
 - `run.js`: a route step may carry `effects`, applied right after its risks enter (about 5 lines). `lotTypes.js`: etch has "underlayer attack ×0.3 with etch stop"; step 2 reads "Deposition (oxide)".
 - `content.js` (told Lane C): over-etch's stop line ×0.5 → ×0.7, the DOE version ×0.5 → ×0.84 (both ×1.05 net on a stop); the two cards' texts.
-- Forecast wording, made plainer than the plan: "About 6.8 of these points come from depth variation (etch depth differs center to edge). The lot brought this in from earlier steps; it was not added in this room." Shown under the forecast (`.carried-in`); left out under 0.05 points.
+- Forecast wording, made plainer than the plan: "About 6.8 of these points come from depth variation (etch depth differs center to edge). The film stack set how big this is before the lot got here: without an etch stop, trench depth follows the etch rate across the wafer." Each pattern's reason is data (`startRiskNotes` in `lotTypes.js`); CMP's says "The layout set how big this is: wide lines dish in any polish. Dummy fill at litho or a gentler polish here reduces it." Shown under the forecast (`.carried-in`); left out under 0.05 points. My first wording ("brought in from earlier steps; not added in this room") was false and `physics-reviewer` caught it (lesson added); the reviewer suggested these sentences, **for David to confirm**.
+- Physics-review text fixes: DOE over-etch says it is the same as the plain card on a stop; the Cu line's physicsNote and `docs/process-primer.md` say the stop is optional.
 - Hand checks (independent python model, seed 123456, scatter and drift off): stop + nothing 10.6861 points, yield after 0.834904; stop + over-etch 8.3540, 0.858225 (the DOE version gives the same); carried in 6.8 (no stop) and 2.8 (stop). Test value 0.075 → 0.105 as in the plan. `lotTypes.test.js` checks step effects.
 - `SAVE_VERSION` 5.
 
