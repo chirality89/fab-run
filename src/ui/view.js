@@ -30,10 +30,13 @@ export function toPercent(fraction) {
 const SITE_GOOD_PERCENT = Math.round(SITE_GOOD_LINE * 100);
 const SPEC_PERCENT = Math.round(CUSTOMER_SPEC * 100);
 
-// The whole percent printed on a site tile, rounded DOWN (89.7% reads 89).
-// The tiny 1e-9 stops 0.29 × 100 = 28.999… from reading as 28.
+// The whole percent printed on a site tile, rounded to the NEAREST (89.7%
+// reads 90, 89.4% reads 89). It used to round down, which made the map
+// always read lower than the headline yield (Lane F issue 13; David,
+// 26 Oct 2026). The tiny 1e-9 stops 0.285 × 100 = 28.4999… from reading
+// as 28.
 function sitePercent(value) {
-  return Math.floor(value * 100 + 1e-9);
+  return Math.round(value * 100 + 1e-9);
 }
 
 // Which band a site falls in. It is worked out from the PRINTED whole
@@ -66,7 +69,9 @@ export function yieldBand(fraction) {
 
 // The legend under the wafer map, built from the balance numbers.
 export function mapKeyText() {
-  return `Each site: % of the 25 wafers still good there. Pass ${SITE_GOOD_PERCENT}%+, `
+  // The number is an expected good fraction at that die position, not a
+  // count of wafers (Lane F issue 10, physics review claim 10).
+  return `Each site: % of this die position expected good across the lot. Pass ${SITE_GOOD_PERCENT}%+, `
     + `warning ${SPEC_PERCENT}–${SITE_GOOD_PERCENT - 1}%, fail under ${SPEC_PERCENT}%.`;
 }
 

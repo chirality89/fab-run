@@ -11,7 +11,7 @@ import {
 import { lotYield } from '../src/engine/lot.js';
 import { seedSellingTestItems, SHOP_TEST_UNLOCKS } from './shopSeed.js';
 import {
-  roomView, resultView, mapView, stopView, shopView, siteBand, yieldBand, parseSeed, pointsChangeText, badSeedText, stopKeyText,
+  roomView, resultView, mapView, stopView, shopView, siteBand, siteView, yieldBand, parseSeed, pointsChangeText, badSeedText, stopKeyText,
 } from '../src/ui/view.js';
 
 const SEED = 123456;
@@ -123,13 +123,18 @@ test('yield band uses the raw fraction, not the rounded percent', () => {
 });
 
 test('site band agrees with the printed percent', () => {
-  assert.equal(siteBand(0.8999), 'warn', 'prints 89');
-  assert.equal(siteBand(0.6999), 'fail', 'prints 69');
+  // Rounded to the nearest whole percent since the M4.5 small fixes (David,
+  // 26 Oct 2026): the band follows the printed number either way.
+  assert.equal(siteBand(0.8999), 'pass', 'prints 90');
+  assert.equal(siteBand(0.8949), 'warn', 'prints 89');
+  assert.equal(siteBand(0.6999), 'warn', 'prints 70');
+  assert.equal(siteBand(0.6949), 'fail', 'prints 69');
+  assert.equal(siteView(0.285).percent, 29, '28.5 rounds up, despite 0.285 × 100 = 28.4999…');
 });
 
 test('wafer map legend is built from the balance numbers', () => {
   assert.equal(roomView(idleToEtch()).mapKeyText,
-    'Each site: % of the 25 wafers still good there. Pass 90%+, warning 70–89%, fail under 70%.');
+    'Each site: % of this die position expected good across the lot. Pass 90%+, warning 70–89%, fail under 70%.');
 });
 
 // --- M2 item 2: playing a card and running the room ---------------------

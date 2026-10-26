@@ -48,6 +48,7 @@ Items are Lane F issue numbers (`docs/playtest/summary.md`) and physics-review c
 - [ ] Diagnosis explains itself and offers only failure modes that could have been there (issue 2)
 - [ ] A real decision in every room (issue 3; needs David's starter deck call)
 - [ ] Phone layout and run-ending buttons (issues 8, 17); small fixes (issues 9, 10, 13, 14, 15, 16)
+- [ ] Words page: about 15 game and fab terms in plain sentences, data in `src/content/glossary.js` (`content-drafter`, `physics-reviewer`, then David), opened like the Notebook (issue 16; David, 26 Oct 2026: its own item)
 - [ ] Lane F reruns the five personas on seeds 123456, 42, 777 and the exit test passes
 
 ## M5 — Randomness and a second lot

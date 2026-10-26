@@ -53,6 +53,11 @@ test('a rejected lot keeps its cost per good die, marked not paid', () => {
   assert.match(tile.detail, /Not paid/);
 });
 
+test('the cost tile says it is for reference, not the score (M4.5 small fixes, issue 14)', () => {
+  assert.equal(shipView(finished('shipped')).tiles[1].detail,
+    'Lot cost 2300 ÷ 462.5 good die. For reference only: shipping at spec is what wins the run.');
+});
+
 test('event income lowers the lot cost: 1650 cash at the end → 2000 − 150 = 1850', () => {
   assert.equal(lotMoney({ ...finished('shipped'), cash: 1650 }).lotCost, 1850);
 });
