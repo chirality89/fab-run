@@ -33,7 +33,7 @@
 export const LOT_TYPES = {
   cuLine: {
     id: 'cuLine', draft: true, name: 'Inlaid Cu line',
-    traits: ['narrowFeatures'],
+    traits: ['narrowFeatures', 'copperLine'],
 
     // Latent from the start: etch depth and wide-line dishing are set by the
     // stack and the layout. Etch stop (dep) and dummy fill (litho) scale

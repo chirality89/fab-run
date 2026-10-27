@@ -79,19 +79,17 @@ export const FAILURE_MODES = [
     sig: 'Killed dies that appear at the deposition steps; particle adders on the deposition SPC chart climb between chamber cleans.',
     unlocks: ['shieldKit'] },
   // fm_residue, fm_underlayer, fm_dishing and fm_qtime are worded for the Cu
-  // line, so they need its trait to be a right diagnosis. narrowFeatures is
-  // the only trait the Cu line has today; a 'copperLine' trait would read
-  // better but changes an expected value in run.test.js (asked David).
-  { id: 'fm_residue',        draft: true, name: 'Etch residue', when: { lot: 'narrowFeatures' }, pattern: 'residue',
+  // line, so they need its copperLine trait to be a right diagnosis.
+  { id: 'fm_residue',        draft: true, name: 'Etch residue', when: { lot: 'copperLine' }, pattern: 'residue',
     sig: 'Opens spread evenly across the whole wafer after etch, while the etch rate falls on the etch SPC chart.',
     unlocks: [] },
-  { id: 'fm_underlayer',     draft: true, name: 'Underlayer attack', when: { lot: 'narrowFeatures' }, pattern: 'underlayer_attack',
+  { id: 'fm_underlayer',     draft: true, name: 'Underlayer attack', when: { lot: 'copperLine' }, pattern: 'underlayer_attack',
     sig: 'Leakage on the dies with the most over-etch; the cross-section shows a notch in the film below.',
     unlocks: ['etchStopLayer', 'oesEndpoint', 'endpointEtch', 'chamberSeasoning'] },
   { id: 'fm_edge_ring',      draft: true, name: 'Edge ring', pattern: 'edge_ring',
     sig: 'Only the outer ring of sites fails; inner sites are clean.',
     unlocks: ['eChuckUpgrade'] },
-  { id: 'fm_dishing',        draft: true, name: 'Dishing', when: { lot: 'narrowFeatures' }, pattern: 'dishing',
+  { id: 'fm_dishing',        draft: true, name: 'Dishing', when: { lot: 'copperLine' }, pattern: 'dishing',
     sig: 'Wide lines are thin and high-resistance; narrow lines are fine.',
     unlocks: ['dummyFill', 'lowPressurePolish'] },
   { id: 'fm_rr_drift',       draft: true, name: 'Removal-rate drift', pattern: 'rr_drift',
@@ -100,7 +98,7 @@ export const FAILURE_MODES = [
   { id: 'fm_keyhole',        draft: true, name: 'Keyhole void', pattern: 'void',
     sig: 'Opens on narrow vias only; a seam or void sits in the middle of the fill.',
     unlocks: ['slowStartPlate', 'additiveBath', 'bathAnalysis'] },
-  { id: 'fm_qtime',          draft: true, name: 'Q-time oxide', when: { lot: 'narrowFeatures' }, pattern: 'qtime_oxide',
+  { id: 'fm_qtime',          draft: true, name: 'Q-time oxide', when: { lot: 'copperLine' }, pattern: 'qtime_oxide',
     sig: 'High line resistance only on lots that waited long after clean.',
     unlocks: ['n2Storage'] },
   { id: 'fm_implant_damage', draft: true, name: 'Unannealed implant damage', pattern: 'implant_damage',

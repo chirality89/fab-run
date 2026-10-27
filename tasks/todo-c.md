@@ -226,7 +226,7 @@ That makes 24 + 5 + ~5 + ~6 = **about 40 items**, plus new failure modes. Every 
   - 266/266; NMOS bot runs (seeds 1-20 x idle/random x starter/full) finish with every number finite.
 - **Waiting on David (item 2):**
   1. Confirm the NMOS do-nothing values above.
-  2. A 'copperLine' trait would read better than narrowFeatures on the Cu failure modes, but it changes the expected lotTraits in run.test.js. OK to change that test?
+  2. DONE (David agreed): the Cu failure modes use a new 'copperLine' trait; run.test.js lotTraits updated. Was: a 'copperLine' trait would read better than narrowFeatures on the Cu failure modes, but it changes the expected lotTraits in run.test.js. OK to change that test?
   3. Channeling on a high-dose arsenic n+ S/D implant is largely self-suppressed (it amorphizes the surface). Keep channeling_tail 0.04 as a simplification, make it smaller, or reword the step?
   4. The nmos `tradeoff` describes a burden with no 'versus'. Fine?
   5. Still open from item 1: should fm_dose_offset need a cause `when`? (Right in 314/400 NMOS runs, 160/400 Cu runs.)
@@ -251,3 +251,5 @@ Also needs: an `fm_sti_dishing` failure mode (field-oxide step height, thinning 
 
 ## Result
 - (open)
+
+- 2026-10-27: David agreed with all recommendations: do-nothing values confirmed, copperLine trait added, channeling 0.04 and the tradeoff wording kept as a stated simplification, fm_dose_offset left as is. 266/266.
