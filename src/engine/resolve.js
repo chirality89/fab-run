@@ -95,7 +95,11 @@ function toolHealth(state, effect) {
   if (!tool) throw new Error(`toolHealth: no tool for room ${roomId}`);
   const delta = checkFinite(effect.delta, 'toolHealth delta');
   const health = Math.min(MAX_HEALTH, Math.max(MIN_HEALTH, tool.health + delta));
-  return { ...state, tools: { ...state.tools, [roomId]: { ...tool, health } } };
+  // A service (health up: a bath change, a spare part) marks the SPC chart
+  // like a PM, so its rules judge only the lots run since (David, 27 Oct
+  // 2026, M4.5 item 4). Wear (health down) leaves no mark.
+  const pmAt = delta > 0 ? [...tool.pmAt, tool.spc.length] : tool.pmAt;
+  return { ...state, tools: { ...state.tools, [roomId]: { ...tool, health, pmAt } } };
 }
 
 // Makes another card playable. An id is only added once.

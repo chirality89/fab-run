@@ -105,7 +105,7 @@ export function drawSpc(view) {
   box.append(el('p', 'spc-title', `${view.parameter} (${view.unit})`));
   box.append(drawSpcPicture(view));
   box.append(el('p', 'spc-limits', view.limitsText));
-  box.append(el('p', 'spc-limits', 'Key: solid red lines spec, dashed lines control limits, black line centre; a red square is beyond control; PM marks a PM.'));
+  box.append(el('p', 'spc-limits', 'Key: solid red lines spec, dashed lines control limits, black line centre; a red square is beyond control; PM marks a PM or a service.'));
   if (view.latestText) box.append(el('p', 'spc-limits', view.latestText));
   box.append(el('p', view.inControl ? 'spc-verdict' : 'spc-verdict spc-verdict-out', view.verdictText));
   if (view.rules.length > 0) {

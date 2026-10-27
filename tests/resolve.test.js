@@ -21,7 +21,7 @@ function makeState(changes = {}) {
     lot: createLot(),
     cash: 1000,
     room: { id: 'etch', timeLeft: 30, revealed: [] },
-    tools: { etch: { health: 80 } },
+    tools: { etch: { health: 80, spc: [0.1, -0.2], pmAt: [] } },
     equipment: [],
     slots: {},
     enabled: [],
@@ -67,6 +67,11 @@ test('reveal adds to room.revealed once; "none" does nothing', () => {
   assert.deepEqual(twice.room.revealed, ['allSites']);
   const state = makeState();
   assert.equal(applyEffect(state, { op: 'reveal', what: 'none' }, ITEM), state);
+});
+
+test('toolHealth: a service marks the SPC chart like a PM, wear does not', () => {
+  assert.deepEqual(applyEffect(makeState(), { op: 'toolHealth', delta: 15 }, ITEM).tools.etch.pmAt, [2], 'mark before the next point');
+  assert.deepEqual(applyEffect(makeState(), { op: 'toolHealth', delta: -5 }, ITEM).tools.etch.pmAt, []);
 });
 
 test('toolHealth changes the current room tool, kept within 0..100', () => {
