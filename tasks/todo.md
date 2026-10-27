@@ -1,5 +1,55 @@
 # Fab Run — Task Tracker
 
+## Planned: M4.5 item 4 — SPC flags that predict, and a flagged tool that costs more (issue 4, claim 9)
+
+**Status: PLAN for David's OK (27 Oct 2026). No code is changed until you say yes. Questions Q1–Q3 are at the end.**
+
+**Your calls already made (26 Oct 2026):** add the trend rule, 6 points in a row steadily rising or falling. Name verdicts by rule; one point past a limit is an excursion, not a shift.
+
+### What the players hit (Lane F issue 4)
+- A flagged wet clean cost 0.9 points, no more than a healthy one; an unflagged CMP cost 8.2. PM on a flagged tool "saved nothing measurable". Players learned to ignore red flags.
+- A single spike is called a shift ("the etch rate may be shifting"), most flags don't name the rule, and the chart has no numbers on its axis.
+- An audit "serviced" the wet clean, but its chart still read out of control.
+
+### What I measured (3000 seeds, every monitored tool at the start of a run)
+| Tool health | Drift cost in its room | Chart flagged |
+|---|---|---|
+| 90s | 0.0 points | 6% |
+| 80s | 0.1 | 8% |
+| 70s | 0.6 | 13% |
+| 60s | 2.3 | 35% |
+| 50s | 6.7 | 69% |
+
+- **The flags already predict, on average.** A flagged tool costs 2.84 points of drift, against 0.65 for an unflagged one (4×), and a PM on a flagged tool saves 2.8 on average.
+- **The player can't see it.** A room's total is mostly its own process risks (CMP's 8.2 is dishing and removal, not drift), so a 2-point drift share disappears inside it. A flagged wet clean whose drift costs 0.3 looks the same as a healthy one.
+- **About 1 in 12 healthy tools is flagged anyway** (one point past 3σ, 2 of 3 past 2σ, or 8 in a row: ordinary false alarms over 11 points). That is real SPC, but the verdict calls every one of them a shift.
+- The trend rule adds about 1.5% more flags (noise is large next to 5 health per lot, so 6 steadily rising points are rare). It adds little detection, but it names what an engineer looks for.
+
+### The plan (Lane A: `tools.js`, `spcView.js`, `spcChart.js`, `view.js`, `render.js`)
+1. **Trend rule** (`tools.js` `spcRules`): 6 points in a row each higher than the last, or each lower. Hand-made point lists in the tests, including 5 rising (no flag) and a run broken by a tie.
+2. **Verdicts by rule** (`spcView.js`). The rule lines stay under the verdict; the verdict names the worst finding:
+   - only a point past the control limit: "**Excursion**: one lot measured past the control limit. One point can be a bad measurement or a one-off; watch the next lot."
+   - 2 of 3 past 2σ, or 8 on one side: "**Shift**: the etch rate has moved off centre. A shifted tool costs yield in this room until it is PM'd."
+   - 6 steadily rising or falling: "**Trend**: the etch rate is moving lot by lot. It will cost more yield the further it goes."
+   - Shift with a trend says both. No rule: "In control: …" as today.
+3. **Numbers on the chart axis** (`spcChart.js`): the centre, control and spec lines get their values at the left edge (e.g. "300", "324", "332"), so a point can be read without the line of text below. Lane D may restyle it later.
+4. **Show what the drift cost, after the room runs** (`view.js` `resultView`, `render.js`): "Of this, about 2.3 points came from the etch tool's drift (see its SPC chart)." Left out under 0.05. The engine notes the drift risk added on entering (`room.driftRisk`, beside `room.itemCash`), and the result splits that pattern's loss in proportion: a card that scales the pattern scales both parts alike, so the share holds. This keeps tool health hidden before you decide (you read the chart), and tells you afterwards whether the chart was right. Hand check: seed 123456, scatter off, etch tool fixed at health 60, nothing played: drift risk −ln(in-spec at 2σ ÷ in-spec on target) = 0.02295, worked by hand in the tracker before the test is written.
+5. **A service restarts the chart** (Q2): a `toolHealth` effect that raises health (the audit's bath change, a spare part) puts a service mark on the chart, like a PM, so the rules look only at lots run since. The verdict before the next lot reads "Just serviced: no lots measured since yet." (today's PM text, reworded for both).
+
+### Tests and checks
+- Hand-made SPC point lists for the trend rule and each verdict; the result share hand-checked; the audit test checks the mark.
+- Screen tests: the SPC panel's verdict and axis labels at both sizes, `--repeat-each=5` on the phone.
+- `SAVE_VERSION` 6 if Q2 is yes (a service now adds a mark, so a saved run's chart would differ); no yield value changes in any existing test.
+- `physics-reviewer` on the verdict texts; `npm test`, `npm run screens`, the bot.
+
+**Q1 (should a flagged tool cost more than today?)** On average it already costs 4× an unflagged one, so I think the fix is to *show* it (step 4), not to change the numbers. A) keep the ±4σ spec limits (Cp 1.33) and show the drift cost after each room (my recommendation; balance waits for M7). B) also tighten the spec to ±3.5σ (Cp 1.17): drift at health 60 costs 6.6 points instead of 2.3, a flagged tool 7.5 on average, a PM saves 7.3, and a tool that starts at 50 costs 15.8 in its room. Runs get harder; the idle run's 58.5% would fall.
+
+**Q2 (service marks).** Should a service by an item or event (the audit's +15 bath change) restart the chart like a PM? I'd say yes: the engineer would note the bath change and judge the next lots on their own. It changes what the existing `toolHealth` operation does (adds a mark), so it is a small engine change. If no, the audit's wording (Lane C) should say the chart will clear only as new lots come in.
+
+**Q3 (wording).** Are "Excursion", "Shift" and "Trend", with the sentences above, the words you'd use on the floor?
+
+---
+
 ## Done: M4.5 item 3 — etch-stop logic (claim 11), and the etch forecast says what is carried in
 
 **Status: built 26 Oct 2026. David's answers: Q1 ×0.3; Q2 B (the stop card stays unlocked by the notebook, not a starter card); Q3 make the wording clearer.**
