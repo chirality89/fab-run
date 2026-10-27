@@ -305,7 +305,7 @@ test('spcView: rules in words, and the verdict', () => {
   const spc = roomView({ ...state, tools }).spc;
   assert.deepEqual(spc.rules, ['A point beyond the lower control limit', '8 points in a row below the centre line']);
   assert.equal(spc.inControl, false);
-  assert.equal(spc.verdictText, "Shift: the etch rate chart has moved off centre. A shifted tool costs yield in this room until it is PM'd.");
+  assert.equal(spc.verdictText, "Shift: the etch rate chart has moved off centre. A shifted tool costs yield in this room until it is PM'd or serviced.");
   assert.deepEqual(spc.outOfControl.map((out, i) => (out ? i : null)).filter(i => i !== null), [9]);
 
   const calm = { ...state.tools, etch: { ...state.tools.etch, spc: [0.5, -0.5, 0.2] } };
@@ -318,13 +318,23 @@ test('spcView: the verdict names the worst finding: excursion, trend, shift and 
   const verdictFor = spc => roomView({ ...state, tools: { ...state.tools, etch: { ...state.tools.etch, spc } } }).spc;
   const spike = verdictFor([0.5, -0.5, 3.2, 0.1]);
   assert.deepEqual(spike.rules, ['A point beyond the upper control limit']);
-  assert.equal(spike.verdictText, 'Excursion: one lot measured past the control limit. One point can be a bad measurement or a one-off; watch the next lot.');
+  assert.equal(spike.verdictText, 'Excursion: one lot measured past the control limit. Standard practice is to re-measure and check the tool. If it was a bad measurement or a one-off, the next lots come back inside the limits.');
   const rising = verdictFor([-0.5, -0.3, 0, 0.2, 0.6, 0.7]);
   assert.deepEqual(rising.rules, ['6 points in a row steadily rising']);
   assert.equal(rising.verdictText, 'Trend: the etch rate chart is moving lot by lot. The further it goes, the more yield it costs.');
   const both = verdictFor([-0.1, -0.2, -0.3, -0.4, -0.5, -0.6, -0.7, -0.8]);
   assert.deepEqual(both.rules, ['8 points in a row below the centre line', '6 points in a row steadily falling']);
   assert.match(both.verdictText, /^Shift and trend: the etch rate chart has moved off centre and is still moving lot by lot\./);
+});
+
+test('spcView: on a one-sided chart a low-side run costs nothing, and the verdict says so', () => {
+  const inClean = enterStep(createRun({ seed: SEED, scatterStrength: 0, toolDrift: false }));
+  const withSpc = spc => roomView({ ...inClean, tools: { ...inClean.tools, clean: { ...inClean.tools.clean, spc } } }).spc;
+  const low = withSpc([-0.2, -0.5, -0.1, -0.9, -0.3, -0.4, -0.2, -0.6]);
+  assert.deepEqual(low.rules, ['8 points in a row below the centre line']);
+  assert.equal(low.verdictText, 'Shift (low side): the particle adders chart reads below its centre line. Fewer is never out of spec, so no yield cost, but an engineer still checks the gauge and the centre line.');
+  const high = withSpc([0.2, 0.5, 0.1, 0.9, 0.3, 0.4, 0.2, 0.6]);
+  assert.match(high.verdictText, /^Shift: the particle adders chart has moved off centre\./);
 });
 
 test('the metrology room has no SPC chart', () => {

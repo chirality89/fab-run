@@ -33,17 +33,32 @@ function lotsText(count) {
 //   rule 1 alone (one point past the control limit) → Excursion
 // The chart's own name ("the etch rate chart") keeps the sentence right for
 // every parameter, singular or plural.
-function verdictText(name, lotsSincePm, tripped, hadPm) {
+// On a one-sided chart (particle adders, seam rate) the low side can't fail
+// spec, so a signal there is said as costing nothing (physics review,
+// 27 Oct 2026). Rules on the costly side decide the verdict.
+function verdictText(name, lotsSincePm, tripped, hadPm, monitor) {
   if (lotsSincePm === 0) return 'Just PM\'d or serviced: no lots measured since yet.';
-  const has = rule => tripped.some(entry => entry.rule === rule);
+  const harmless = entry => monitor.oneSided && onGoodSide(entry, monitor.direction);
+  const costly = tripped.filter(entry => !harmless(entry));
+  const has = rule => costly.some(entry => entry.rule === rule);
   const shift = has(2) || has(3);
-  const PM_COST = 'A shifted tool costs yield in this room until it is PM\'d.';
+  const PM_COST = 'A shifted tool costs yield in this room until it is PM\'d or serviced.';
   if (shift && has(4)) return `Shift and trend: the ${name} chart has moved off centre and is still moving lot by lot. ${PM_COST}`;
   if (shift) return `Shift: the ${name} chart has moved off centre. ${PM_COST}`;
   if (has(4)) return `Trend: the ${name} chart is moving lot by lot. The further it goes, the more yield it costs.`;
-  if (has(1)) return 'Excursion: one lot measured past the control limit. One point can be a bad measurement or a one-off; watch the next lot.';
+  if (has(1)) return 'Excursion: one lot measured past the control limit. Standard practice is to re-measure and check the tool. If it was a bad measurement or a one-off, the next lots come back inside the limits.';
+  if (costly.length < tripped.length) {
+    return `Shift (low side): the ${name} chart reads below its centre line. Fewer is never out of spec, so no yield cost, but an engineer still checks the gauge and the centre line.`;
+  }
   const since = hadPm ? ' since the last PM or service' : '';
   return `In control: no rule tripped in the last ${lotsText(lotsSincePm)}${since}.`;
+}
+
+// True for a tripped rule on the side a tool doesn't drift towards: below
+// the centre or falling, for a chart whose drift goes up (direction +1).
+function onGoodSide(entry, direction) {
+  const low = entry.side === 'below' || entry.side === 'falling';
+  return direction > 0 ? low : !low;
 }
 
 // One tripped rule, in words.
@@ -97,6 +112,6 @@ export function spcView(state, roomId) {
     ].map(z => ({ z, text: toUnits(z).toFixed(decimals - 1) })),
     rules: tripped.map(ruleText),
     inControl: tripped.length === 0,
-    verdictText: verdictText(name, sincePm.length, tripped, pmMarks.length > 0),
+    verdictText: verdictText(name, sincePm.length, tripped, pmMarks.length > 0, monitor),
   };
 }

@@ -10,6 +10,7 @@
 3. Axis numbers at the chart's left edge (`spcChart.js`): 332 / 324 / 300 / 276 / 268 for etch.
 4. Result line (`run.js` `room.driftShare`, `view.js`): "Of this, about 1.9 points came from the Etch tool's drift (see its SPC chart)." Hand checks (independent python model, seed 123456, scatter off, etch tool at 60): drift risk 0.0229496, share of residue 0.364570, room loss 17.9668 with 1.9475 from drift; with over-etch 0.5925 (the card cuts the drift's residue too).
 5. A service marks the chart (`resolve.js` `toolHealth`, health up only); the audit test checks it. `SAVE_VERSION` 6.
+6. Physics-review fixes: on a one-sided chart a run below the centre is "Shift (low side): … no yield cost" (my first verdict said it cost yield: lesson added); Excursion now says "Standard practice is to re-measure and check the tool. If it was a bad measurement or a one-off, the next lots come back inside the limits."; "until it is PM'd or serviced"; a content test that no card or item adds risk in a room or services its tool on every visit.
 
 **Checks:** `npm test` 262/262; etch and PM screens 5 runs in a row; screenshots checked (desktop room: axis numbers and "Shift"; phone result: the drift line). Seed 123456's etch tool starts at 73: the chart says Shift, and the result shows the drift cost only 0.1 points after over-etch, which is the point: the chart was right, and the line says how much it mattered.
 

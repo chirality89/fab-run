@@ -199,7 +199,8 @@ export function enterStep(state) {
   if (drift > 0) lot = addRisk(lot, monitor.pattern, drift);
   // The drift's share of its pattern, so the result screen can say what the
   // drift cost (M4.5 item 4). Cards and items only multiply a pattern, so
-  // the share holds until the room resolves. Null for a healthy tool.
+  // the share holds until the room resolves (tests/content.test.js checks
+  // that no card or item uses addRisk). Null for a healthy tool.
   const driftShare = drift > 0 ? { pattern: monitor.pattern, fraction: drift / lot.risks[monitor.pattern] } : null;
   // Entering a room also closes any shop, PM/DOE or event stop the lot was at.
   let next = {
