@@ -43,7 +43,7 @@ Items are Lane F issue numbers (`docs/playtest/summary.md`) and physics-review c
 - [ ] Bring Lane F's reports and Lane D's native-oxide commit onto `main`
 - [x] Remove the fixed etch and litho yield tax, so tool health and choices drive the loss (issue 1, claim 8)
 - [x] Etch-stop logic (claim 11; David: the stop is a choice, route label "Deposition (oxide)"; needs a small engine rule, plan and ask first)
-- [ ] SPC flags that predict, and a flagged tool that costs more (issue 4)
+- [x] SPC flags that predict, and a flagged tool that costs more (issue 4; David, 27 Oct 2026: keep the numbers and show the drift cost after each room)
 - [x] Show card and shop item effects before you commit (issue 6); placeholder stops stop charging for nothing (issue 5)
 - [ ] Diagnosis explains itself and offers only failure modes that could have been there (issue 2)
 - [ ] A real decision in every room (issue 3; David: starter practices in most rooms (Lane C) and skip the hand screen when there is nothing to play (Lane A))

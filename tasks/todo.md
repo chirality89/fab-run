@@ -1,8 +1,19 @@
 # Fab Run — Task Tracker
 
-## Planned: M4.5 item 4 — SPC flags that predict, and a flagged tool that costs more (issue 4, claim 9)
+## Done: M4.5 item 4 — SPC flags that predict, and a flagged tool that costs more (issue 4, claim 9)
 
-**Status: PLAN for David's OK (27 Oct 2026). No code is changed until you say yes. Questions Q1–Q3 are at the end.**
+**Status: built 27 Oct 2026. David: Q1 A (keep the numbers), Q2 yes (a service restarts the chart), Q3 yes (Excursion, Shift, Trend).**
+
+**What was built (one commit each)**
+1. Trend rule (`tools.js`, rule 4: 6 in a row steadily rising or falling; a tie breaks it).
+2. Verdicts by rule (`spcView.js`): Excursion / Shift / Trend / Shift and trend. The sentences say "the etch rate chart", so they read right for plural parameters (particle adders) too. "Just PM'd or serviced: no lots measured since yet."
+3. Axis numbers at the chart's left edge (`spcChart.js`): 332 / 324 / 300 / 276 / 268 for etch.
+4. Result line (`run.js` `room.driftShare`, `view.js`): "Of this, about 1.9 points came from the Etch tool's drift (see its SPC chart)." Hand checks (independent python model, seed 123456, scatter off, etch tool at 60): drift risk 0.0229496, share of residue 0.364570, room loss 17.9668 with 1.9475 from drift; with over-etch 0.5925 (the card cuts the drift's residue too).
+5. A service marks the chart (`resolve.js` `toolHealth`, health up only); the audit test checks it. `SAVE_VERSION` 6.
+
+**Checks:** `npm test` 262/262; etch and PM screens 5 runs in a row; screenshots checked (desktop room: axis numbers and "Shift"; phone result: the drift line). Seed 123456's etch tool starts at 73: the chart says Shift, and the result shows the drift cost only 0.1 points after over-etch, which is the point: the chart was right, and the line says how much it mattered.
+
+**Original plan below.**
 
 **Your calls already made (26 Oct 2026):** add the trend rule, 6 points in a row steadily rising or falling. Name verdicts by rule; one point past a limit is an excursion, not a shift.
 
