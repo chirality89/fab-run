@@ -337,3 +337,31 @@ The test compared two results without checking that the results had anything in 
 ### Rule to Prevent
 ✅ When a test compares "with X" against "without X", first assert the result is not empty
 ✅ For diagnosis tests, play the lot through (the idle walk) so it has losses to diagnose
+
+## A test expected item names typed from memory
+
+### What Happened
+A new Notebook test expected "Additive bath" and "Electrostatic chuck upgrade". The items are named "Three-additive copper bath" and "Edge-tuned chuck", so the test failed on its first run.
+
+### Root Cause
+The expected names were written from the items' ids, not read from `content.js`.
+
+### Rule to Prevent
+✅ Before writing an expected name or number from content, print it from `content.js` first
+✅ When a brand-new test fails, check the expected value's source before touching the code
+
+
+## A test helper that always took the first offered stop stopped testing the shop (26 Oct 2026)
+- **What happened:** after the map stopped offering metrology, every corridor offered PM or an event. `takeEveryStop` in `storage.test.js` always took PM first, then event, so it never shopped, and the "every action replays" test found no seed that used `buy`.
+- **Root cause:** the helper's preference order quietly depended on which stops a corridor could offer. Taking a kind out of the pool changed what the helper could ever reach.
+- **Rule:** a test helper that has to cover every kind of choice should turn its preference with something that varies (here the corridor number), not use a fixed "first match" order. When a pool of choices changes, check which helpers pick from it.
+
+## A screenshot caught what a test didn't: the map legend still listed a stop the map no longer offers (26 Oct 2026)
+- **What happened:** M4.5 item 5 took metrology off the map, but the floor-plan legend was built from every stop in `sideStops.js`, so it still said "MET Metrology". No test checked the legend, and I didn't look at a floor-plan screenshot after that item.
+- **Root cause:** two lists described the same thing (the stops in content, the stops the map offers), and I changed only one of them.
+- **Rule:** when a change takes something out of the game, search for every place that lists it (legends, keys, help text), and look at the screenshot of every screen that could show it, not only the screens the change was about.
+
+## 26 Oct 2026 — "Carried in" told the player the room was blameless
+- **What happened:** the etch forecast's new sentence said depth variation "was not added in this room". The physics review caught that it is false: without a stop, depth variation comes from this etch's own rate non-uniformity, and dishing is made by the polish itself. Only how big each risk gets was set earlier (stack, layout).
+- **Root cause:** I wrote plain words for "startRisks" (risk entered at the start) and read that as "caused earlier". Where a risk enters the model is not where the physics happens.
+- **Rule:** text that explains a model mechanic must say what the physics does, not what the code does. Have `physics-reviewer` read player-facing explanations, not only effect numbers, and keep the reason per pattern in data next to the pattern.

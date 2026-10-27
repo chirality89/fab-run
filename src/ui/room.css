@@ -83,6 +83,7 @@
   color: var(--muted);
 }
 .expected-loss { margin: 0; font-weight: 500; }
+.carried-in { margin: 0; }
 
 /* --- Wafer map: 5 × 5 square tiles ---------------------------------------- */
 .wafer-map {
@@ -163,6 +164,10 @@
 .card-name { font: 600 20px/1.15 var(--cond); }
 .card-cost { font-family: var(--mono); font-size: 14px; color: var(--muted); }
 .card-summary { display: block; margin: 4px 0 0; font-size: 15px; color: var(--muted); }
+/* What a card or item does, in numbers, and what a playable card would do
+   to this room's forecast (M4.5 item 5). Dark text, no new colours. */
+.card-effects { display: block; margin: 4px 0 0; font-size: 15px; color: var(--ink); }
+.card-points { display: block; margin: 4px 0 0; font-size: 15px; font-weight: 600; color: var(--ink); }
 .card-reason { display: block; margin: 6px 0 0; font-size: 15px; font-weight: 600; color: var(--bad); }
 
 /* --- Buttons: Run etch, Replay this seed, New seed ------------------------ */
@@ -321,6 +326,14 @@
 .shop-next { display: block; margin-top: 4px; font-size: 15px; }
 .shop-bought { display: block; margin-top: 8px; font-weight: 600; color: var(--ok); }
 .buy-button { margin-top: 10px; }
+
+/* --- Notebook page and its button (notebookPage.js) ------------------------ */
+.notebook-button { margin-top: 10px; }   /* white on the blue band, like other secondary buttons */
+.notebook-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.notebook-entry { border-color: var(--line); }   /* a page to read, not a button to press */
+.notebook-unlocks { display: block; margin-top: 6px; font-size: 15px; font-weight: 600; }
+.notebook-seed { display: block; margin-top: 6px; font-family: var(--mono); font-size: 14px; color: var(--muted); }
+.notebook-still { margin: 12px 0; color: var(--muted); }
 
 /* --- Tool SPC chart (spcChart.js) ------------------------------------------ */
 .spc-title { margin: 0 0 6px; font-weight: 600; }

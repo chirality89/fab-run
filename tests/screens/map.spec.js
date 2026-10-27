@@ -78,7 +78,7 @@ test('between rooms the corridor offers 2–3 side stops or straight on', async 
   expect(offers === 2 || offers === 3, `${offers} offers (seed ${SEED})`).toBe(true);
   await expect(page.locator('.corridor-here')).toHaveCount(1);
   await expect(page.locator('.bay-done')).toHaveCount(1);
-  await expect(goButton(page)).toHaveText('Go straight to step 2: Deposition (SiN + oxide)');
+  await expect(goButton(page)).toHaveText('Go straight to step 2: Deposition (oxide)');
   await expectNoSidewaysScroll(page);
   await screenshot(page, '5-map-corridor');
   expect(errors, `console errors (seed ${SEED})`).toEqual([]);
@@ -94,8 +94,10 @@ test('taking a side stop costs its minutes, then continues to the next room', as
   const minutes = Number(costText.match(/\+(\d+) min/)[1]);
   expect(minutes, `stop cost (seed ${SEED})`).toBeGreaterThan(0);
   await press(page, stop);
-  await expect(page.locator('.stop-panel')).toContainText(`cost ${minutes} min of cycle time`);
-  await expect(page.locator('.stop-panel')).toContainText('comes in the next update');
+  // Seed 123456's first corridor offers PM and an event (metrology, the old
+  // placeholder stop, is no longer offered since M4.5 item 5). Every stop
+  // screen states what it cost.
+  await expect(page.locator('body')).toContainText(`cost ${minutes} min of cycle time`);
   await screenshot(page, '6-side-stop');
   await press(page, goButton(page));
   await expect(title(page)).toHaveText('Deposition');

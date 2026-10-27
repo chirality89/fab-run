@@ -5,18 +5,20 @@
 // DOM, Node can test it (tests/view.test.js). render.js draws what this
 // returns.
 
-import { EQUIPMENT, MATERIALS, ROOMS } from '../content/content.js';
+import { EQUIPMENT, MATERIALS, ROOMS, PATTERNS } from '../content/content.js';
 import { LOT_TYPES } from '../content/lotTypes.js';
 import { SIDE_STOPS } from '../content/sideStops.js';
 import {
   SCRAP_LINE, CUSTOMER_SPEC, SITE_GOOD_LINE, SIDE_STOP_MINUTES, QTIME_RISK_PER_MINUTE,
 } from '../content/balance.js';
 import { normalizeSeed } from '../engine/rng.js';
+import { SIDE_STOP_KINDS } from '../engine/map.js';
 import { lotYield, realizeRisks } from '../engine/lot.js';
-import { whyIllegal } from '../engine/run.js';
+import { whyIllegal, playCard } from '../engine/run.js';
 import { whyCannotBuy, findShopItem } from '../engine/shop.js';
 import { cardInRun } from '../engine/doe.js';
 import { spcView } from './spcView.js';
+import { effectsLine, itemName, words } from './effectsText.js';
 
 // A fraction (0..1) as a percent with one decimal, e.g. 0.913931 → 91.4.
 export function toPercent(fraction) {
@@ -28,10 +30,13 @@ export function toPercent(fraction) {
 const SITE_GOOD_PERCENT = Math.round(SITE_GOOD_LINE * 100);
 const SPEC_PERCENT = Math.round(CUSTOMER_SPEC * 100);
 
-// The whole percent printed on a site tile, rounded DOWN (89.7% reads 89).
-// The tiny 1e-9 stops 0.29 × 100 = 28.999… from reading as 28.
+// The whole percent printed on a site tile, rounded to the NEAREST (89.7%
+// reads 90, 89.4% reads 89). It used to round down, which made the map
+// always read lower than the headline yield (Lane F issue 13; David,
+// 26 Oct 2026). The tiny 1e-9 stops 0.285 × 100 = 28.4999… from reading
+// as 28.
 function sitePercent(value) {
-  return Math.floor(value * 100 + 1e-9);
+  return Math.round(value * 100 + 1e-9);
 }
 
 // Which band a site falls in. It is worked out from the PRINTED whole
@@ -64,7 +69,9 @@ export function yieldBand(fraction) {
 
 // The legend under the wafer map, built from the balance numbers.
 export function mapKeyText() {
-  return `Each site: % of the 25 wafers still good there. Pass ${SITE_GOOD_PERCENT}%+, `
+  // The number is an expected good fraction at that die position, not a
+  // count of wafers (Lane F issue 10, physics review claim 10).
+  return `Each site: % of this die position expected good across the lot. Pass ${SITE_GOOD_PERCENT}%+, `
     + `warning ${SPEC_PERCENT}–${SITE_GOOD_PERCENT - 1}%, fail under ${SPEC_PERCENT}%.`;
 }
 
@@ -90,18 +97,43 @@ function friendlyReason(card, reason) {
   return reason.charAt(0).toUpperCase() + reason.slice(1);
 }
 
+// How playing a card would change this room's expected loss: play it on a
+// copy of the state and compare the forecasts. Positive = less lost. Only
+// for a playable card. (playCard returns a new state; the real one is
+// untouched.)
+function pointsChange(state, step, cardId) {
+  const after = playCard(state, cardId);
+  return expectedLossPoints(state.lot, step) - expectedLossPoints(after.lot, step);
+}
+
+// The line under a playable card, e.g. "About 1.0 point less lost in this
+// room." Null when the change is under 0.05 points, e.g. a card that acts
+// in a later room (its effects line still says what it does).
+export function pointsChangeText(points) {
+  const rounded = Math.abs(points).toFixed(1);
+  if (rounded === '0.0') return null;
+  const unit = rounded === '1.0' ? 'point' : 'points';
+  return `About ${rounded} ${unit} ${points > 0 ? 'less' : 'more'} lost in this room.`;
+}
+
 // One card in the hand. The one-line summary is the card's own `tradeoff`
 // text from content.js, so the screen never invents physics. An upgraded
-// card shows its DOE version (doe.js cardInRun).
-function cardView(state, cardId) {
+// card shows its DOE version (doe.js cardInRun). Under it: what the card
+// does (effectsText.js) and, if playable, what that does to this room's
+// forecast (M4.5 item 5).
+function cardView(state, step, cardId) {
   const card = cardInRun(state, cardId);
   const reason = whyIllegal(state, cardId);
+  const points = reason === null ? pointsChange(state, step, cardId) : null;
   return {
     id: card.id,
     name: card.name,
     minutes: card.cost.time ?? 0,
     cash: card.cost.cash ?? 0,
     summary: card.tradeoff,
+    effectsText: effectsLine(card.effects),
+    pointsChange: points,
+    pointsText: points === null ? null : pointsChangeText(points),
     doe: state.upgraded.includes(cardId),
     playable: reason === null,
     reason: reason === null ? null : friendlyReason(card, reason),
@@ -116,6 +148,36 @@ function expectedLossPoints(lot, step) {
   return (lotYield(lot) - lotYield(after)) * 100;
 }
 
+// How much of this room's forecast comes from a risk whose size was set
+// before this room (physics review: say what is carried in from the stack;
+// David, 26 Oct 2026). Those are the lot type's startRisks patterns, and
+// the reason for each is its startRiskNotes sentence (lotTypes.js), so etch
+// names depth variation and CMP names dishing. E.g. "About 6.8 of these
+// points come from depth variation (etch depth differs center to edge). The
+// film stack set how big this is before the lot got here: …"
+// Null when that share is under 0.05 points.
+export function carriedInText(lot, step, lotType) {
+  const after = realizeRisks(lot, step.realizes);
+  const parts = Object.keys(lotType.startRisks)
+    .filter(pattern => step.realizes.includes(pattern))
+    .map(pattern => ({ pattern, points: ((after.lost[pattern] ?? 0) - (lot.lost?.[pattern] ?? 0)) * 100 }))
+    .filter(part => part.points.toFixed(1) !== '0.0');
+  if (parts.length === 0) return null;
+  return parts.map(({ pattern, points }) =>
+    `About ${points.toFixed(1)} of these points come from ${words(pattern)} (${PATTERNS[pattern]}). `
+    + (lotType.startRiskNotes?.[pattern] ?? '')).join(' ').trim();
+}
+
+// What the room's equipment and materials did to cash as the lot came in,
+// e.g. "On entering, In-situ pad conditioner took 20 cash." Null if
+// nothing changed cash (Lane F issue 9: cash went with no message).
+export function cashNoteText(itemCash = []) {
+  if (itemCash.length === 0) return null;
+  const parts = itemCash.map(({ id, delta }) =>
+    (delta < 0 ? `${itemName(id)} took ${-delta} cash` : `${itemName(id)} gave ${delta} cash`));
+  return `On entering, ${parts.join(' and ')}.`;
+}
+
 // Everything the room screen shows. Call it only while the lot is in a room.
 export function roomView(state) {
   if (state.room === null) throw new Error('roomView: the lot is not in a room');
@@ -128,6 +190,7 @@ export function roomView(state) {
     seed: state.seed,
     roomId,
     roomName: ROOMS[roomId].name,
+    cashNoteText: cashNoteText(state.room.itemCash),
     stepNumber: state.stepIndex + 1,
     stepCount: route.length,
     stepLabel: step.label,
@@ -144,9 +207,10 @@ export function roomView(state) {
     slots: slotsView(state, roomId),
     toolHealth: state.tools[roomId].health,   // not shown: the screen shows SPC only (David)
     spc: spcView(state, roomId),
-    hand: state.hand.map(cardId => cardView(state, cardId)),
+    hand: state.hand.map(cardId => cardView(state, step, cardId)),
     expectedLossPoints: lossPoints,
     expectedLossText: `This room will cost about ${lossPoints.toFixed(1)} points of yield if nothing changes.`,
+    carriedInText: carriedInText(state.lot, step, LOT_TYPES[state.lotTypeId]),
   };
 }
 
@@ -158,6 +222,18 @@ export function parseSeed(search, fallback) {
   const seed = normalizeSeed(Number(text));
   return seed === null ? fallback : seed;
 }
+
+// The note shown when the address had a ?seed= that is not a seed (Lane F
+// issue 15), e.g. '"abc" is not a seed (a whole number from 0 to
+// 4294967295), so this is seed 1234567.' Null when there was no ?seed= or
+// it was a good one. A very long value is cut short in the note.
+export function badSeedText(search, seed) {
+  const text = new URLSearchParams(search).get('seed');
+  if (text === null || parseSeed(search, null) !== null) return null;
+  const shown = text.length > 20 ? `${text.slice(0, 20)}…` : text;
+  return `"${shown}" is not a seed (a whole number from 0 to ${MAX_SEED_TEXT}), so this is seed ${seed}.`;
+}
+const MAX_SEED_TEXT = String(2 ** 32 - 1);   // the largest seed rng.js accepts
 
 // What happens to the lot after a room, in words.
 function outcomeText(after, route) {
@@ -206,9 +282,10 @@ export function resultView(before, after) {
 // --- the floor-plan map (M3 item 1) ----------------------------------------
 
 // The legend under the floor plan, built from the side stops' words
-// (src/content/sideStops.js).
-function stopKeyText() {
-  return Object.values(SIDE_STOPS).map(info => `${info.short} ${info.name}`).join(' · ');
+// (src/content/sideStops.js): only the kinds the map can offer, so a stop
+// not built yet (metrology) is not in it.
+export function stopKeyText() {
+  return SIDE_STOP_KINDS.map(kind => `${SIDE_STOPS[kind].short} ${SIDE_STOPS[kind].name}`).join(' · ');
 }
 
 // Where the lot is on the map. Between rooms it stands in a corridor; at the
@@ -309,8 +386,9 @@ function continueText(route, corridorIndex) {
   return `Continue to step ${nextIndex + 1}: ${route[nextIndex].label}`;
 }
 
-// The placeholder screen after taking a side stop that does nothing yet
-// (metrology and events come later in M3). `before` is the state in
+// The plain screen after a side stop with nothing to choose: today an event
+// stop where no event matters any more (a quiet shift). A placeholder stop
+// would show here too, but the map no longer offers one (M4.5 item 5). `before` is the state in
 // the corridor, `after` what walkCorridor returned.
 export function stopView(before, after, stopKind) {
   const info = SIDE_STOPS[stopKind];
@@ -368,6 +446,7 @@ function shopItemView(state, route, itemId) {
     roomName: ROOMS[item.room].name,
     price: item.cost.cash,
     tradeoff: item.tradeoff,
+    effectsText: effectsLine(item.effects),
     nextUseText: nextUseText(route, state.shop.corridor + 1, item.room),
     replacesText: bought ? null : replacesText(state, item),
     bought,

@@ -72,10 +72,10 @@ export const QTIME_RISK_PER_MINUTE = 0.001;
 // How many items one procurement stop offers (decision, David 25 Oct 2026).
 export const SHOP_OFFER_COUNT = 3;
 
-// Until the notebook exists (M4), the shop sells every equipment and
-// material, not only the unlocked ones. M4 turns this off, so that items
-// with an `unlockedBy` failure mode only appear once it is diagnosed.
-export const SHOP_SELLS_LOCKED_ITEMS = true;
+// Off since M4 item 4: the shop sells starter items, plus the items with an
+// `unlockedBy` failure mode only once it is in the notebook. True sells
+// everything (handy for trying out content).
+export const SHOP_SELLS_LOCKED_ITEMS = false;
 
 // --- Tool drift and SPC (M3 item 2b). Agreed with David, 25 Oct 2026. ---
 

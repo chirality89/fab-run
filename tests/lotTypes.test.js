@@ -122,11 +122,11 @@ test('traits are static traits that content checks with when: { lot }', () => {
   }
 });
 
-test('cuLine doing nothing: center 0.588605, inner 0.559898, outer 0.492567, yield 0.517954', () => {
+test('cuLine doing nothing: center 0.657047, inner 0.625002, outer 0.567295, yield 0.589352', () => {
   const lot = walkRouteDoingNothing(LOT_TYPES.cuLine);
-  const byRing = [0.588605, 0.559898, 0.492567];
+  const byRing = [0.657047, 0.625002, 0.567295];
   lot.sites.forEach((s, i) => close(s, byRing[ring(i)], `site ${i}`));
-  close(lotYield(lot), 0.517954, 'yield');
+  close(lotYield(lot), 0.589352, 'yield');
 });
 
 test('a Q-time step names a known pattern that a later step realizes', () => {
@@ -141,4 +141,28 @@ test('a Q-time step names a known pattern that a later step realizes', () => {
     });
   }
   assert.equal(LOT_TYPES.cuLine.route[4].qtime, 'qtime_oxide', 'the Cu line Q-time window is after step 5');
+});
+
+// A route step's own effects (M4.5 item 3) use the same operations as
+// content.js and name real patterns; a `when` may only check a flag.
+test('every route step effect uses a known operation, a known pattern and a flag condition', () => {
+  const STEP_OPS = new Set(['defectMult']);   // the only one a step needs so far
+  for (const lotType of ALL_LOT_TYPES) {
+    for (const step of lotType.route) {
+      for (const effect of step.effects ?? []) {
+        assert.ok(STEP_OPS.has(effect.op), `${lotType.id} ${step.label}: op ${effect.op}`);
+        assert.ok(effect.pattern in PATTERNS, `${lotType.id} ${step.label}: pattern ${effect.pattern}`);
+        assert.ok(effect.mult >= 0, `${lotType.id} ${step.label}: mult ${effect.mult}`);
+        if (effect.when) assert.deepEqual(Object.keys(effect.when), ['flag'], `${lotType.id} ${step.label}: when`);
+      }
+    }
+  }
+});
+
+test('every startRisks pattern has a startRiskNotes sentence (the forecast shows it)', () => {
+  for (const lotType of ALL_LOT_TYPES) {
+    for (const pattern of Object.keys(lotType.startRisks)) {
+      assert.ok(lotType.startRiskNotes?.[pattern], `${lotType.id}: no startRiskNotes for ${pattern}`);
+    }
+  }
 });

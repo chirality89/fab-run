@@ -10,20 +10,15 @@ import { whyCannotPm, whyCannotDoe } from '../engine/run.js';
 import { cardInRun } from '../engine/doe.js';
 import { spcView } from './spcView.js';
 import { nextUseText } from './view.js';
-
-// A pattern name in words: 'underlayer_attack' → 'underlayer attack'.
-const words = pattern => pattern.replace(/_/g, ' ');
+import { effectText } from './effectsText.js';
 
 // A card's cost and effects in one line, e.g.
-// "4 min · residue ×0.3 · underlayer attack ×1.5 · underlayer attack ×0.5 with etch_stop".
+// "4 min · residue ×0.3 · underlayer attack ×1.5 · underlayer attack ×0.5 with etch stop".
+// Only the yield effects: flags and reveals read the same before and after a DOE.
 function recipeText(card) {
   const parts = [`${card.cost.time ?? 0} min`];
   if (card.cost.cash) parts.push(`${card.cost.cash} cash`);
-  for (const effect of card.effects) {
-    if (effect.op !== 'defectMult') continue;   // flags and reveals read the same before and after
-    const condition = effect.when?.flag ? ` with ${words(effect.when.flag)}` : '';
-    parts.push(`${words(effect.pattern)} ×${effect.mult}${condition}`);
-  }
+  parts.push(...card.effects.filter(effect => effect.op === 'defectMult').map(effectText));
   return parts.join(' · ');
 }
 
@@ -81,6 +76,13 @@ export function pmView(state) {
     choices,
     doeText: `A DOE tunes one practice's recipe for the rest of the run. It costs ${DOE_CASH_COST} cash. You can do a PM or a DOE here, not both.`,
     doeOffers: state.pm.doeOffers.map(cardId => doeOfferView(state, cardId)),
-    goText: `Continue to step ${nextIndex + 1}: ${route[nextIndex].label}`,
+    // Before any choice the exit says plainly that you leave with nothing
+    // done; the stop's minutes are spent either way (Lane F issue 8).
+    goText: chosenNothing(state)
+      ? `Leave without a PM or DOE: on to step ${nextIndex + 1}, ${route[nextIndex].label}`
+      : `Continue to step ${nextIndex + 1}: ${route[nextIndex].label}`,
   };
 }
+
+// True while nothing has been PM'd or DOE'd at this stop.
+const chosenNothing = state => state.pm.done.length === 0 && state.pm.doeDone.length === 0;

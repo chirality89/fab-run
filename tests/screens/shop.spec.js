@@ -3,15 +3,25 @@
 //
 // Runs at desktop and phone size (playwright.config.js), on the first seed
 // from 123456 up whose corridor after step 2 offers procurement and sells the
-// pad conditioner, the DUV resist and the thick resist (tests/shopSeed.js).
+// pad conditioner, the DUV resist and the thick resist to a player whose
+// notebook unlocks them (tests/shopSeed.js).
 // Searched, so new equipment or materials in content.js can't break it.
 // Screenshots go to screenshots/desktop/ and screenshots/phone/.
 
 import { test, expect } from '@playwright/test';
-import { seedSellingTestItems } from '../shopSeed.js';
+import { seedSellingTestItems, SHOP_TEST_NOTEBOOK } from '../shopSeed.js';
 
 const SEED = seedSellingTestItems();
 const PAGE = `/?seed=${SEED}`;
+
+// Since M4 item 4 the shop sells only starter and unlocked items. Each page
+// starts with the notebook the seed search assumed (tests/shopSeed.js), so
+// the page's shop has the same stock. It is stored before the page loads.
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(notebook => {
+    localStorage.setItem('fabrun.notebook', JSON.stringify(notebook));
+  }, SHOP_TEST_NOTEBOOK);
+});
 
 async function press(page, locator) {
   if (test.info().project.use.hasTouch) await locator.tap();

@@ -14,13 +14,16 @@ const SEED = 123456;
 const PAGE = `/?seed=${SEED}`;
 const DOUBLE_CLICK_WINDOW_MS = 600;   // a little more than Chrome's 500 ms
 
-// The first seed from SEED up whose first corridor offers metrology, a stop
-// with nothing to choose (it shows the plain stop screen).
-function seedWithMetrologyFirst() {
+// The first seed from SEED up whose last corridor (after CMP) offers an
+// event. No event matters that late, so it is a quiet shift: a stop with
+// nothing to choose, which shows the plain stop screen. (Until M4.5 item 5
+// this test used the metrology stop, which the map no longer offers.)
+const LAST_CORRIDOR = 7;
+function seedWithQuietEventLast() {
   for (let seed = SEED; seed < SEED + 1000; seed++) {
-    if (createRun({ seed }).map[0].offers.includes('metrology')) return seed;
+    if (createRun({ seed }).map[LAST_CORRIDOR].offers.includes('event')) return seed;
   }
-  throw new Error(`no seed from ${SEED} offers metrology in the first corridor`);
+  throw new Error(`no seed from ${SEED} offers an event after CMP`);
 }
 
 // The first seed from SEED up whose corridor after step 2 offers procurement.
@@ -136,19 +139,24 @@ test('reload after Run shows the room result again; Continue leads to the map', 
 });
 
 test('reload at a quiet side stop shows that stop again, with its Continue', async ({ page }) => {
+  test.slow();   // walks the whole route to the last corridor
   const errors = watchForErrors(page);
-  const seed = seedWithMetrologyFirst();
+  const seed = seedWithQuietEventLast();
   await page.goto(`/?seed=${seed}`);
-  await press(page, goButton(page));
-  await pressAfterChange(page, runButton(page));
-  await pressAfterChange(page, button(page, 'Continue to the corridor'));
-  await pressAfterChange(page, page.locator('.stop-button', { hasText: 'Metrology' }));
+  await press(page, goButton(page));                                     // Enter step 1
+  for (let step = 1; step <= LAST_CORRIDOR + 1; step++) {
+    await pressAfterChange(page, runButton(page));
+    await pressAfterChange(page, button(page, 'Continue to the corridor'));
+    if (step <= LAST_CORRIDOR) await pressAfterChange(page, goButton(page)); // straight on
+  }
+  await pressAfterChange(page, page.locator('.stop-button', { hasText: 'Event' }));
+  await expect(page.locator('.outcome-text').first()).toContainText('quiet shift');
   const stopText = await page.locator('.outcome-text').first().textContent();
 
   await page.reload();
   await expect(page.locator('.outcome-text').first()).toHaveText(stopText);
   await pressAfterChange(page, goButton(page));
-  await expect(page.locator('.room-step')).toContainText('Step 2');
+  await expect(page.locator('.room-step')).toContainText('Step 9');
   expect(errors, `console errors (seed ${seed})`).toEqual([]);
 });
 

@@ -10,6 +10,7 @@ import { lotYield } from '../src/engine/lot.js';
 import { createRun, enterStep, resolveStep, walkCorridor, buyItem, legalCards } from '../src/engine/run.js';
 import { shopStock, whyCannotBuy } from '../src/engine/shop.js';
 import { EQUIPMENT, MATERIALS } from '../src/content/content.js';
+import { FULL_NOTEBOOK_UNLOCKS } from './shopSeed.js';
 
 const SEED = 123456;
 const TOLERANCE = 1e-6;
@@ -36,7 +37,7 @@ function walkToCorridor(state, corridorIndex) {
 // before etch that sells the optical endpoint detector.
 function seedSellingEndpointBeforeEtch() {
   for (let seed = SEED; seed < SEED + 1000; seed++) {
-    const start = createRun({ seed, scatterStrength: 0, toolDrift: false });
+    const start = createRun({ unlocked: FULL_NOTEBOOK_UNLOCKS, seed, scatterStrength: 0, toolDrift: false });
     for (let corridor = 0; corridor < ETCH; corridor++) {
       if (!start.map[corridor].offers.includes('procurement')) continue;
       const atShop = walkCorridor(walkToCorridor(start, corridor), 'procurement');
@@ -49,14 +50,14 @@ function seedSellingEndpointBeforeEtch() {
 // The first seed from SEED up whose first corridor offers procurement.
 function seedWithShopInFirstCorridor() {
   for (let seed = SEED; seed < SEED + 1000; seed++) {
-    if (createRun({ seed }).map[0].offers.includes('procurement')) return seed;
+    if (createRun({ unlocked: FULL_NOTEBOOK_UNLOCKS, seed }).map[0].offers.includes('procurement')) return seed;
   }
   throw new Error(`no seed from ${SEED} offers procurement in the first corridor`);
 }
 
 function openFirstShop(changes = {}) {
   const seed = seedWithShopInFirstCorridor();
-  const start = createRun({ seed, scatterStrength: 0, toolDrift: false, ...changes });
+  const start = createRun({ unlocked: FULL_NOTEBOOK_UNLOCKS, seed, scatterStrength: 0, toolDrift: false, ...changes });
   return { seed, atShop: walkCorridor(idleRoomToCorridor(start), 'procurement') };
 }
 
@@ -86,16 +87,16 @@ test('same seed, same stock; the stock does not touch the lot\'s random numbers'
   const first = openFirstShop().atShop;
   const second = openFirstShop().atShop;
   assert.deepEqual(first.shop.stock, second.shop.stock);
-  const beforeShop = idleRoomToCorridor(createRun({ seed: first.seed, scatterStrength: 0, toolDrift: false }));
+  const beforeShop = idleRoomToCorridor(createRun({ unlocked: FULL_NOTEBOOK_UNLOCKS, seed: first.seed, scatterStrength: 0, toolDrift: false }));
   assert.equal(first.rngState, beforeShop.rngState, `seed ${first.seed}`);
   assert.deepEqual(shopStock(beforeShop, 0), first.shop.stock, 'shopStock gives the stock walkCorridor opened');
 });
 
 test('different corridors and seeds give different stock (not always the same 3)', () => {
-  const start = createRun({ seed: SEED });
+  const start = createRun({ unlocked: FULL_NOTEBOOK_UNLOCKS, seed: SEED });
   const stocks = new Set();
   for (let corridor = 0; corridor < 8; corridor++) stocks.add(shopStock(start, corridor).join(','));
-  for (let seed = SEED; seed < SEED + 8; seed++) stocks.add(shopStock(createRun({ seed }), 0).join(','));
+  for (let seed = SEED; seed < SEED + 8; seed++) stocks.add(shopStock(createRun({ unlocked: FULL_NOTEBOOK_UNLOCKS, seed }), 0).join(','));
   assert.ok(stocks.size > 1, `${stocks.size} different stocks`);
 });
 
@@ -127,7 +128,7 @@ test('buyItem refuses an item not in stock, one too dear, and when no shop is op
   assert.match(whyCannotBuy(poor, id), /not enough cash/);
   assert.throws(() => buyItem(poor, id), /not enough cash/);
 
-  const straightOn = walkCorridor(idleRoomToCorridor(createRun({ seed })), null);
+  const straightOn = walkCorridor(idleRoomToCorridor(createRun({ unlocked: FULL_NOTEBOOK_UNLOCKS, seed })), null);
   assert.equal(straightOn.shop, null);
   assert.throws(() => buyItem(straightOn, id), /no shop open/);
 });
@@ -142,11 +143,11 @@ test('the shop closes when the lot enters the next room', () => {
 // the optical endpoint detector (600) before etch:
 //   cash 1500 − 600 = 900;
 //   at etch, depth_variation 0.08 × 0.7 = 0.056;
-//   yield after etch 0.701607, against 0.685321 without it;
+//   yield after etch 0.798418, against 0.779789 without it;
 //   endpoint etch becomes legal.
 test('hand check: the endpoint detector bought before etch', () => {
   const { seed, corridor } = seedSellingEndpointBeforeEtch();
-  const start = createRun({ seed, scatterStrength: 0, toolDrift: false });
+  const start = createRun({ unlocked: FULL_NOTEBOOK_UNLOCKS, seed, scatterStrength: 0, toolDrift: false });
 
   let withTool = buyItem(walkCorridor(walkToCorridor(start, corridor), 'procurement'), 'oesEndpoint');
   assert.equal(withTool.cash, 900, `seed ${seed}`);
@@ -160,8 +161,8 @@ test('hand check: the endpoint detector bought before etch', () => {
   close(etchWithTool.lot.risks.depth_variation, 0.056, `depth variation at etch (seed ${seed})`);
   assert.deepEqual(legalCards(etchWithTool), ['endpointEtch'], `endpoint etch is playable (seed ${seed})`);
 
-  close(lotYield(resolveStep(etchWithTool).lot), 0.701607, `yield after etch with the detector (seed ${seed})`);
-  close(lotYield(resolveStep(enterStep(without)).lot), 0.685321, `yield after etch without it (seed ${seed})`);
+  close(lotYield(resolveStep(etchWithTool).lot), 0.798418, `yield after etch with the detector (seed ${seed})`);
+  close(lotYield(resolveStep(enterStep(without)).lot), 0.779789, `yield after etch without it (seed ${seed})`);
 });
 
 // The rooms each route step is in, for the test below.
@@ -169,7 +170,7 @@ const ROUTE = ['clean', 'dep', 'litho', 'etch', 'clean', 'dep', 'plate', 'cmp', 
 
 test('a shop only sells items whose room is still ahead on the route', () => {
   for (let seed = SEED; seed < SEED + 20; seed++) {
-    const state = createRun({ seed });
+    const state = createRun({ unlocked: FULL_NOTEBOOK_UNLOCKS, seed });
     for (let corridor = 0; corridor < ROUTE.length - 1; corridor++) {
       const roomsAhead = ROUTE.slice(corridor + 1);
       for (const id of shopStock(state, corridor)) {
@@ -179,5 +180,29 @@ test('a shop only sells items whose room is still ahead on the route', () => {
     }
   }
   // After CMP only metrology is left, so only the inline metrology tool is sold.
-  assert.deepEqual(shopStock(createRun({ seed: SEED }), 7), ['inlineMetrology']);
+  assert.deepEqual(shopStock(createRun({ unlocked: FULL_NOTEBOOK_UNLOCKS, seed: SEED }), 7), ['inlineMetrology']);
+});
+
+// --- the unlocked pool (M4 item 4) -----------------------------------------
+
+test('with nothing unlocked, a shop only ever sells starter items', () => {
+  const starter = new Set([...EQUIPMENT, ...MATERIALS].filter(item => item.unlockedBy === null).map(item => item.id));
+  for (let seed = SEED; seed < SEED + 100; seed++) {
+    const state = createRun({ seed });
+    for (let corridor = 0; corridor < state.map.length; corridor++) {
+      for (const id of shopStock(state, corridor)) {
+        assert.ok(starter.has(id), `${id} is locked but on sale (seed ${seed}, corridor ${corridor})`);
+      }
+    }
+  }
+});
+
+test('an unlocked item can be on sale; the same item locked never is', () => {
+  let found = null;
+  for (let seed = SEED; seed < SEED + 1000 && found === null; seed++) {
+    const state = createRun({ seed, unlocked: ['padConditioner'] });
+    if (shopStock(state, 0).includes('padConditioner')) found = seed;
+  }
+  assert.ok(found !== null, `no seed from ${SEED} sells the unlocked pad conditioner in corridor 0`);
+  assert.ok(!shopStock(createRun({ seed: found }), 0).includes('padConditioner'), `locked (seed ${found})`);
 });

@@ -6,11 +6,14 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createLot, addRisk, realizeRisks, lotYield, pointsLostByPattern } from '../src/engine/lot.js';
-import { createRun, enterStep, resolveStep, walkCorridor } from '../src/engine/run.js';
-import { emptyNotebook, diagnosisFor, diagnoseLot, findFailureMode } from '../src/engine/notebook.js';
+import { createRun, enterStep, resolveStep, walkCorridor, runDeck, starterDeck } from '../src/engine/run.js';
+import { emptyNotebook, diagnosisFor, diagnoseLot, findFailureMode, unlockedIds } from '../src/engine/notebook.js';
 import { DIAGNOSE_MIN_POINTS, DIAGNOSE_CANDIDATES } from '../src/content/balance.js';
 import { LOT_TYPES } from '../src/content/lotTypes.js';
-import { FAILURE_MODES } from '../src/content/content.js';
+import { FAILURE_MODES, PRACTICES } from '../src/content/content.js';
+
+// Sorts practice ids the way content.js lists them.
+const byContentOrder = (a, b) => PRACTICES.findIndex(card => card.id === a) - PRACTICES.findIndex(card => card.id === b);
 
 const SEED = 123456;
 const close = (actual, expected, label) =>
@@ -132,4 +135,33 @@ test('a lot that lost too little has nothing to diagnose', () => {
   const start = createRun({ seed: SEED });
   const quiet = { ...start, status: 'scrapped', scrappedBy: 'player' };   // scrapped at the door
   assert.deepEqual(diagnosisFor(quiet, emptyNotebook()), { rightIds: [], candidates: [] });
+});
+
+// --- the unlocked pool (M4 item 4) -----------------------------------------
+
+test('unlockedIds: what the notebook has earned, in content order', () => {
+  const notebook = { version: 1, entries: [{ id: 'fm_keyhole', seed: 1 }, { id: 'fm_edge_ring', seed: 2 }] };
+  // Content order: practices, then equipment, materials, consumables.
+  assert.deepEqual(unlockedIds(notebook), ['slowStartPlate', 'eChuckUpgrade', 'additiveBath', 'bathAnalysis']);
+  assert.deepEqual(unlockedIds(emptyNotebook()), []);
+  const unknown = { version: 1, entries: [{ id: 'fm_renamed_long_ago', seed: 1 }] };
+  assert.deepEqual(unlockedIds(unknown), []);
+  assert.deepEqual(unlockedIds({ version: 1, entries: [{ id: 'fm_residue', seed: 1 }] }), [], 'residue unlocks nothing');
+});
+
+test('runDeck: the starter deck plus unlocked practices only', () => {
+  assert.deepEqual(runDeck([]), starterDeck());
+  const keyhole = unlockedIds({ version: 1, entries: [{ id: 'fm_keyhole', seed: 1 }] });
+  // The bath and bath analysis are not practices, so only the card joins.
+  assert.deepEqual(runDeck(keyhole), [...starterDeck(), 'slowStartPlate'].sort(byContentOrder));
+  assert.deepEqual(runDeck(['noSuchCard']), starterDeck(), 'an unknown id adds nothing');
+});
+
+test('a run keeps the unlocked list it began with', () => {
+  const unlocked = ['slowStartPlate', 'additiveBath'];
+  const state = createRun({ seed: 123456, unlocked });
+  assert.deepEqual(state.unlocked, unlocked);
+  unlocked.push('eChuckUpgrade');   // the caller's list changing later...
+  assert.deepEqual(state.unlocked, ['slowStartPlate', 'additiveBath'], '...does not change the run');
+  assert.deepEqual(createRun({ seed: 123456 }).unlocked, [], 'none by default');
 });

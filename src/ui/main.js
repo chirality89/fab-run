@@ -17,17 +17,19 @@
 // save, so the last tab to act is the one a reload picks up.
 
 import { normalizeSeed } from '../engine/rng.js';
-import { createRun, starterDeck, defaultLoadout } from '../engine/run.js';
+import { createRun, runDeck, defaultLoadout } from '../engine/run.js';
 import { applyAction, saveRun, loadRun, clearRun, replayRun, loadNotebook, saveNotebook } from './storage.js';
-import { roomView, resultView, mapView, stopView, shopView, parseSeed } from './view.js';
+import { roomView, resultView, mapView, stopView, shopView, parseSeed, badSeedText } from './view.js';
 import {
-  renderRoom, renderResult, renderShip, renderError, renderResumedNote, focusNextAction, showFromTop,
+  renderRoom, renderResult, renderShip, renderError, renderResumedNote, renderSeedNote, focusNextAction, showFromTop,
 } from './render.js';
 import { renderMap, renderStop, renderShop, renderPm, renderEvent } from './floorPlan.js';
 import { eventView } from './eventView.js';
 import { pmView } from './pmView.js';
 import { shipView } from './shipView.js';
-import { diagnoseLot } from '../engine/notebook.js';
+import { notebookView } from './notebookView.js';
+import { renderNotebook } from './notebookPage.js';
+import { diagnoseLot, unlockedIds } from '../engine/notebook.js';
 
 const LOT_TYPE_ID = 'cuLine';
 
@@ -92,7 +94,7 @@ function act(action) {
 // reload after the ship report starts fresh. A blocked storage just means
 // no save (storage.js never throws).
 function keepSave() {
-  if (state.status === 'running') saveRun(state.seed, actions);
+  if (state.status === 'running') saveRun({ seed: state.seed, unlocked: state.unlocked, actions });
   else clearRun();
 }
 
@@ -191,13 +193,31 @@ function showStop(before, stopKind) {
 }
 
 function showMap() {
-  renderMap(app, mapView(state), { onTakeStop, onGoStraight, onScrap });
+  renderMap(app, mapView(state), { onTakeStop, onGoStraight, onScrap, notebook: notebookOpener(showMap) });
 }
 
 // The ship report: the one screen every finished run ends on, whether the
 // lot shipped, was rejected or was scrapped.
 function showShipReport() {
-  renderShip(app, shipView(state, notebook, diagnosis), { onDiagnose, onReplay, onNewSeed });
+  renderShip(app, shipView(state, notebook, diagnosis),
+    { onDiagnose, onReplay, onNewSeed, notebook: notebookOpener(showShipReport) });
+}
+
+// The Notebook page (M4 item 3). Opening it is not a run action: nothing
+// in the run changes and nothing is saved. Back calls `showBehind`, which
+// redraws the screen the player came from (the floor plan or the ship
+// report, with its diagnosis), exactly as it was.
+function showNotebook(showBehind) {
+  renderNotebook(app, notebookView(notebook), { onBack: () => safely(showBehind) });
+}
+
+// What the Notebook button in a header needs: the count it shows, and what
+// a tap does. `showBehind` is the screen the button is on.
+function notebookOpener(showBehind) {
+  return {
+    count: notebookView(notebook).count,
+    onOpen: () => safely(() => showNotebook(showBehind)),
+  };
 }
 
 // The player names a failure mode on the ship report (M4 item 1). A right
@@ -240,17 +260,22 @@ function enterRoom() {
   showFromTop(app);
 }
 
-// A fresh run for the seed: starter deck, default loadout (i-line resist in
-// litho), normal scatter. The one place a run is built, for a new run and
-// for a resumed one alike, so a replay always starts from the same lot.
-function newRun(seed) {
-  return createRun({ seed, lotTypeId: LOT_TYPE_ID, deck: starterDeck(), loadout: defaultLoadout() });
+// A fresh run for the seed: the starter deck plus every practice in
+// `unlocked`, default loadout (i-line resist in litho), normal scatter.
+// The one place a run is built, for a new run and for a resumed one alike,
+// so a replay always starts from the same lot. `unlocked` is what the
+// notebook has earned now (a new run) or what was saved with the run (a
+// resumed one), never the notebook as it is later (M4 item 4).
+function newRun(seed, unlocked) {
+  return createRun({
+    seed, lotTypeId: LOT_TYPE_ID, deck: runDeck(unlocked), loadout: defaultLoadout(), unlocked,
+  });
 }
 
 // Starts the seed from the beginning, on the floor plan. Any old save goes.
 function startRun(seed) {
   diagnosis = null;
-  state = newRun(seed);
+  state = newRun(seed, unlockedIds(notebook));
   actions = [];
   clearRun();
   showMap();
@@ -265,13 +290,13 @@ function resumeSavedRun() {
   const fromAddress = parseSeed(window.location.search, null);
   if (fromAddress !== null && fromAddress !== save.seed) return false;
 
-  const resumed = replayRun(newRun(save.seed), save.actions);
+  const resumed = replayRun(newRun(save.seed, save.unlocked), save.actions);
   if (resumed === null || resumed.status !== 'running') return false;
 
   // The state just before the last action, for screens that show what it
   // changed (the room result, a side stop). Replaying all but the last
   // action gives exactly that state.
-  const before = replayRun(newRun(save.seed), save.actions.slice(0, -1));
+  const before = replayRun(newRun(save.seed, save.unlocked), save.actions.slice(0, -1));
   state = resumed;
   actions = save.actions;
   writeSeedToAddress(save.seed);
@@ -286,5 +311,10 @@ function resumeSavedRun() {
 }
 
 safely(() => {
-  if (!resumeSavedRun()) startRun(chooseSeed());
+  if (resumeSavedRun()) return;
+  const search = window.location.search;   // read before chooseSeed rewrites the address
+  const seed = chooseSeed();
+  startRun(seed);
+  const note = badSeedText(search, seed);
+  if (note !== null) renderSeedNote(app, note);
 });

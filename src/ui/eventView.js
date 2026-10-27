@@ -1,14 +1,12 @@
 // eventView.js — display data for the event screen (M3 item 2e). No DOM and
 // no game rules: it only reads the state and the content.
 
-import { ROOMS, PATTERNS } from '../content/content.js';
+import { ROOMS } from '../content/content.js';
 import { LOT_TYPES } from '../content/lotTypes.js';
 import { SIDE_STOP_MINUTES, QTIME_RISK_PER_MINUTE } from '../content/balance.js';
 import { findEvent } from '../engine/events.js';
+import { riskText } from './effectsText.js';   // "+0.02 risk (about 2.0 points of yield): …"
 
-// A risk in words, from the pattern's own description in content.js:
-// +0.03 rr_drift → "+0.03 risk: polish rate wandering run to run".
-const riskText = (amount, pattern) => `+${amount} risk: ${PATTERNS[pattern]}`;
 
 // One effect of an option, in plain words. Tool health stays hidden (SPC
 // only, David), so a toolHealth effect is said as a service, not a number.

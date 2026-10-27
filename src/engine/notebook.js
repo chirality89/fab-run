@@ -8,7 +8,7 @@
 //
 // A notebook is a plain object: { version: 1, entries: [{ id, seed }] }.
 
-import { FAILURE_MODES } from '../content/content.js';
+import { FAILURE_MODES, PRACTICES, EQUIPMENT, MATERIALS, CONSUMABLES } from '../content/content.js';
 import { LOT_TYPES } from '../content/lotTypes.js';
 import { DIAGNOSE_MIN_POINTS, DIAGNOSE_CANDIDATES } from '../content/balance.js';
 import { pointsLostByPattern } from './lot.js';
@@ -20,6 +20,19 @@ const DIAGNOSE_SEED_MIX = 0x94D049BB;
 
 export function emptyNotebook() {
   return { version: 1, entries: [] };
+}
+
+// The item ids the notebook has earned: what its failure modes unlock
+// (decision O1), in content order (practices, equipment, materials,
+// consumables). Entries whose failure mode is no longer in the content
+// unlock nothing.
+export function unlockedIds(notebook) {
+  const earned = new Set(FAILURE_MODES
+    .filter(mode => inNotebook(notebook, mode.id))
+    .flatMap(mode => mode.unlocks));
+  return [...PRACTICES, ...EQUIPMENT, ...MATERIALS, ...CONSUMABLES]
+    .map(item => item.id)
+    .filter(id => earned.has(id));
 }
 
 export function inNotebook(notebook, failureModeId) {

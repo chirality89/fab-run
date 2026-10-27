@@ -37,6 +37,7 @@ function drawHeader(view) {
   const cash = el('span', 'cash', `Cash ${view.cash}`);
   facts.append(seed, cash);
   header.append(facts);
+  if (view.cashNoteText) header.append(el('p', 'room-step cash-note', view.cashNoteText));   // where cash just went
   return header;
 }
 
@@ -62,6 +63,7 @@ function drawYield(view) {
     barMark(view.spec, `Spec ${view.spec}%`, 'mark-spec'));
   box.append(bar);
   box.append(el('p', 'expected-loss', view.expectedLossText));
+  if (view.carriedInText) box.append(el('p', 'carried-in', view.carriedInText));
   return box;
 }
 
@@ -126,6 +128,8 @@ function drawCard(card, actions) {
   node.append(top);
   if (card.doe) node.append(el('span', 'chip chip-doe', 'DOE'));   // upgraded at a DOE stop
   node.append(el('span', 'card-summary', card.summary));
+  if (card.effectsText) node.append(el('span', 'card-effects', card.effectsText));   // what it does, in numbers
+  if (card.pointsText) node.append(el('span', 'card-points', card.pointsText));      // what that does to this room
   if (!card.playable) node.append(el('span', 'card-reason', `Can't play: ${card.reason}`));
   return node;
 }
@@ -206,6 +210,12 @@ export function actionButton(text, className, onClick) {
   return button;
 }
 
+// The button that opens the Notebook page, shown in the floor-plan and
+// ship-report headers: "Notebook (3)". `notebook` is { count, onOpen }.
+export function notebookButton(notebook) {
+  return actionButton(`Notebook (${notebook.count})`, 'notebook-button secondary-button', notebook.onOpen);
+}
+
 // The screen after a room is run: what it cost, the new wafer map, what
 // happens next, and two ways to play again.
 // `actions` holds onContinue() (shown only while the run goes on),
@@ -283,7 +293,7 @@ function drawDiagnose(view, actions) {
   }
   if (view.state === 'done' && view.earned) {
     const text = view.unlocks.length > 0
-      ? `Unlocks for later runs: ${view.unlocks.join(', ')}. (Unlocks start to count in a later update.)`
+      ? `Unlocks for later runs: ${view.unlocks.join(', ')}.`
       : 'It unlocks nothing yet.';
     box.append(el('p', 'map-key', text));
   }
@@ -307,13 +317,14 @@ function drawRouteSpc(view) {
 
 // The screen after a run ends: the verdict, the three numbers, the diagnose
 // panel, yield by step, the tools' SPC and the final wafer map. `actions`
-// holds onDiagnose(id), onReplay() and onNewSeed().
+// holds onDiagnose(id), onReplay(), onNewSeed() and notebook ({ count,
+// onOpen }, for the Notebook button).
 export function renderShip(container, view, actions) {
   const header = el('header', 'room-band map-band');
   header.append(el('h1', 'room-name', 'Ship report'), el('p', 'room-step', view.lotName));
   const facts = el('p', 'room-facts');
   facts.append(el('span', 'seed', `Seed ${view.seed}`), el('span', 'cash', `Cash ${view.cash}`));
-  header.append(facts);
+  header.append(facts, notebookButton(actions.notebook));
 
   const verdict = panel('Verdict', `result-panel verdict-${view.status}`);
   verdict.setAttribute('role', 'status');
@@ -366,7 +377,17 @@ export function renderError(container, error) {
 // One line at the top after a reload picked up a saved run: "Resumed seed
 // 123456". It sits above the screen just drawn and goes with the next redraw.
 export function renderResumedNote(container, seed) {
-  const note = el('p', 'resumed-note', `Resumed seed ${seed}`);
+  renderNote(container, `Resumed seed ${seed}`, 'resumed-note');
+}
+
+// The same kind of line when the address held a seed that isn't one
+// (view.js badSeedText): it says which seed started instead.
+export function renderSeedNote(container, text) {
+  renderNote(container, text, 'resumed-note seed-note');
+}
+
+function renderNote(container, text, className) {
+  const note = el('p', className, text);
   note.setAttribute('role', 'status');
   container.prepend(note);
 }

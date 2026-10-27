@@ -9,8 +9,10 @@ import {
   createRun, enterStep, resolveStep, playCard, walkCorridor, buyItem, fullPool, whyIllegal,
 } from '../src/engine/run.js';
 import { lotYield } from '../src/engine/lot.js';
-import { seedSellingTestItems } from './shopSeed.js';
-import { roomView, resultView, mapView, stopView, shopView, siteBand, yieldBand, parseSeed } from '../src/ui/view.js';
+import { seedSellingTestItems, SHOP_TEST_UNLOCKS } from './shopSeed.js';
+import {
+  roomView, resultView, mapView, stopView, shopView, siteBand, siteView, yieldBand, parseSeed, pointsChangeText, badSeedText, stopKeyText,
+} from '../src/ui/view.js';
 
 const SEED = 123456;
 const TOLERANCE = 1e-6;
@@ -32,17 +34,17 @@ function idleToEtch(changes = {}) {
   return enterStep(state);
 }
 
-test('yield at etch: 0.913931 raw, shown as 91.4', () => {
+test('yield at etch: 0.941765 raw, shown as 94.2', () => {
   const inEtch = idleToEtch();
-  close(lotYield(inEtch.lot), 0.913931, 'raw yield e^(-0.09)');
-  assert.equal(roomView(inEtch).yieldPercent, 91.4, `seed ${SEED}`);
+  close(lotYield(inEtch.lot), 0.941765, 'raw yield e^(-0.06)');
+  assert.equal(roomView(inEtch).yieldPercent, 94.2, `seed ${SEED}`);
 });
 
-test('expected loss at etch: 22.8610 points, text says 22.9', () => {
+test('expected loss at etch: 16.1976 points, text says 16.2', () => {
   const view = roomView(idleToEtch());
-  assert.ok(Math.abs(view.expectedLossPoints - 22.8610) < 1e-4,
-    `expected loss: got ${view.expectedLossPoints}, expected 22.8610 (seed ${SEED})`);
-  assert.equal(view.expectedLossText, 'This room will cost about 22.9 points of yield if nothing changes.');
+  assert.ok(Math.abs(view.expectedLossPoints - 16.1976) < 1e-4,
+    `expected loss: got ${view.expectedLossPoints}, expected 16.1976 (seed ${SEED})`);
+  assert.equal(view.expectedLossText, 'This room will cost about 16.2 points of yield if nothing changes.');
 });
 
 test('room header: etch, step 4 of 9, seed shown equals the run seed', () => {
@@ -116,18 +118,23 @@ test('yield band uses the raw fraction, not the rounded percent', () => {
   assert.equal(yieldBand(0.40), 'warn');
   assert.equal(yieldBand(0.3996), 'bad', 'shows as 40.0% but is below the scrap line');
   const view = roomView(idleToEtch());
-  close(view.yieldFraction, 0.913931, 'yieldFraction');
+  close(view.yieldFraction, 0.941765, 'yieldFraction');
   assert.equal(view.yieldBand, 'ok');
 });
 
 test('site band agrees with the printed percent', () => {
-  assert.equal(siteBand(0.8999), 'warn', 'prints 89');
-  assert.equal(siteBand(0.6999), 'fail', 'prints 69');
+  // Rounded to the nearest whole percent since the M4.5 small fixes (David,
+  // 26 Oct 2026): the band follows the printed number either way.
+  assert.equal(siteBand(0.8999), 'pass', 'prints 90');
+  assert.equal(siteBand(0.8949), 'warn', 'prints 89');
+  assert.equal(siteBand(0.6999), 'warn', 'prints 70');
+  assert.equal(siteBand(0.6949), 'fail', 'prints 69');
+  assert.equal(siteView(0.285).percent, 29, '28.5 rounds up, despite 0.285 × 100 = 28.4999…');
 });
 
 test('wafer map legend is built from the balance numbers', () => {
   assert.equal(roomView(idleToEtch()).mapKeyText,
-    'Each site: % of the 25 wafers still good there. Pass 90%+, warning 70–89%, fail under 70%.');
+    'Each site: % of this die position expected good across the lot. Pass 90%+, warning 70–89%, fail under 70%.');
 });
 
 // --- M2 item 2: playing a card and running the room ---------------------
@@ -141,32 +148,32 @@ test('playing timed over-etch: 4 of 8 min left, card leaves the hand', () => {
   assert.deepEqual(view.hand, []);
 });
 
-test('playing timed over-etch: expected loss drops from 22.9 to 19.7 points', () => {
+test('playing timed over-etch: expected loss drops from 16.2 to 15.2 points', () => {
   const view = roomView(playCard(idleToEtch(), 'timedOveretch'));
-  assert.ok(Math.abs(view.expectedLossPoints - 19.7066) < 1e-4,
-    `expected loss: got ${view.expectedLossPoints}, expected 19.7066 (seed ${SEED})`);
-  assert.equal(view.expectedLossText, 'This room will cost about 19.7 points of yield if nothing changes.');
+  assert.ok(Math.abs(view.expectedLossPoints - 15.1772) < 1e-4,
+    `expected loss: got ${view.expectedLossPoints}, expected 15.1772 (seed ${SEED})`);
+  assert.equal(view.expectedLossText, 'This room will cost about 15.2 points of yield if nothing changes.');
 });
 
-test('run etch with nothing played: 91.4% -> 68.5%, 22.9 points lost', () => {
+test('run etch with nothing played: 94.2% -> 78.0%, 16.2 points lost', () => {
   const before = idleToEtch();
   const view = resultView(before, resolveStep(before));
-  assert.equal(view.yieldBeforePercent, 91.4, `seed ${SEED}`);
-  assert.equal(view.yieldAfterPercent, 68.5);
-  close(view.yieldAfterFraction, 0.685321, 'yield after etch, idle');
-  assert.equal(view.lossText, 'This room cost 22.9 points of yield.');
-  assert.equal(view.yieldBand, 'warn', 'below the 70% spec, above the scrap line');
+  assert.equal(view.yieldBeforePercent, 94.2, `seed ${SEED}`);
+  assert.equal(view.yieldAfterPercent, 78.0);
+  close(view.yieldAfterFraction, 0.779789, 'yield after etch, idle');
+  assert.equal(view.lossText, 'This room cost 16.2 points of yield.');
+  assert.equal(view.yieldBand, 'ok', 'at 78.0% the lot is now above the 70% spec after etch (was warn at 68.5%)');
   assert.equal(view.status, 'running');
   assert.equal(view.outcomeText, 'The lot moves on to step 5: Resist strip + wet clean.');
   assert.equal(view.sites.length, 25);
 });
 
-test('run etch after timed over-etch: 91.4% -> 71.7%, 19.7 points lost', () => {
+test('run etch after timed over-etch: 94.2% -> 79.0%, 15.2 points lost', () => {
   const before = playCard(idleToEtch(), 'timedOveretch');
   const view = resultView(before, resolveStep(before));
-  assert.equal(view.yieldAfterPercent, 71.7, `seed ${SEED}`);
-  close(view.yieldAfterFraction, 0.716865, 'yield after etch, over-etch');
-  assert.equal(view.lossText, 'This room cost 19.7 points of yield.');
+  assert.equal(view.yieldAfterPercent, 79.0, `seed ${SEED}`);
+  close(view.yieldAfterFraction, 0.789992, 'yield after etch, over-etch');
+  assert.equal(view.lossText, 'This room cost 15.2 points of yield.');
 });
 
 test('resultView names the scrap when the lot dies', () => {
@@ -197,7 +204,7 @@ test('map in the corridor after step 1: its offers, bay 1 done, bay 2 next', () 
   assert.deepEqual(view.offers.map(offer => offer.kind), inCorridor.map[0].offers, `seed ${SEED}`);
   assert.deepEqual(view.bays.slice(0, 3).map(bay => bay.status), ['done', 'next', 'ahead']);
   assert.equal(view.corridors[0].here, true);
-  assert.equal(view.goText, 'Go straight to step 2: Deposition (SiN + oxide)');
+  assert.equal(view.goText, 'Go straight to step 2: Deposition (oxide)');
   for (const offer of view.offers) assert.equal(offer.qtimeRisk, 0, 'not a Q-time corridor');
 });
 
@@ -219,7 +226,7 @@ test('stopView: names the stop and its minutes, and the step that comes next', (
   const minutes = { metrology: 20, pm: 40, procurement: 10, event: 10 }[kind];
   assert.equal(view.minutes, minutes, `${kind}, seed ${SEED}`);
   assert.match(view.text, new RegExp(`cost ${minutes} min`));
-  assert.equal(view.goText, 'Continue to step 2: Deposition (SiN + oxide)');
+  assert.equal(view.goText, 'Continue to step 2: Deposition (oxide)');
 });
 
 test('mapView refuses to draw while the lot is in a room', () => {
@@ -233,7 +240,7 @@ test('mapView refuses to draw while the lot is in a room', () => {
 const SHOP_SEED = seedSellingTestItems();
 
 function shopAfterStep2() {
-  const afterStep1 = walkCorridor(resolveStep(enterStep(createRun({ seed: SHOP_SEED }))), null);
+  const afterStep1 = walkCorridor(resolveStep(enterStep(createRun({ seed: SHOP_SEED, unlocked: SHOP_TEST_UNLOCKS }))), null);
   return walkCorridor(resolveStep(enterStep(afterStep1)), 'procurement');
 }
 
@@ -357,8 +364,152 @@ test('eventView: consequences in words, tool health said as a service, Q-time wa
   const atAudit = { ...state, corridor: null, event: { corridor: 4, eventId: 'audit', chosen: null } };
   const view = eventView(atAudit);
   assert.equal(view.name, 'Quality audit');
-  assert.equal(view.options[0].consequences, '+30 min cycle time · +0.030 risk: native oxide grew while the lot waited (Q-time wait) · Wet clean tool serviced');
+  // Hand check: 100 × (1 − e^−0.03) = 2.96, shown as 3.0.
+  assert.equal(view.options[0].consequences, '+30 min cycle time · +0.030 risk (about 3.0 points of yield): native oxide grew while the lot waited (Q-time wait) · Wet clean tool serviced');
   assert.equal(view.options[1].consequences, '−100 cash');
   assert.equal(view.resultText, null);
   assert.equal(view.goText, 'Continue to step 6: Deposition (barrier + seed)');
+});
+
+// --- M4.5 item 5: effects shown before you commit -------------------------
+// Hand check: on seed 123456 the etch forecast is 16.1976 points with
+// nothing played and 15.1772 after timed over-etch (tests above), so
+// playing it saves 16.1976 − 15.1772 = 1.0204 points.
+
+test('a card in the hand shows its effects and how much it saves in this room', () => {
+  const [card] = roomView(idleToEtch()).hand;
+  assert.equal(card.id, 'timedOveretch', `seed ${SEED}`);
+  assert.equal(card.effectsText, 'residue ×0.3 · underlayer attack ×1.5 · underlayer attack ×0.7 with etch stop');
+  assert.ok(Math.abs(card.pointsChange - 1.0204) < 1e-4, `points change: got ${card.pointsChange} (seed ${SEED})`);
+  assert.equal(card.pointsText, 'About 1.0 point less lost in this room.');
+});
+
+test('an unplayable card shows its effects but no points line', () => {
+  const card = roomView(idleToEtch({ deck: fullPool() })).hand.find(entry => entry.id === 'endpointEtch');
+  assert.equal(card.playable, false, `seed ${SEED}`);
+  assert.equal(card.pointsChange, null);
+  assert.equal(card.pointsText, null);
+  assert.ok(card.effectsText.length > 0);
+});
+
+test('the points line: rounding, singular, "more", and nothing under 0.05', () => {
+  assert.equal(pointsChangeText(1.0204), 'About 1.0 point less lost in this room.');
+  assert.equal(pointsChangeText(2.46), 'About 2.5 points less lost in this room.');
+  assert.equal(pointsChangeText(-0.3), 'About 0.3 points more lost in this room.');
+  assert.equal(pointsChangeText(0.04), null);
+  assert.equal(pointsChangeText(0), null);
+});
+
+test('shop items show their effects', () => {
+  const view = shopView(shopAfterStep2());
+  const effects = Object.fromEntries(view.items.map(item => [item.id, item.effectsText]));
+  assert.deepEqual(effects, {
+    padConditioner: 'rr drift ×0.4 · −20 cash',
+    resistCAR: 'cd error ×0.6 · cd error ×1.4 (delay before bake only)',
+    resistThick: 'underlayer attack ×0.5 (deep etch only) · cd error ×1.3 · uses 10 min of room time',
+  });
+});
+
+// --- M4.5 small fixes: where cash went (Lane F issue 9) -------------------
+// Hand check: the pad conditioner takes 20 cash every time the lot enters
+// CMP (its cashCost effect). Nothing else here costs cash, so the lot has
+// 1500 − 20 = 1480 on entering CMP, and no note in any earlier room.
+const CMP = 7;   // 0-based step index of CMP on the cuLine route
+
+test('the room says which item took cash on entering: pad conditioner at CMP', () => {
+  const loadout = { equipment: ['padConditioner'], slots: {} };
+  let state = createRun({ seed: SEED, scatterStrength: 0, toolDrift: false, loadout });
+  while (state.stepIndex < CMP) {
+    assert.equal(roomView(enterStep(state)).cashNoteText, null, `step ${state.stepIndex + 1} (seed ${SEED})`);
+    state = idleRoom(state);
+  }
+  const inCmp = enterStep(state);
+  assert.equal(inCmp.cash, 1480, `seed ${SEED}`);
+  assert.deepEqual(inCmp.room.itemCash, [{ id: 'padConditioner', delta: -20 }]);
+  assert.equal(roomView(inCmp).cashNoteText, 'On entering, In-situ pad conditioner took 20 cash.');
+});
+
+// --- M4.5 small fixes: a seed in the address that isn't one (issue 15) ----
+
+test('a bad ?seed= says so and names the seed that started instead', () => {
+  const tail = 'is not a seed (a whole number from 0 to 4294967295), so this is seed 77.';
+  assert.equal(badSeedText('?seed=abc', 77), `"abc" ${tail}`);
+  assert.equal(badSeedText('?seed=-5', 77), `"-5" ${tail}`);
+  assert.equal(badSeedText('?seed=1.5', 77), `"1.5" ${tail}`);
+  assert.equal(badSeedText('?seed=99999999999', 77), `"99999999999" ${tail}`, 'too big for a 32-bit seed');
+  assert.equal(badSeedText('?seed=123456789012345678901234', 77), `"12345678901234567890…" ${tail}`, 'cut short');
+  assert.equal(badSeedText('?seed=', 77), `"" ${tail}`, 'an empty seed is not one either');
+});
+
+test('a good ?seed= or none at all shows no note', () => {
+  assert.equal(badSeedText('?seed=123456', 77), null);
+  assert.equal(badSeedText('?seed=4294967295', 77), null, 'the largest seed');
+  assert.equal(badSeedText('', 77), null);
+  assert.equal(badSeedText('?other=1', 77), null);
+});
+
+test('the floor-plan legend lists only the stops the map offers (no metrology since M4.5 item 5)', () => {
+  assert.equal(stopKeyText(), 'PM PM / DOE · BUY Procurement · EVT Event');
+});
+
+// --- M4.5 small fixes: the PM stop's exit says what you leave with (issue 8)
+
+test('a PM/DOE stop: "Leave without a PM or DOE" until something is chosen, then Continue', async () => {
+  const { pmView } = await import('../src/ui/pmView.js');
+  const { pmTool } = await import('../src/engine/run.js');
+  // Seed 123456: the corridor after step 2 offers PM/DOE (doe.test.js).
+  let state = resolveStep(enterStep(createRun({ seed: SEED, scatterStrength: 0, toolDrift: false })));
+  state = resolveStep(enterStep(walkCorridor(state, null)));
+  const atStop = walkCorridor(state, 'pm');
+  assert.equal(pmView(atStop).goText, 'Leave without a PM or DOE: on to step 3, Litho (trench)', `seed ${SEED}`);
+  assert.equal(pmView(pmTool(atStop, 'etch')).goText, 'Continue to step 3: Litho (trench)');
+});
+
+// --- M4.5 item 3: etch-stop logic, and what the etch forecast carries in --
+// Hand check in tasks/todo.md (M4.5 item 3), from an independent model of
+// the 5 × 5 rings: with the stop, depth variation is 0.08 × 0.4 = 0.032 and
+// etch's underlayer attack 0.03 × 0.3 = 0.009 (the route step's effect).
+
+// Seed 123456, scatter and drift off: lay down the etch stop in the first
+// deposition room (the only card played), then idle into etch.
+function stopToEtch() {
+  let state = createRun({ seed: SEED, scatterStrength: 0, toolDrift: false, deck: ['timedOveretch', 'etchStopLayer'] });
+  state = idleRoom(state);                       // step 1, wet clean
+  state = resolveStep(playCard(enterStep(state), 'etchStopLayer'));
+  state = walkCorridor(state, null);             // step 2 done, with the stop
+  while (state.stepIndex < ETCH) state = idleRoom(state);
+  return enterStep(state);
+}
+
+test('etch stop: etch adds 0.009 underlayer attack with it, 0.03 without', () => {
+  close(stopToEtch().lot.risks.underlayer_attack, 0.009, 'with the stop');
+  close(idleToEtch().lot.risks.underlayer_attack, 0.03, 'without the stop');
+});
+
+test('etch stop, nothing played at etch: 10.6861 points, yield after 0.834904', () => {
+  const before = stopToEtch();
+  assert.ok(Math.abs(roomView(before).expectedLossPoints - 10.6861) < 1e-4,
+    `expected loss: got ${roomView(before).expectedLossPoints}, expected 10.6861 (seed ${SEED})`);
+  close(lotYield(resolveStep(before).lot), 0.834904, 'yield after etch, stop');
+});
+
+test('etch stop, timed over-etch: 8.3540 points, yield after 0.858225 (attack ×1.05)', () => {
+  const before = playCard(stopToEtch(), 'timedOveretch');
+  close(before.lot.risks.underlayer_attack, 0.00945, 'attack 0.009 × 1.5 × 0.7');
+  assert.ok(Math.abs(roomView(before).expectedLossPoints - 8.3540) < 1e-4,
+    `expected loss: got ${roomView(before).expectedLossPoints}, expected 8.3540 (seed ${SEED})`);
+  close(lotYield(resolveStep(before).lot), 0.858225, 'yield after etch, stop and over-etch');
+});
+
+test('etch forecast says how much is carried in: 6.8 of 16.2 points, 2.8 with the stop', () => {
+  const carried = 'The film stack set how big this is before the lot got here: without an etch stop, trench depth follows the etch rate across the wafer.';
+  assert.equal(roomView(idleToEtch()).carriedInText,
+    `About 6.8 of these points come from depth variation (etch depth differs center to edge). ${carried}`);
+  assert.equal(roomView(stopToEtch()).carriedInText,
+    `About 2.8 of these points come from depth variation (etch depth differs center to edge). ${carried}`);
+});
+
+test('a room that realizes nothing carried in has no carried-in sentence', () => {
+  const inClean = enterStep(createRun({ seed: SEED, scatterStrength: 0, toolDrift: false }));
+  assert.equal(roomView(inClean).carriedInText, null);
 });

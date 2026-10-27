@@ -136,19 +136,21 @@ export const PRACTICES = [
     effects: [
       { op: 'defectMult', pattern: 'residue', mult: 0.3 },
       { op: 'defectMult', pattern: 'underlayer_attack', mult: 1.5 },
-      { op: 'defectMult', pattern: 'underlayer_attack', mult: 0.5, when: { flag: 'etch_stop' } },
+      // On a stop the extra time barely reaches the film below: ×1.5 × 0.7 = ×1.05.
+      { op: 'defectMult', pattern: 'underlayer_attack', mult: 0.7, when: { flag: 'etch_stop' } },
     ],
     upgrade: {
       name: 'Timed over-etch, DOE-centred',
       effects: [
         { op: 'defectMult', pattern: 'residue', mult: 0.3 },
         { op: 'defectMult', pattern: 'underlayer_attack', mult: 1.25 },
-        { op: 'defectMult', pattern: 'underlayer_attack', mult: 0.5, when: { flag: 'etch_stop' } },
+        // ×1.25 × 0.84 = ×1.05 on a stop, the same as the plain card.
+        { op: 'defectMult', pattern: 'underlayer_attack', mult: 0.84, when: { flag: 'etch_stop' } },
       ],
-      tradeoff: 'Still attacks the film below, but less: the DOE found the shortest over-etch that still clears.',
+      tradeoff: 'Still attacks the film below, but less: the DOE found the shortest over-etch that still clears. On an etch stop, the same as the plain card.',
       physicsNote: 'A designed experiment across over-etch times finds where residue is gone but punch-through has barely started, so less extra time is needed for the same clearing.',
     },
-    tradeoff: 'Clears residue but attacks the film below, unless an etch stop is there.',
+    tradeoff: 'Clears residue but attacks the film below, much less if an etch stop is there.',
     physicsNote: 'Extra etch time removes what is left in slow spots and keeps etching wherever the film has already cleared. Selectivity to the underlayer sets how much damage that does.' },
 
   { id: 'measureAll', draft: true, kind: 'practice', room: 'metro', rarity: 'standard',
@@ -209,8 +211,8 @@ export const PRACTICES = [
       ],
       tradeoff: 'Shorter deposition, but a thinner stop layer gives less margin if the etch is not very selective.',
       physicsNote: 'Film thickness scales with deposition time. Etch selectivity is finite, so the etch eats the same amount of nitride either way; a thinner film just has less left before it breaks through, so it holds depth slightly less well.' },
-    tradeoff: 'One more film and one more step, in exchange for etch depth set by the film and not by time.',
-    physicsNote: 'An etch that is highly selective to nitride stops when it reaches it, so depth no longer depends on etch rate uniformity.' },
+    tradeoff: 'One more film and one more step, in exchange for etch depth set by the film and not by time, and less attack on the film below.',
+    physicsNote: 'An etch that is highly selective to nitride stops when it reaches it, so depth no longer depends on etch rate uniformity, and over-etch spends its time on the nitride instead of the film beneath.' },
 
   { id: 'endpointEtch', draft: true, kind: 'practice', room: 'etch', rarity: 'advanced',
     name: 'Stop on endpoint', unlockedBy: 'fm_underlayer',

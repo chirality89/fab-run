@@ -18,7 +18,8 @@ const close = (actual, expected, label) =>
   assert.ok(Math.abs(actual - expected) < TOLERANCE, `${label}: got ${actual}, expected ${expected}`);
 
 // Seed 123456: the corridor after step 2 (index 1) offers PM/DOE, and its
-// DOE offers timed over-etch and measure all.
+// DOE offers timed over-etch and strip and re-expose (measure all is not
+// dealt since M4.5 item 5, so it is in no deck).
 const DOE_CORRIDOR = 1;
 const ETCH = 3;
 const handCheckRun = () => createRun({ seed: SEED, scatterStrength: 0, toolDrift: false });
@@ -43,9 +44,10 @@ function onToEtch(state) {
 
 test('a DOE stop offers 2–3 practices from the deck whose rooms are still ahead', () => {
   const atStop = openStop(handCheckRun());
-  assert.deepEqual(atStop.pm.doeOffers, ['timedOveretch', 'measureAll'], `seed ${SEED}`);
-  // After step 8 (CMP) only metrology is left: measure all is the only one.
-  assert.deepEqual(doeOffers(atStop, 7), ['measureAll']);
+  assert.deepEqual(atStop.pm.doeOffers, ['timedOveretch', 'reworkLitho'], `seed ${SEED}`);
+  // After step 8 (CMP) only metrology is left, and no card in the deck is
+  // for it, so there is nothing to offer.
+  assert.deepEqual(doeOffers(atStop, 7), []);
 });
 
 test('a DOE costs 100 cash and the card then plays as its DOE version', () => {
@@ -62,14 +64,14 @@ test('one choice per stop: after a DOE no PM, after a PM no DOE', () => {
   const atStop = openStop(handCheckRun());
   const afterDoe = doeCard(atStop, 'timedOveretch');
   assert.throws(() => pmTool(afterDoe, 'cmp'), /already used/);
-  assert.throws(() => doeCard(afterDoe, 'measureAll'), /already used/);
+  assert.throws(() => doeCard(afterDoe, 'reworkLitho'), /already used/);
   const afterPm = pmTool(atStop, 'cmp');
   assert.match(whyCannotDoe(afterPm, 'timedOveretch'), /already used/);
 });
 
 test('doeCard refuses a card not offered, too little cash, and no stop open', () => {
   const atStop = openStop(handCheckRun());
-  assert.throws(() => doeCard(atStop, 'reworkLitho'), /not offered/);
+  assert.throws(() => doeCard(atStop, 'preclean'), /not offered/);   // not in the deck
   assert.throws(() => doeCard({ ...atStop, cash: 50 }, 'timedOveretch'), /not enough cash/);
   const inRoom = enterStep(atStop);
   assert.equal(inRoom.pm, null, 'the stop closes on entering the next room');
@@ -88,16 +90,16 @@ test('the tuned measure-all costs 12 minutes', () => {
 
 // Hand check (tasks/todo.md, M3 item 2d): scatter off, drift off. DOE the
 // timed over-etch after step 2, then play it at etch. Underlayer attack is
-// 0.05 × 1.25 = 0.0625 instead of 0.05 × 1.5 = 0.075. It is an even
-// pattern, so yield after etch = the plain card's result × e^(0.0125)
-// = × 1.012578. Residue ×0.3 is the same in both.
-test('hand check: the DOE-centred over-etch gives × 1.012578 after etch', () => {
+// 0.03 × 1.25 = 0.0375 instead of 0.03 × 1.5 = 0.045. It is an even
+// pattern, so yield after etch = the plain card's result × e^(0.0075)
+// = × 1.007528. Residue ×0.3 is the same in both.
+test('hand check: the DOE-centred over-etch gives × 1.007528 after etch', () => {
   const atStop = openStop(handCheckRun());
   const plain = onToEtch(atStop);   // the same stop, left without a choice
   const tuned = onToEtch(doeCard(atStop, 'timedOveretch'));
   assert.ok(legalCards(tuned).includes('timedOveretch'), `seed ${SEED}`);
-  close(tuned.lot.risks.underlayer_attack, 0.05, 'underlayer attack before playing');
+  close(tuned.lot.risks.underlayer_attack, 0.03, 'underlayer attack before playing');
   const plainAfter = resolveStep(playCard(plain, 'timedOveretch'));
   const tunedAfter = resolveStep(playCard(tuned, 'timedOveretch'));
-  close(lotYield(tunedAfter.lot) / lotYield(plainAfter.lot), 1.012578, `yield ratio (seed ${SEED})`);
+  close(lotYield(tunedAfter.lot) / lotYield(plainAfter.lot), 1.007528, `yield ratio (seed ${SEED})`);
 });

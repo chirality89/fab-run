@@ -55,7 +55,8 @@ test('createRun: defaults are the cuLine, the starter deck, i-line resist loaded
   assert.equal(state.seed, SEED);
   assert.equal(state.rngState, SEED);
   assert.equal(state.lotTypeId, 'cuLine');
-  assert.deepEqual(state.deck, ['timedOveretch', 'measureAll', 'reworkLitho']);
+  // measureAll is a starter card but is not dealt yet (run.js NOT_DEALT_YET).
+  assert.deepEqual(state.deck, ['timedOveretch', 'reworkLitho']);
   assert.deepEqual(state.deck, starterDeck());
   assert.deepEqual(state.slots, { resist: { id: 'resistIline', shelfLife: 8, decay: 1 } });
   assert.equal(state.cash, 1500);
@@ -77,9 +78,9 @@ test('fullPool holds every practice', () => {
   assert.ok(fullPool().includes('endpointEtch'));
 });
 
-test('idle, scatter off: yield 0.517954, rejected, cash 1500, 0 minutes played', () => {
+test('idle, scatter off: yield 0.589352, rejected, cash 1500, 0 minutes played', () => {
   const end = playIdle(scatterOff());
-  close(lotYield(end.lot), 0.517954, 'yield');
+  close(lotYield(end.lot), 0.589352, 'yield');
   assert.equal(end.status, 'rejected');
   assert.equal(end.cash, 1500);
   assert.equal(end.minutesUsed, 0);
@@ -92,8 +93,8 @@ test('idle, scatter off: cycle time 133 (litho 30 + 5 given back by the i-line r
 
 test('enterStep adds the step risks and deals only cards for this room', () => {
   const inEtch = enterStepNumber(scatterOff({ deck: ETCH_TEST_DECK }), ETCH);
-  close(inEtch.lot.risks.residue, 0.10, 'residue');
-  close(inEtch.lot.risks.underlayer_attack, 0.05, 'underlayer_attack');
+  close(inEtch.lot.risks.residue, 0.04, 'residue');
+  close(inEtch.lot.risks.underlayer_attack, 0.03, 'underlayer_attack');
   assert.deepEqual([...inEtch.hand].sort(), ['endpointEtch', 'timedOveretch']);
   assert.equal(inEtch.room.timeLeft, 8);
 });
@@ -112,14 +113,16 @@ test('timedOveretch costs 4 minutes and scales residue ×0.3, underlayer attack 
   assert.deepEqual(legalCards(inEtch), ['timedOveretch']);
   const after = playCard(inEtch, 'timedOveretch');
   assert.equal(after.room.timeLeft, 4);
-  close(after.lot.risks.residue, 0.03, 'residue');
-  close(after.lot.risks.underlayer_attack, 0.075, 'underlayer_attack');
+  close(after.lot.risks.residue, 0.012, 'residue');
+  close(after.lot.risks.underlayer_attack, 0.045, 'underlayer_attack');
   assert.deepEqual(after.hand, []);
   assert.equal(resolveStep(after).minutesUsed, 4);
 });
 
+// measureAll is not dealt yet (NOT_DEALT_YET), but the card still works
+// when a deck holds it, so these tests give it one.
 test('measureAll pays its base cash and time', () => {
-  const inMetro = enterStepNumber(scatterOff(), METRO);
+  const inMetro = enterStepNumber(scatterOff({ deck: ['measureAll'] }), METRO);
   const after = playCard(inMetro, 'measureAll');
   assert.equal(after.cash, 1350);
   assert.equal(after.room.timeLeft, 0);
@@ -139,7 +142,7 @@ test('illegal cards are refused with an error naming the card', () => {
   const shortOfTime = { ...inEtch, room: { ...inEtch.room, timeLeft: 3 } };
   assert.throws(() => playCard(shortOfTime, 'timedOveretch'), /timedOveretch.*time/);
   // Not enough cash.
-  const inMetro = enterStepNumber(scatterOff(), METRO);
+  const inMetro = enterStepNumber(scatterOff({ deck: ['measureAll'] }), METRO);
   assert.throws(() => playCard({ ...inMetro, cash: 100 }, 'measureAll'), /measureAll.*cash/);
 });
 
@@ -274,7 +277,7 @@ test('PM in the Q-time corridor: qtime_oxide 0.08, final yield × e^(−0.04), +
   const start = createRun({ seed, scatterStrength: 0, toolDrift: false });
   const straight = playIdle(start);
   const withPm = playIdleWithStop(start, QTIME_CORRIDOR, 'pm');
-  close(lotYield(straight.lot), 0.517954, `straight on everywhere is today's idle run (seed ${seed})`);
+  close(lotYield(straight.lot), 0.589352, `straight on everywhere is today's idle run (seed ${seed})`);
   close(lotYield(withPm.lot) / lotYield(straight.lot), 0.960789, `yield ratio e^(-0.04) (seed ${seed})`);
   assert.equal(withPm.cycleTime, straight.cycleTime + 40, `seed ${seed}`);
 

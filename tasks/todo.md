@@ -1,5 +1,497 @@
 # Fab Run — Task Tracker
 
+## Done: M4.5 item 3 — etch-stop logic (claim 11), and the etch forecast says what is carried in
+
+**Status: built 26 Oct 2026. David's answers: Q1 ×0.3; Q2 B (the stop card stays unlocked by the notebook, not a starter card); Q3 make the wording clearer.**
+
+**What was built**
+- `run.js`: a route step may carry `effects`, applied right after its risks enter (about 5 lines). `lotTypes.js`: etch has "underlayer attack ×0.3 with etch stop"; step 2 reads "Deposition (oxide)".
+- `content.js` (told Lane C): over-etch's stop line ×0.5 → ×0.7, the DOE version ×0.5 → ×0.84 (both ×1.05 net on a stop); the two cards' texts.
+- Forecast wording, made plainer than the plan: "About 6.8 of these points come from depth variation (etch depth differs center to edge). The film stack set how big this is before the lot got here: without an etch stop, trench depth follows the etch rate across the wafer." Each pattern's reason is data (`startRiskNotes` in `lotTypes.js`); CMP's says "The layout set how big this is: wide lines dish in any polish. Dummy fill at litho or a gentler polish here reduces it." Shown under the forecast (`.carried-in`); left out under 0.05 points. My first wording ("brought in from earlier steps; not added in this room") was false and `physics-reviewer` caught it (lesson added); the reviewer suggested these sentences, **for David to confirm**.
+- Physics-review text fixes: DOE over-etch says it is the same as the plain card on a stop; the Cu line's physicsNote and `docs/process-primer.md` say the stop is optional.
+- Hand checks (independent python model, seed 123456, scatter and drift off): stop + nothing 10.6861 points, yield after 0.834904; stop + over-etch 8.3540, 0.858225 (the DOE version gives the same); carried in 6.8 (no stop) and 2.8 (stop). Test value 0.075 → 0.105 as in the plan. `lotTypes.test.js` checks step effects.
+- `SAVE_VERSION` 5.
+- Checks: `npm test` 257/257, `npm run screens` 78/78 (etch spec 5 runs in a row), idle bot unchanged (58.5%, rejected), phone etch screenshot checked.
+
+**Original plan below.**
+
+
+**David's decision (26 Oct 2026):** the stop is a choice. The route label becomes "Deposition (oxide)", and the Etch-stop card adds the SiN stop. With the stop, etch adds much less underlayer attack, and over-etch on a stop is about ×1.05. The etch forecast says how much of its loss is carried in from the film stack.
+
+### What it is today (the claim 11 defects)
+- The route says "Deposition (SiN + oxide)", but only the "Deposit SiN etch stop" card sets the `etch_stop` flag.
+- The stop does **nothing** to the base underlayer attack. Etch adds 0.03 attack whether or not the stop is there. Only the over-etch card looks at the flag.
+- Timed over-etch multiplies attack by ×1.5, then ×0.5 more with a stop: **×0.75 net**, so etching longer on a stop *lowers* attack, which is backwards. The DOE version does the same (×1.25 × 0.5 = ×0.625).
+- No engine path lets a choice made in one room (deposition) scale a risk that only enters later (at etch). That is the "new logic" the reviewer flagged.
+
+### The engine change (small; this is the part that needs your OK, CLAUDE.md §6)
+A route step in `lotTypes.js` gets an optional `effects` list. These are ordinary content effects, from the existing list of operations. `enterStep` applies them right after the step's own risks enter, and before drift, equipment and cards. Each effect's `when` is checked as for any card.
+
+```
+{ room: 'etch', label: 'Etch (trench)',
+  adds: { particles: 0.01, residue: 0.04, underlayer_attack: 0.03, edge_ring: 0.03 },
+  // An etch stop below the oxide: the etch reaches the nitride and slows
+  // almost to a halt, so it attacks far less of the film below.
+  effects: [ { op: 'defectMult', pattern: 'underlayer_attack', mult: 0.3, when: { flag: 'etch_stop' } } ],
+  realizes: [...] }
+```
+
+- **No new effect operation**: it reuses `defectMult` and `when: { flag }`, which already exist. The only new thing is that a *route step* may carry effects, which is about 5 lines in `run.js` and one in the comment at the top of `lotTypes.js`.
+- `tests/lotTypes.test.js` checks that every step effect uses a known operation and a known pattern.
+
+### Content changes (Lane C's file; I make only these and tell Lane C)
+- `lotTypes.js` step 2 label: "Deposition (SiN + oxide)" → **"Deposition (oxide)"**.
+- `timedOveretch`: the etch-stop line goes ×0.5 → **×0.7**, so the net on a stop is ×1.5 × 0.7 = **×1.05**. It stays ×1.5 without a stop. The DOE version goes ×0.5 → **×0.84**, so ×1.25 × 0.84 = **×1.05** on a stop too. Its text "unless an etch stop is there" becomes "much less if an etch stop is there".
+- `etchStopLayer` text: its tradeoff and physicsNote mention that the stop also protects the film below.
+- `physics-reviewer` checks all of it before I call it done.
+
+### What the numbers do (hand-computed, seed 123456, scatter and drift off; I reproduced today's values exactly first)
+
+| At etch | Today | After |
+|---|---|---|
+| No stop, nothing played | 16.20 points lost | 16.20 (unchanged) |
+| No stop, timed over-etch | 15.18 | 15.18 (unchanged) |
+| With stop, nothing played | 12.42 (the stop only cut depth ×0.4) | **10.69** (attack 0.03 → 0.009 as well) |
+| With stop, timed over-etch | 9.47 (×0.75 on 0.03) | **8.35** (0.009 × 1.05) |
+
+- **Every test on a run without the stop keeps its values**, and that is most of them, including the idle run. The one test that checks the ×0.75 (`resolve.test.js`, "0.075 with it") changes to 0.105 (0.1 × 1.5 × 0.7). I'll show it to you before editing.
+- **Side effect worth knowing:** without a stop, underlayer attack on a healthy etch is 2.96 points, just under the 3-point diagnosis line (`DIAGNOSE_MIN_POINTS`). So "Underlayer attack" counts as a right answer only after an over-etch (4.4 points) or on a worn tool. That is the physics the reviewer asked for (claim 11b: it used to be "right" on every run).
+
+### The etch forecast split (David: "label it")
+- *Today:* "This room will cost about 16.2 points of yield if nothing changes."
+- *After:* "This room will cost about 16.2 points of yield if nothing changes. About 6.8 of them come from etch depth variation set before this room (the film stack)." Figures for seed 123456; the depth share is worked out by the existing per-pattern split in `lot.js`.
+- Which patterns count as "set before this room" comes from data: the lot type's `startRisks` (depth variation and dishing, set by the stack and the layout). So CMP's forecast says the same about dishing. The text names the pattern from `PATTERNS`.
+- If the carried-in share is under 0.05 points (for example, the stop cut it), the extra sentence is left out.
+
+### Steps
+- [ ] `run.js`: route step `effects`, applied after the step's risks. Engine test: with the flag, etch's attack is 0.009; without it, 0.03.
+- [ ] `lotTypes.js`: the label and the etch step's effect. `content.js`: the two over-etch numbers and the text. `lotTypes.test.js`: step effects are valid.
+- [ ] Hand-checked tests from the table above; `resolve.test.js` value per Q-approval.
+- [ ] `view.js`: the forecast's carried-in sentence; a hand-checked test (6.81 of 16.20 on seed 123456).
+- [ ] `SAVE_VERSION` 4 → 5 (a run with the stop would replay to a different yield).
+- [ ] `physics-reviewer`; `npm test`, `npm run screens`, the bot; tracker, roadmap, lessons; tell Lane C about the `content.js` lines touched.
+
+**Q1 (how much the stop protects).** ×0.3 on underlayer attack (a selective nitride stop cuts the attack to about a third)? Or a different factor? This is your physics call.
+
+**Q2 (who can choose the stop).** Today the stop card is **not a starter card**: it is unlocked by diagnosing underlayer attack, which (see above) needs an over-etch first. Options: A) make "Deposit SiN etch stop" a starter card now, so the deposition room has a real decision from the first run (my recommendation; it is exactly the starter-deck decision you made, and it gives the dep room its card); B) leave it unlocked by the notebook, and let Lane C choose the dep room's starter card. Note: A changes the starter deck, so seed 123456's deposition rooms deal a card; tests that walk deposition doing nothing are unaffected, but tests that list the starter deck or DOE offers change (deck text only, no yield value).
+
+**Q3 (forecast wording).** Is "About 6.8 of them come from etch depth variation set before this room (the film stack)." clear for a new player, or do you want other words?
+
+---
+
+## Done: M4.5 item 8 (part) — the small fixes (Lane F issues 8 labels, 9, 10, 13, 14, 15; 16 moved to its own item)
+
+**Status: built 26 Oct 2026. David took the recommendations: Q1 round to nearest and relabel; Q2 A (leave the score for M7, only reword the cost tile); Q3 the glossary becomes its own roadmap item ("Words page").**
+
+**What was built (one commit each)**
+1. **Cash (issue 9).** The cash is taken when the lot *enters* the room (equipment acts on entering), so the note sits on the room screen, not the result as the plan said: "On entering, In-situ pad conditioner took 20 cash." under the room header. `run.js` `enterStep` notes each item's cash change in `room.itemCash` (a small engine change: two folders touched, about 10 lines). Hand check: with the pad conditioner, 1480 cash on entering CMP and that note; no note in earlier rooms.
+2. **Bad seeds (issue 15).** `view.js` `badSeedText` and `render.js` `renderSeedNote`: '"abc" is not a seed (a whole number from 0 to 4294967295), so this is seed N.' Long values are cut at 20 characters. New screen test `seed.spec.js`. While checking its screenshot I found the floor-plan legend still listed "MET Metrology" (my miss in item 5); it now lists only the stops the map offers.
+3. **Risk units (issue 10).** `effectsText.js` `riskText`: "+0.02 risk (about 2.0 points of yield): …", used by events and by `addRisk` effects. Hand checks: 0.02 → 1.98, 0.03 → 2.96, 0.04 → 3.92, 0.010 → 0.995.
+4. **PM labels (issue 8).** Buttons read "PM the Etch tool". Before any choice the stop's exit reads "Leave without a PM or DOE: on to step 3, Litho (trench)", then "Continue to step 3: Litho (trench)".
+5. **Wafer map (Q1).** Tiles round to the nearest percent and the legend reads "Each site: % of this die position expected good across the lot." The band still follows the printed number. Test values changed with David's OK: 0.8999 now prints 90 (pass, was 89 warn) and 0.6999 prints 70 (warn, was 69 fail); two new values cover 89 and 69.
+6. **Cost tile (Q2 A).** It adds "For reference only: shipping at spec is what wins the run."
+7. **Glossary (Q3).** Added to `ROADMAP.md` as its own M4.5 item.
+
+**Checks:** `npm test` 250/250, `npm run screens` 78/78, the PM, seed and etch phone tests passed 5 runs in a row. I checked the screenshots: the room result and ship report on the phone, and the bad-seed note. No save version bump: no saved action or engine rule changed (`room.itemCash` is rebuilt on replay).
+
+**Not done here:** phone layout (17) and the run-ending button spacing (8) are Lane D's, so the roadmap line stays open.
+
+**Original plan below.**
+
+Roadmap line: "Phone layout and run-ending buttons (issues 8, 17); small fixes (issues 9, 10, 13, 14, 15, 16)". The phone layout (17) and the spacing of run-ending buttons (8) are Lane D's look-and-feel work, so they are **not** in this plan. This plan is the Lane A part: words, numbers and messages. All of it is in `src/ui/` except where noted. No engine rule, no balance number and no saved action changes, so **no save version bump**.
+
+### Fixes with no question (I build these on your OK)
+
+**1. Cash that changes with no message (issue 9).**
+- *Today:* the pad conditioner takes 20 cash every time the lot enters CMP (its `cashCost` effect). Nothing says so; the student saw 950 turn into 930.
+- *Fix:* the room result says what the room cost in cash, and why: "Cash 950 → 930: In-situ pad conditioner −20." `resultView` compares cash before and after the room and names the equipment and material in that room that have a cash effect. A room with no cash change shows nothing new.
+- *Tests:* hand check with the pad conditioner bought (scatter off): CMP result reads exactly that line; a room with no cash change has no cash line.
+
+**2. A seed in the address that isn't a seed (issue 15).**
+- *Today:* `?seed=abc`, `-5` or a 20-digit number silently start a random seed from the clock. The min-maxer used it as a free reroll; a player sharing a bad link never knows.
+- *Fix:* the game still starts a fresh seed (there is no other sensible choice), but the first screen says so: "'abc' is not a seed (a whole number from 0 to 4294967295), so this is seed 1234567." The note sits where "Resumed seed …" sits today. A good seed or no seed shows nothing new.
+- *Tests:* `parseSeed` cases already exist; add the note text for `abc`, `-5`, `1.5`, `99999999999`, and no note for `123456` or no seed. A screen test opens `?seed=abc` at both sizes.
+
+**3. Risk numbers with no unit (issue 10, first half).**
+- *Today:* an event says "+0.02 risk: random dots across the wafer". "Risk" is our exponent, which no player knows.
+- *Fix:* say it in yield points too: "+0.02 risk (about 2.0 points of yield): random dots across the wafer". Points = 100 × (1 − e^−risk), worked out by the same rule as yield. It is the share of the lot, since even patterns hit every site alike; a shaped pattern (edge ring) is said the same way, which is right on average. Used in `eventView.js` and in `effectsText.js` (`addRisk`), so one helper.
+- *Tests:* hand-computed: 0.02 → 1.98 → "about 2.0 points", 0.04 → 3.92 → "about 3.9 points".
+
+**4. Six PM buttons that all say "PM this tool" (issue 8, label part).**
+- *Today:* every PM button reads "PM this tool", with the tool name far above it. The min-maxer serviced litho instead of etch.
+- *Fix:* the button reads "PM the Etch tool" (its screen-reader label already says that). The Continue button on a PM/DOE stop where nothing was chosen reads "Leave without a PM or DOE" so it is clear the 40 minutes are spent either way. That cost stays: taking the stop takes the tool time (decision O3).
+- *Tests:* the PM screen tests find buttons by these names.
+
+### Fixes that need your call
+
+**5. Wafer map rounding and label (issues 13 and 10, second half; review claim 10).**
+- *Today:* each tile rounds **down** (89.7 reads 89), so the map always reads lower than the headline yield (thirteen 99s and twelve 98s under a 99.1% headline). The label says "% of the 25 wafers still good there", but the number is an expected good fraction at that die position, not a count of wafers.
+- *Proposed:* round to the nearest whole percent, and relabel "Each site: % of this die position expected good across the lot." The band (pass, warning, fail) still comes from the printed number, so a tile's number and colour always agree.
+- The square 5×5 map stays for now. A round 21-site mask is your separate open call (claim 10) and Lane D's to draw.
+
+**6. Buying makes the score worse, and rejected lots are not paid (issue 14).**
+- *Today:* the ship report's score is cost per good die = (2000 + cash spent) ÷ good die. A 300-cash item has to raise yield by about 15% of what it is to pay for itself, so the rational move is to buy nothing. A rejected lot still shows a cost per die, with "Not paid".
+- *This is an economy design question, not a small fix.* Options: A) leave it for the M7 balance pass, and only reword the tile so it doesn't read as the score (my recommendation: M4.5's exit test is about shipping, and the item prices are placeholders anyway); B) change the score now (for example to profit: a price per good die on a shipped lot, minus the lot cost), which is new balance numbers and needs your price.
+
+**7. Nothing explains the words (issue 16).**
+- *Today:* lot, PM, DOE, CMP, CD and SPC are never spelled out. The student listed 36 terms.
+- *Proposed:* a **Words** page, opened like the Notebook page (a button in the floor plan and room headers), listing about 15 terms in one or two plain sentences each. The words would be data in a new `src/content/glossary.js` with `draft: true`, written by `content-drafter` and checked by `physics-reviewer`, then reviewed by you. That is Lane C content plus a Lane A page, so it is bigger than the others.
+
+**Steps (after your OK)**
+- [ ] Fixes 1–4, each with its tests, one commit each.
+- [ ] Fixes 5–7 as you decide.
+- [ ] `npm test`, `npm run screens` (the phone tests touched `--repeat-each=5`), the bot; screenshots checked.
+- [ ] Tracker, roadmap box only if the whole line is done (it isn't: 17 and the button spacing are Lane D's), lessons.
+
+**Q1 (map).** Round to nearest and relabel, as proposed?
+**Q2 (score).** A (leave the score for M7, only reword) or B (change it now: then what does a good die sell for)?
+**Q3 (glossary).** Build the Words page in this item, or make it its own item later?
+
+---
+
+## Done: M4.5 item 5 — show effects before you commit (issue 6); placeholders stop charging for nothing (issue 5)
+
+**Status: built 26 Oct 2026. David took the recommendation on all three: Q1 show the points preview, Q2 A (metrology not offered until built), Q3 A (measure all not dealt until something is hidden).**
+
+**What was built**
+- `src/ui/effectsText.js` (new): every effect operation in plain words. `pmView.js` now uses it, and the DOE screen text is unchanged (its tests pass as they were).
+- `view.js`: a card in the hand has `effectsText`, and a playable one has `pointsChange` and `pointsText` ("About 1.0 point less lost in this room."). Shop items have `effectsText`. `render.js`, `floorPlan.js` and `room.css` draw them in dark text (`--ink`), with no new colours.
+- `map.js`: `SIDE_STOP_KINDS` leaves out any stop marked `placeholder` in `sideStops.js`, so metrology is never offered. A corridor now offers 2 or 3 of PM, procurement and event.
+- `run.js`: `NOT_DEALT_YET = ['measureAll']`, kept out of the starter deck and `runDeck`. The card stays in `content.js` and in `fullPool()`, and it still works when a deck holds it (its tests give it one).
+- `render.js`: removed "(Unlocks start to count in a later update.)" from the ship report.
+- `SAVE_VERSION` 3 → 4 (`fabrun.run.v4`).
+
+**Tests changed, and why (no expected yield or cash value changed)**
+- The starter deck is now `['timedOveretch', 'reworkLitho']` (`run.test.js`), and the DOE offers on seed 123456 are `['timedOveretch', 'reworkLitho']` (`doe.test.js`). After CMP nothing is offered, since no dealt card is for metrology. Both follow directly from Q3.
+- The `measureAll` tests and the illegal-card test now give the card a deck explicitly.
+- `map.test.js`: the kinds test now says "only the built stops are offered", plus a new test: no metrology over 100 seeds.
+- `storage.test.js` `takeEveryStop`: it now turns its preference (PM, procurement, event) with the corridor number. Every corridor now offers PM or an event, so the old "PM first" never shopped, and no seed bought anything.
+- `saves.spec.js`: the "reload at a quiet stop" test used the metrology stop. It now uses the quiet event after CMP (no event matters that late).
+- New: `tests/effectsText.test.js`, four `view.test.js` tests (hand check: over-etch saves 16.1976 − 15.1772 = 1.0204 points), and the etch screen checks the effects and points lines.
+
+- `map.spec.js` "taking a side stop costs its minutes": it expected the placeholder text "comes in the next update". Seed 123456's first stop is now PM, so it checks only that the stop screen states its cost.
+
+**Checks:** `npm test` 243/243, `npm run screens` 74/74, the etch and shop phone tests passed 5 runs in a row, and the bot ran clean on 200 runs (no metrology stop taken). I checked the screenshots: the etch room at both sizes and the phone shop show the new lines in dark text, with no sideways scroll.
+
+**Noticed, not fixed (outside this item)**
+- A DOE can be offered on "Strip and re-expose", which is never playable today, because nothing sets `lastStepWasLitho`. A DOE on it is 100 cash for nothing. This goes with the "decision in every room" item.
+- The `floorPlan.js` "(coming in a later update)" text for placeholder stops can no longer show. I kept it for when a stop is marked placeholder again.
+
+**Original plan below.**
+
+This is the next M4.5 item that does not wait on a physics call from David. (Items 3 etch-stop and 7 starter deck wait on your answers; item 1 waits for PR #23.)
+
+### Part A — show what a card or item does, before you commit (Lane F issue 6)
+
+**What it is today**
+- A card in the hand shows its name, minutes, cash and its `tradeoff` sentence. A shop item shows its price and `tradeoff`. Neither shows its numbers.
+- The numbers exist only on the DOE screen (`pmView.js` `recipeText`, e.g. "4 min · residue ×0.3 · underlayer attack ×1.5"), and that helper only knows `defectMult`.
+- Players priced items by replaying whole runs (the min-maxer measured the copper bath at about 4 points for 200 cash).
+
+**What you'll see after this part**
+- Under each card's tradeoff, one effects line, e.g. **"residue ×0.3 · underlayer attack ×1.5 (×0.5 with an etch stop)"**.
+- On a playable card in the hand, also **"About 1.0 point less lost in this room"** (or "more"). It is worked out the same way as the existing "This room will cost about X" forecast, which the personas found accurate: play the card on a copy of the lot and compare.
+- On each shop item, the same effects line, plus which room it acts in.
+
+**Steps**
+- [ ] New `src/ui/effectsText.js`: one effect in plain words, for every operation the content uses: `defectMult` ("residue ×0.3"), `setFlag` ("sets an etch stop"), `enables` ("lets you play Endpoint etch"), `reveal`, `timeCost`, `cashCost`, `toolHealth` (said as "services the tool", never a number, as David chose for events), `decayPerUse`, `addRisk`. An unknown operation shows its own name, so nothing is invented.
+- [ ] `pmView.js` uses the shared helper instead of its own `recipeText`. The DOE screen's text stays identical (its tests prove it).
+- [ ] `view.js`: `cardView` gets `effectsText` and `pointsChange`; `shopItemView` gets `effectsText`.
+- [ ] `render.js` and `floorPlan.js`: draw the new line(s), with the existing `card-summary` style (no new colours).
+- [ ] Tests: hand-written expected strings for timed over-etch, the endpoint detector, the copper bath; `pointsChange` for timed over-etch on seed 123456 equals the forecast difference already in `view.test.js` (16.1976 − 15.1772 = 1.0204, shown "about 1.0"). Screens at both sizes; phone tests `--repeat-each=5`, since the cards get taller.
+
+### Part B — placeholders that cost (Lane F issue 5)
+
+Three things charge the player for nothing:
+
+1. **The Metrology side stop** says "(coming in a later update)" and still costs 20 minutes of cycle time, plus Q-time risk if it is in the Q-time corridor.
+2. **"Measure all 25 sites"** costs 150 cash and 20 minutes and does nothing visible: it sets `room.revealed`, which no screen reads, and the wafer map already shows all 25 sites anyway.
+3. **The ship report says** "(Unlocks start to count in a later update.)". That has been false since M4 item 4 (unlocks now join your next run).
+
+**Steps**
+- [ ] Remove the stale sentence in 3 (`render.js`). A plain bug fix, no question.
+- [ ] 1 and 2 per your answers to Q2 and Q3.
+- [ ] If the map's offers change (Q2 option A), the seeds draw different side stops, so `SAVE_VERSION` goes 3 → 4 and test helpers that *search* for a seed (they already allow this) may pick another seed. Expected values themselves stay the same; if any must change I show you old and new first.
+- [ ] `npm test`, `npm run screens`, the bot; tick the box; lessons if anything surprises me.
+
+**Q1 (the points preview).** Show "about N points less lost in this room" on playable cards (my recommendation; it reuses the forecast players already trust), or the multipliers only?
+
+**Q2 (the Metrology side stop).** A) stop offering it on the map until it does something (my recommendation; a choice that only costs time is a trap); B) keep it, but it costs 0 minutes and says "nothing to measure yet"; C) build it now (what should it reveal? that is a design and physics call and probably belongs with the readable-diagnosis item).
+
+**Q3 ("Measure all 25 sites").** A) take it out of the starter deck until the game hides something a measurement could reveal (my recommendation; a starter card that does nothing teaches players to ignore cards); B) keep it, but make it free; C) make it reveal something now (same design call as Q2 C). Note: taking it out leaves the metrology room with no card at all, which the "decision in every room" item (your starter deck answer) will fill.
+
+---
+
+## M4.5 items 1 and 2 — land the pending lane work (item 1, waits for PR #23 to merge); remove the fixed etch and litho yield tax (item 2, DONE 26 Oct 2026)
+
+**Status: David OK'd the plan and the test-value changes. Item 2 is built and verified: `npm test` 233/233, `npm run screens` 74/74, bot clean on 200 runs, `physics-reviewer` passed all four numbers. Item 1 is still to do.**
+
+**Item 2 done:** the five numbers are in `lotTypes.js`, the 15 test values were updated to the hand-computed ones in the table below, and `SAVE_VERSION` is 3 (`fabrun.run.v3`). One value not in the table: `view.test.js` run-etch yield band went from `warn` to `ok`, because the lot is now at 78.0% after etch, above the 70% spec. The reviewer's comment fix is in.
+
+**Open from the physics review (for David):** etch still shows about 0.19 landing (0.11 of its own + the latent depth variation 0.08 from the stack), against 0.04 at litho. That can teach "etch is the dirty step" when the cause is upstream. Either the etch screen labels it as carried in from the stack, or 0.08 gets a smaller size. Goes with the etch-stop item.
+
+### M4.5 item 1 — bring Lane F's reports and Lane D's commit onto `main`
+
+**What it is today**
+- `main` has neither. Lane F's playtest work is on `claude/lane-f-playtesting-tsdjsm` (7 commits, 223 files, docs only plus five persona agent files). Lane D's one commit (the "about 1 nm" native-oxide label on the pre-clean art plus its tracker) is on `claude/lane-d-look-feel-64k6zr`.
+- I test-merged both onto `main`: **no conflicts**. Neither touches `src/engine/` or the tests.
+- `origin/lane-f` is an older, smaller copy of Lane F (3 commits, an earlier `drive.mjs`). The newer branch contains the same work, so it is stale.
+- `lane-b`, `lane-c` and `model-routing` and `trim-project-md` have nothing that `main` lacks.
+
+**What you'll see after this item**
+- `docs/playtest/` on `main`: the five persona reports, the 15 run logs, `summary.md` (the ranked issues) and `physics-review.md`.
+- The five `persona-*` agents in `.claude/agents/`, so Lane F can rerun them after M4.5.
+- The native-oxide label in the pre-clean art.
+
+**Steps**
+- [ ] Wait for PR #23 to merge. Then restart my branch from the new `main` (the same branch name, as the session rules say for a merged PR).
+- [ ] Merge the two lane branches into it as two merge commits, so each lane's history stays visible. No file edits.
+- [ ] Run `npm test` and `npm run screens` on the result (Lane D's change is an SVG, so the screen tests prove the art still loads).
+- [ ] Open one PR for David: "Land Lane F reports and Lane D label".
+- [ ] Do **not** delete any branch. I list the stale ones (`lane-f`, `lane-b`, `lane-c`, `model-routing`, `trim-project-md`, `ccr-*`) and David decides.
+
+**Why this order:** the lane branches only add files, so they cannot break PR #23 either way. But merging them into PR #23 would put 223 files in a PR meant to be read in ten minutes.
+
+**Q1 (size).** `docs/playtest/` is about 13 MB, mostly 70 screenshots. The repo is public and GitHub Pages serves the whole repo. Options: A) keep them all (the evidence stays with the repo; Pages gets heavier); B) keep the reports and logs and leave the screenshots out of `main` (the reports still link them by name, so the links would break). I recommend **A**: 13 MB is small, and the summary's evidence lines point at those files.
+
+### M4.5 item 2 — remove the fixed etch and litho yield tax
+
+**What it is today** (from `src/content/lotTypes.js` and Lane F's `physics-review.md` claim 8)
+- Every lot pays a fixed risk at etch, whatever the player does: residue 0.10 + underlayer attack 0.05 + edge ring 0.05 + particles 0.01 = **0.21 now, plus the latent depth variation 0.08 = 0.29**. Yield is `e^−risk`, so that is about **25% of the lot** lost on a healthy etch.
+- Litho adds a fixed `cd_error` 0.06 (about 6%), though the CD is centred.
+- A do-nothing run on seed 123456: litho −7 points, **etch −22 points**. The best cards bring etch's exponent only to about 0.15, so every strategy lands within half a point of each other (Lane F issue 1).
+- It also teaches something false: a well-centred timed etch already includes its over-etch, so large residue on a healthy tool is not physical (claim 8).
+- The whole route's fixed risk adds to 0.67, i.e. **51% with no choices at all**. The spec is 70%, which is an exponent of 0.357 or less. So shrinking etch and litho alone is not enough to make the spec reachable, but it is the part that is unphysical, and it is the biggest single piece.
+
+**The rule I will keep (CLAUDE.md §5 and §7):** only the placeholder risk sizes in `lotTypes.js` change. No physics rule, no effect operation and no content text changes. Tool health still adds drift risk exactly as today, so a worn etch tool costs more than a fresh one, which is what should decide the loss.
+
+**Proposed new sizes (placeholders; I measure before settling)**
+
+| Pattern at etch/litho | Now | Proposed | Reason |
+|---|---|---|---|
+| etch `residue` | 0.10 | 0.04 | A centred timed recipe clears the film; some residue remains in slow spots |
+| etch `underlayer_attack` | 0.05 | 0.03 | Real, but small without over-etch (the etch-stop logic is item 3 of M4.5, not this item) |
+| etch `edge_ring` | 0.05 | 0.03 | The starter set has no counter for it, so it should stay small |
+| etch `particles`, latent `depth_variation` | 0.01, 0.08 | unchanged | Not part of claim 8's list; depth variation is shared with the etch-stop item |
+| litho `cd_error` | 0.06 | 0.03 | The CD is centred; scatter, not a tax |
+
+- Etch's fixed risk goes from 0.21 to 0.11, and litho's from 0.06 to 0.03. A do-nothing run's total fixed exponent goes from 0.67 to about 0.54, i.e. about **58%** instead of 51%, before drift.
+- That is still below the 70% spec on purpose: after this item **do-nothing must fail** (exit test), and the cards must be what gets a lot over the line.
+
+**Steps**
+- [ ] First, measure, with a scratch script outside the repo: the per-step loss for the idle bot and for a "good play" script (the cards that already exist, a PM on a worn etch tool) on seeds 123456, 42 and 777, **before** the change. Write the numbers into this file.
+- [ ] Change the five numbers in `lotTypes.js`. Update the comment above them.
+- [ ] Measure again. If the best play ships below about 65% or above about 80%, or the best and worst strategies are less than 10 points apart, I adjust and tell you the numbers before settling. A strategy that is only 10 points apart because of the *other* rooms' fixed risks is reported, not hidden, and goes to the next items.
+- [ ] Tests: `tests/run.test.js` lines 95–96 (residue 0.10, underlayer 0.05) and the `timedOveretch` test (line 115, residue 0.03) hold hand-computed values for these exact numbers. **CLAUDE.md §11 says never edit an expected value to make a test pass, so I will ask you before editing any of them.** I recompute each by hand from the new numbers and show you the old and new value side by side.
+- [ ] `SAVE_VERSION` goes 2 → 3 (and the key to `fabrun.run.v3`), because an old save would replay to a different yield. The notebook is untouched (own key).
+- [ ] The shop test seed (`tests/shopSeed.js`) and the screen tests that look at yield may move; their expected *items* stay the same, as before.
+- [ ] `npm test`, `npm run screens` (phone tests with `--repeat-each=5`), and the bot on all three seeds.
+- [ ] Update this tracker, the `ROADMAP.md` box, and a rule in `tasks/lessons.md` if anything surprises me.
+- [ ] `physics-reviewer` checks the new sizes (a read-only pass), because the sizes are physical claims.
+
+**What you'll see:** in the same run on seed 123456, etch costs about 10 points instead of 22, and litho about 3 instead of 7. The ship report's step breakdown shows it. A worn etch tool (red SPC flag) now visibly costs more than a fresh one.
+
+**Answers (David, 26 Oct 2026):** Q1 keep all the screenshots; Q2 the numbers are fine (0.04 / 0.03 / 0.03 / 0.03); Q3 other rooms stay for now.
+
+**Measured (scratch script, 200 seeds 1000–1199 plus seeds 123456 / 42 / 777). "Greedy" plays every legal card in every room, no side stops.**
+
+| Play | Before | After |
+|---|---|---|
+| Do nothing (200 seeds, mean / best) | 46.4% / 54.1% | 52.7% / 61.0% |
+| Do nothing, seeds 123456 / 42 / 777 | 51.8 / 47.9 / 50.6 | 58.5 / 54.8 / 57.3 |
+| Greedy, starter deck (mean) | 48.9% | 53.8% |
+| Greedy, full pool (mean, lots at or over 70%) | 62.0%, 2 of 200 | 67.0%, 53 of 200 |
+| Random play, full pool (mean, lots at or over 70%) | 58.9%, 1 of 200 | 63.7%, 27 of 200 |
+
+- Do-nothing still fails (best of 200 is 61%). The best and worst strategies are now about 14 points apart (52.7 vs 67.0), up from 0.7 to 3 points on the starter deck. **With the starter deck alone nothing reaches 70%** (best 62%), because the starter pool has almost no cards outside etch and litho. That is the "decision in every room" item, not this one.
+- **Correction to the plan:** I wrote that etch would cost "about 10 points instead of 22". By hand it is **16.2 points** (from 22.9). Depth variation (0.08, latent, shared with the etch-stop item) and handling particles are still there. Litho goes from 7 to 3 points.
+
+**Test values that change (hand-computed first, then checked against the engine).** I rebuilt the model by hand in a separate script. It gives the *old* numbers exactly (0.517954, 0.685321, 0.716865, 0.701607, 22.8610, 19.7066), so I trust it for the new ones.
+
+| Test | Old expected | New expected | Hand working |
+|---|---|---|---|
+| lotTypes: idle route, centre / inner / outer sites | 0.588605 / 0.559898 / 0.492567 | 0.657047 / 0.625002 / 0.567295 | even exponent 0.42 (was 0.53); inner adds depth 0.08 × 0.625; outer adds depth 0.08 × 1.25 + edge ring 0.03 × 1.5625 |
+| lotTypes, run, events, tools, run Q-time: whole idle yield | 0.517954 | 0.589352 | (1 × centre + 8 × inner + 16 × outer) / 25 |
+| run: residue / underlayer attack on entering etch | 0.10 / 0.05 | 0.04 / 0.03 | the new sizes |
+| run: after timed over-etch | residue 0.03, underlayer 0.075 | residue 0.012, underlayer 0.045 | ×0.3 and ×1.5 of the new sizes |
+| doe: underlayer attack before playing | 0.05 | 0.03 | the new size |
+| doe: DOE-centred over-etch yield ratio | × 1.012578 | × 1.007528 | e^(0.03 × (1.5 − 1.25)) |
+| shop: yield after etch, with / without the detector | 0.701607 / 0.685321 | 0.798418 / 0.779789 | detector: depth 0.056 instead of 0.08 |
+| view: yield on entering etch | 0.913931, shown 91.4 | 0.941765, shown 94.2 | e^(−0.06) |
+| view: loss at etch, idle / after over-etch | 22.8610 / 19.7066 points (22.9 / 19.7) | 16.1976 / 15.1772 (16.2 / 15.2) | before minus after |
+| view: yield after etch, idle / over-etch | 68.5% / 71.7% | 78.0% / 79.0% | 0.779789 / 0.789992 |
+| events, tools: slurry / worn-CMP ratio | × 0.977312 | unchanged | only the idle yield beside it changes |
+| run Q-time: ratio e^(−0.04) | 0.960789 | unchanged | unchanged |
+
+**Q2 (the numbers).** Are 0.04 / 0.03 / 0.03 / 0.03 right, or do you want smaller (0.02 each) so that the tool state decides almost everything? This is your fab call.
+
+**Q3 (other rooms).** Plating, CMP, barrier and strip also carry fixed risk (about 0.28 together). Lane F measured +11–15 points after etch with no decision. Do they stay for now (my proposal; the cards for those rooms come with the "decision in every room" item), or shrink in this same change?
+
+---
+
+## Done: M4 item 4 — starter pool vs unlocked pool; unlocked remedies appear in the deck and at procurement
+
+**Status: done. David answered Q1–Q4 (26 Oct 2026), all as proposed: unlocked practices join the deck automatically, the save version goes to 2, the thin first-run shop is accepted, and consumables stay off the Notebook page until they are in the game. Built the same day.**
+
+**Decisions settled:** O1 (diagnosing earns unlocks) is already settled. Q1–Q4 are answered above.
+
+### Task: a diagnosed failure mode's remedies join every later run
+
+**What it is today**
+- Every item has `unlockedBy`: `null` for the starter pool, or the failure mode that unlocks it. Content and failure modes agree in both directions (checked: no mismatches).
+- The starter pool is small: 3 practices (timed over-etch, measure all 25 sites, strip and re-expose), 1 piece of equipment (inline metrology), 2 resists, and 2 consumables.
+- Every run's deck is the starter deck, so only etch and litho rooms ever deal cards.
+- The shop sells **every** equipment and material, because `SHOP_SELLS_LOCKED_ITEMS = true` was set "until the notebook exists".
+
+**What you'll see after this item**
+- Diagnose Keyhole void. On every later run, the **Low-current start step** card is in your deck and turns up in the plating room's hand. The **additive bath** can be on sale at a procurement stop.
+- Before any diagnosis, procurement only sells starter items (see Q3).
+- The Notebook page now shows each entry's remedies: "Unlocks: Low-current start step, Additive bath". It lists only remedies the game can use (see Q4).
+
+**Engine (`src/engine/`)**
+- [x] `notebook.js`: `unlockedIds(notebook)` gives the ids that the notebook's failure modes unlock, in content order. Unknown ids are skipped.
+- [x] `run.js`:
+  - `createRun({ …, unlocked = [] })` keeps the list in `state.unlocked`.
+  - `runDeck(unlocked)` gives the starter practices plus the unlocked practices, in content order (Q1).
+  - The default stays `[]`, so the bot and the existing tests play exactly as before.
+- [x] `shop.js`: an item is for sale if it is a starter item **or** is in `state.unlocked`. `SHOP_SELLS_LOCKED_ITEMS` becomes `false` in `balance.js`.
+
+**Why the run keeps its own list (and a save-version bump)**
+- A run's pool is fixed **when the run starts**. A diagnosis made in another tab mid-run must not change this run's deck. If it did, the same seed and the same actions would no longer give the same run (CLAUDE.md §8), and a resumed save would replay differently.
+- So the run save stores the list: `{ version: 2, seed, unlocked, actions }`.
+- `SAVE_VERSION` goes 1 → 2, so a run in progress when this ships is dropped once and starts fresh. **The notebook is not touched**: it has its own key, which is exactly what M4 item 2 was for.
+
+**UI (`src/ui/`)**
+- [x] `main.js`: `newRun(seed)` uses `unlockedIds(notebook)` for the deck and the shop. A resumed run uses the list saved with it.
+- [x] `storage.js`: `saveRun` and `loadRun` carry `unlocked` (a list of text ids, else the save is junk).
+- [x] `notebookView.js` and `notebookPage.js`: "Unlocks: …" under each entry (practices, equipment and materials only, Q4), or "No remedy yet." for etch residue.
+- [x] `tasks/todo.md` NEEDS NEW LOGIC: consumables (starter and unlocked) are not played anywhere yet (Q4).
+
+**Tests**
+- [x] Hand-checked:
+  - `unlockedIds` of {keyhole, edge ring} is `['slowStartPlate', 'eChuckUpgrade', 'additiveBath', …]` in content order;
+  - an empty notebook unlocks nothing;
+  - an unknown id is skipped.
+- [x] `runDeck([])` equals the starter deck, and `runDeck` of the keyhole unlocks adds `slowStartPlate` only (the bath isn't a practice).
+- [x] Shop:
+  - with `unlocked: []`, no locked item is ever in stock (100 seeds, every corridor);
+  - an unlocked item can be in stock.
+  - `shopSeed.js` passes `unlocked` for its 3 test items, so the shop tests' expected items stay the same. Only the seed it finds may move, as its header comment already allows.
+- [x] Saves:
+  - `unlocked` round-trips;
+  - a v1 save is ignored;
+  - a resumed run uses its saved list even after the notebook grew.
+- [x] Screens, desktop and phone:
+  - with a stored notebook holding keyhole void, the plating room deals Low-current start;
+  - with an empty one, it deals nothing there.
+  - The shop screen tests store the notebook entries their items need (via `addInitScript`).
+  - The phone tests run with `--repeat-each=5`.
+- [x] Bot runs clean (unchanged default: `unlocked: []`).
+
+**Size:** about 30 lines in `src/engine/`, 1 line in `balance.js`, about 40 in `src/ui/`, and about 180 lines of tests. **It touches `src/engine/`, `src/content/` and `src/ui/`, so this plan is the ask (CLAUDE.md §3).**
+
+### Questions for David
+- **Q1 how unlocked practices reach the deck.** The roadmap says "appear in drafts", but there is no draft yet.
+  - **A (proposed):** every unlocked practice joins the deck of every later run, automatically. The hand is already drawn only from the cards legal in that room, so a bigger deck means more choice in that room, not clutter.
+  - **B:** at the start of a run, pick a few of your unlocked practices (a new screen and a new action).
+  - **C:** Spire-style: after a room, pick 1 of 3 cards to add. That's a new mechanic, better as its own roadmap item later.
+- **Q2 the save-version bump:** a run in progress when this ships is dropped once; the notebook is kept. Proposed: OK.
+- **Q3 procurement will be thin at first.** The only starter items it can sell are inline metrology and the thick resist (the i-line resist is already loaded). A first-run shop may offer 1–2 items, and late on the route, none. Options:
+  - accept it, since diagnosing is how the shop fills up (proposed);
+  - or move a few equipment items into the starter pool. That's a content call for you.
+- **Q4 unlocked consumables** (bath analysis, fresh resist, implant monitor, oxide monitor) **can't be used anywhere yet**. No engine code plays consumables, not even the starter qual wafer and spare part.
+  - Proposed: leave them out of "Unlocks: …" until consumables are in the game, and list them in NEEDS NEW LOGIC.
+
+**For David (found while planning, not blocking)**
+- On the Cu line, two items can never be unlocked:
+  - **i-line → DUV resist (`resistCAR`)**: post-exposure delay T-top is never a right answer there, since no step waits before bake.
+  - **fresh resist**: same reason.
+- Other items wait on NMOS-only failure modes. That is fine, since NMOS is M5.
+
+### Acceptance criteria
+- After a right diagnosis, the next run's deck holds that failure mode's practices, and procurement can sell its equipment and materials. Before any diagnosis, neither does.
+- A resumed run replays exactly, even if the notebook changed meanwhile.
+- `npm test`, `npm run screens` and the bot pass; the phone tests pass 5 runs in a row; screenshots are checked.
+
+**Progress notes:**
+- 26 Oct 2026, the tests that relied on the shop selling everything. The shop, shop view and full-deck save tests now play as a player whose notebook unlocks what they need:
+  - `tests/shopSeed.js` has `SHOP_TEST_NOTEBOOK` (removal-rate drift and T-top: the pad conditioner and the DUV resist; no practices, so the deck stays the starter deck);
+  - and `FULL_NOTEBOOK_UNLOCKS` (every failure mode).
+  - Their expected items didn't change. The shop test seed moved from 123717 to 123456, which `shopSeed.js` was written to allow.
+  - The shop screen tests store `SHOP_TEST_NOTEBOOK` in the page before it loads.
+- **David, please note:** the save tests' expected save now includes `unlocked: []` (for example `{ seed, unlocked: [], actions }`). That's the new save shape from this plan, not a value bent to make a test pass.
+- Two expected names in a test I wrote this session were wrong: I guessed "Additive bath" and "Electrostatic chuck upgrade". They are now the real names, "Three-additive copper bath" and "Edge-tuned chuck". Lesson added.
+
+**Result:** done.
+- Diagnosed failure modes add their practices to every later run's deck, and their equipment and materials to the shop.
+- Each run keeps its unlocked list, and the run save stores it (`SAVE_VERSION` 2).
+- The Notebook page shows "Unlocks: …".
+- npm test 233/233, npm run screens 74/74, the changed phone tests passed 5 runs in a row, the bot ran clean, and the screenshots were checked.
+
+---
+
+## Done: M4 item 3 — Notebook page: your diagnosed failure modes, their signatures and the seed each was found on
+
+**Status: done. David answered Q1–Q4 (26 Oct 2026): Q1, Q2 and Q4 as proposed; Q3 changed: remedies stay hidden until the unlock pool (M4 item 4) makes them real. Built the same day.**
+
+**Decisions settled:** none needed. O1 (diagnosing earns unlocks) is already settled. The tool-schematic art for notebook pages (S10) is an M6 item, so this page uses the plain panels the other screens use.
+
+### Task: a page you can open to read your notebook
+
+**What you'll see**
+- A **Notebook** button in the header of the floor plan and of the ship report. The button shows the count, for example "Notebook (3)". Tapping it opens the Notebook page. **Back** returns to the screen you came from, exactly as it was. (Q1)
+- The page lists the failure modes you have diagnosed, **newest first** (Q2). Each entry shows:
+  - its **name** and **signature** (the same words as on the diagnose panel);
+  - **"Found on seed 123456"**;
+  - **No remedies yet** (Q3): what an entry unlocks appears on this page when the unlock pool is built (M4 item 4), so the page never lists something the game doesn't do yet.
+- Under the list, with 3 found: **"14 failure modes still to find."** It gives the count only, never the names, so nothing is spoiled (Q4).
+- An empty notebook says: "Nothing diagnosed yet. At the end of a run, name the failure mode that hurt the lot on the ship report."
+- Entries whose failure mode is no longer in the content are skipped, as already agreed for M4 item 2 (Q3 there).
+
+**What it does not do**
+- Opening the notebook is **not a run action**. It doesn't change the run, isn't saved, and a reload brings back the screen behind it. No engine change.
+- No button in the process rooms, to keep the room screen clear. (Q1)
+- No art yet: the tool-schematic notebook pages are M6.
+
+**Code (all in `src/ui/`, one folder)**
+- [x] New `notebookView.js`, about 60 lines, pure (runs in Node like the other views): `notebookView(notebook)` gives `{ entries: [{ id, name, sig, seed }], stillToFind, emptyText }`.
+  - `modeName` **moves here** from `shipView.js`, which then imports it. It's 1 line moved, not new logic, so both screens name failure modes the same way.
+- [x] New `notebookPage.js`, about 60 lines: `renderNotebook(container, view, { onBack })`. It's a new file because `render.js` (372 lines) would pass 400 (CLAUDE.md §4).
+- [x] `floorPlan.js` and `render.js`: a Notebook button (44 px, with the double-tap guard) in the map and ship-report headers, about 10 lines.
+- [x] `main.js`, about 20 lines: `showNotebook(back)` draws the page, and Back calls `back` (`showMap` or `showShipReport`), so the screen comes back as it was, including a diagnosis already made.
+- [x] `room.css`: a few rules for the entry list, using `tokens.css` colors only.
+
+**Tests**
+- [x] `tests/notebookView.test.js` (Node):
+  - an empty notebook gives no entries and the empty text, and `stillToFind` equals the number of failure modes;
+  - two entries come out newest first, with their names, signatures and seeds, and `stillToFind` goes down by 2;
+  - an unknown id is skipped and doesn't change `stillToFind`.
+- [x] `tests/screens/notebook.spec.js`, desktop and phone:
+  - an empty notebook from the floor plan opens and shows the empty text; Back returns to the floor plan;
+  - after a right diagnosis on seed 123456, the ship report button reads "Notebook (1)", the page shows that entry, and Back returns to the ship report with the diagnosis still shown;
+  - no sideways scroll at 375 px and no console errors; a screenshot of each;
+  - the phone tests pass with `--repeat-each=5`.
+
+**Size:** about 140 lines of code in `src/ui/` and about 150 lines of tests. One `src/` folder. ROADMAP: this becomes M4 item 3, and the unlock pool moves to item 4.
+
+### Questions for David (proposed answers; say if any is wrong)
+- **Q1 where to open it:** from the floor plan and the ship report, not from inside a room. Back returns to where you were. Proposed: yes.
+- **Q2 order:** newest first. Proposed: yes.
+- **Q3 remedies on the page:** list them now, with a note that they join the game in the next item. Proposed: yes. (The other choice is to hide them until the unlock pool is built.) **David: hide them until built.**
+- **Q4 undiscovered failure modes:** show only a count ("14 still to find"), never their names. The count includes the ones only an NMOS lot can show, which hints there's more to come. Proposed: yes.
+
+### Acceptance criteria
+- From the floor plan or the ship report, you can open the Notebook page and see each diagnosed failure mode with its signature and seed, and Back returns you to the same screen.
+- `npm test` and `npm run screens` pass; the phone screen tests pass 5 runs in a row; screenshots are checked at both sizes.
+
+**Progress notes:**
+- 26 Oct 2026: the Notebook button lives in `render.js` (`notebookButton`), not in `notebookPage.js`, because `render.js` importing from `notebookPage.js`, which imports from `render.js`, would be a circular import. Now `render.js` is 379 lines.
+- The line under the list says "1 failure mode" and "Every failure mode is in your notebook." where those fit, not "1 failure modes".
+
+**Result:** done. New `notebookView.js` (the page's contents) and `notebookPage.js` (drawing). A "Notebook (n)" button sits in the floor-plan and ship-report headers, and Back returns to the same screen. `modeName` moved from `shipView.js` into `notebookView.js`. npm test 227/227, npm run screens 70/70, the new phone tests passed 5 runs in a row, and the screenshots were checked at both sizes.
+
+---
+
 ## Done: M4 item 2 — the notebook is saved under its own key and survives a run-save version bump
 
 **Status: done. Plan OK'd by David (26 Oct 2026): Q1–Q4 and Q6 as proposed; Q5 yes, the Notebook page is its own M4 item.**
@@ -1178,3 +1670,4 @@ Content in `src/content/content.js` that needs engine behavior beyond the eight 
 - `shelfLife`: counts rooms visited; at 0 the material stops helping
 - Dead cards: a practice whose target pattern was already realized earlier on the route (e.g. `etchStopLayer` at the second dep visit) should be greyed out or hidden
 - Tool wear: tool health stays at 100 in run.js; no rule yet for how much a room wears its tool
+- Consumables: no engine code plays them yet (the starter qual wafer and spare part, and the unlocked bath analysis, fresh resist, implant monitor and oxide monitor). They are left off the Notebook page's "Unlocks" until they can be used (David, 26 Oct 2026)

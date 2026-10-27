@@ -73,6 +73,9 @@ test('the PM stop lists the tools ahead with their charts; PM one, then continue
   await expect(page.locator('.pm-panel .spc-chart')).toHaveCount(6);
   await expect(pmCard(page, 'CMP')).toContainText('Next used at step 8: CMP');
   await expect(page.locator('.pm-button')).toHaveCount(6);
+  // Each PM button names its tool, and the exit says nothing is done yet.
+  await expect(pmCard(page, 'Etch').locator('.pm-button')).toHaveText('PM the Etch tool');
+  await expect(goButton(page)).toHaveText(/^Leave without a PM or DOE: on to step \d+, /);
   await expectNoSidewaysScroll(page);
   await screenshot(page, '11-pm');
 

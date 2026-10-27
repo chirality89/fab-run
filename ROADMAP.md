@@ -2,7 +2,7 @@
 
 Work top to bottom, one checkbox per session. Plan in `tasks/todo.md` first (see `PROJECT.md`). Tick the box here when done. Before starting a milestone, settle the `docs/decisions.md` items it depends on.
 
-Current milestone: **M4 — Notebook and unlocks**
+Current milestone: **M4.5 — Winnable and readable** (David, 26 Oct 2026: do this before M5; scope in `tasks/next-stages.md`)
 
 ## M0 — Move in
 - [x] Turn on GitHub Pages (Settings → Pages → Deploy from a branch → `main` / root); confirm the placeholder page loads at `https://chirality89.github.io/fab-run/` on desktop and phone
@@ -35,8 +35,23 @@ Current milestone: **M4 — Notebook and unlocks**
 ## M4 — Notebook and unlocks (needs O1)
 - [x] Diagnose screen: name a failure mode from the evidence; right answer writes the notebook
 - [x] Notebook saved in its own localStorage key; survives a run-state version bump
-- [ ] Notebook page: list your diagnosed failure modes, with their signatures and the seed each was found on
-- [ ] Starter pool vs unlocked pool; unlocked remedies appear in drafts and procurement
+- [x] Notebook page: list your diagnosed failure modes, with their signatures and the seed each was found on
+- [x] Starter pool vs unlocked pool; unlocked remedies appear in drafts and procurement
+
+## M4.5 — Winnable and readable (from Lane F's playtest reports)
+Items are Lane F issue numbers (`docs/playtest/summary.md`) and physics-review claims. Each item is planned in `tasks/todo.md` first. Exit test is in `tasks/next-stages.md`.
+- [ ] Bring Lane F's reports and Lane D's native-oxide commit onto `main`
+- [x] Remove the fixed etch and litho yield tax, so tool health and choices drive the loss (issue 1, claim 8)
+- [x] Etch-stop logic (claim 11; David: the stop is a choice, route label "Deposition (oxide)"; needs a small engine rule, plan and ask first)
+- [ ] SPC flags that predict, and a flagged tool that costs more (issue 4)
+- [x] Show card and shop item effects before you commit (issue 6); placeholder stops stop charging for nothing (issue 5)
+- [ ] Diagnosis explains itself and offers only failure modes that could have been there (issue 2)
+- [ ] A real decision in every room (issue 3; David: starter practices in most rooms (Lane C) and skip the hand screen when there is nothing to play (Lane A))
+- [ ] Phone layout and run-ending buttons (issues 8, 17); small fixes (issues 9, 10, 13, 14, 15, 16)
+- [ ] Words page: about 15 game and fab terms in plain sentences, data in `src/content/glossary.js` (`content-drafter`, `physics-reviewer`, then David), opened like the Notebook (issue 16; David, 26 Oct 2026: its own item)
+- [ ] Physics-review fixes (David's calls, 26 Oct 2026): SPC trend rule and verdicts by rule; Q-time as moisture uptake; T-top only with a CAR resist; slurry, audit and gauge rewording; etch forecast says what is carried in from the stack
+- [ ] Round 21-site wafer map (Lane D draws, Lane A engine; last, since every yield test moves)
+- [ ] Lane F reruns the five personas on seeds 123456, 42, 777 and the exit test passes
 
 ## M5 — Randomness and a second lot
 - [ ] Lot modifiers, announced at run start; random lot type from the unlocked pool; fixed first run

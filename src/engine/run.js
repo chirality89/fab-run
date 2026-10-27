@@ -13,8 +13,8 @@
 //   (sideStops.js)
 //   scrapLot     → at any point between rooms, the player may scrap the lot
 //
-// Order inside enterStep (lotTypes.js): add the step's risks and the room
-// tool's drift risk (tools.js), set the room's time budget, apply the
+// Order inside enterStep (lotTypes.js): add the step's risks, apply the
+// step's own effects (if any), add the room tool's drift risk (tools.js), set the room's time budget, apply the
 // equipment and materials for this room, then deal. resolveStep then records
 // the tool's SPC point for this lot and wears the tool.
 //
@@ -55,9 +55,30 @@ const GATED_CARDS = new Set(
     .map(effect => effect.id),
 );
 
+// Practices kept out of every deck for now. "Measure all 25 sites" reveals
+// values, but no screen hides anything yet (the wafer map already shows all
+// 25 sites), so it would cost 150 cash and 20 minutes for nothing. It comes
+// back when the game hides something a measurement can reveal (David,
+// 26 Oct 2026, M4.5 item 5 Q3). The card stays in content.js and fullPool.
+export const NOT_DEALT_YET = ['measureAll'];
+
+// True for a practice that may go in a deck.
+const dealt = card => !NOT_DEALT_YET.includes(card.id);
+
 // The starter deck: the starter items (unlockedBy: null) that are practices.
 export function starterDeck() {
-  return PRACTICES.filter(card => STARTER_IDS.includes(card.id)).map(card => card.id);
+  return PRACTICES.filter(card => STARTER_IDS.includes(card.id) && dealt(card)).map(card => card.id);
+}
+
+// The deck for a run: the starter practices plus the practices in
+// `unlocked` (ids earned in the notebook, notebook.js unlockedIds), in
+// content order. Every unlocked practice joins every later run (David,
+// 26 Oct 2026); the hand is drawn only from the cards legal in a room, so
+// more cards means more choice there, not clutter.
+export function runDeck(unlocked = []) {
+  return PRACTICES
+    .filter(card => (STARTER_IDS.includes(card.id) || unlocked.includes(card.id)) && dealt(card))
+    .map(card => card.id);
 }
 
 // Every practice in the game, for tests and the bot ("--deck full").
@@ -76,6 +97,9 @@ export function defaultLoadout() {
 // `toolDrift: false` keeps every tool at full health and stops wear, so
 // drift adds nothing (for hand checks, like scatterStrength: 0).
 // `startingHealth`, e.g. { cmp: 60 }, fixes a tool's starting health.
+// `unlocked` lists the item ids the notebook had earned when the run began
+// (notebook.js unlockedIds). It is fixed for the whole run, so a diagnosis
+// in another tab can't change it; procurement sells starter items and these.
 export function createRun({
   seed = 1,
   lotTypeId = 'cuLine',
@@ -84,6 +108,7 @@ export function createRun({
   scatterStrength = SCATTER_STRENGTH,
   toolDrift = true,
   startingHealth = {},
+  unlocked = [],
 } = {}) {
   if (normalizeSeed(seed) === null) throw new Error(`createRun: bad seed ${seed}`);
   const lotType = LOT_TYPES[lotTypeId];
@@ -100,11 +125,12 @@ export function createRun({
     seed,
     rngState: seed,
     lotTypeId,
+    unlocked: [...unlocked],   // item ids earned in the notebook, fixed at the start
     scatterStrength,
     stepIndex: 0,
     lot,
     cash: STARTING_CASH,
-    room: null,             // { id, timeLeft, budget, revealed } while in a room
+    room: null,             // { id, timeLeft, budget, revealed, itemCash } while in a room
     map: buildMap(seed, lotType.route),   // the corridors (map.js), known from the start
     corridor: null,         // index of the corridor the lot stands in, or null
     shop: null,             // { corridor, stock, bought } while a procurement stop is open
@@ -163,6 +189,10 @@ export function enterStep(state) {
   // 1. The step's own risks enter the lot.
   let lot = state.lot;
   for (const [pattern, amount] of Object.entries(step.adds)) lot = addRisk(lot, pattern, amount);
+  // A step may scale those risks by what earlier rooms left in the lot,
+  // e.g. an etch stop laid down at deposition cuts the attack at etch
+  // (lotTypes.js `effects`). Ordinary content effects, checked like a card's.
+  if (step.effects) lot = applyEffects({ ...state, lot }, { id: step.label, effects: step.effects }).lot;
   // A drifted tool adds risk to the pattern it feeds (0 for a healthy tool).
   const monitor = TOOL_MONITORS[step.room];
   const drift = monitor ? driftRisk(state.tools[step.room].health, monitor.oneSided) : 0;
@@ -173,9 +203,16 @@ export function enterStep(state) {
   // 2. Equipment and materials for this room act once, before any card.
   // applyEffects skips effects whose own `when` fails, but not the item's
   // top-level `when`, so that is checked here.
+  // Any cash an item takes (or gives) is noted in room.itemCash, so the
+  // screen can say where the cash went (Lane F issue 9).
+  const itemCash = [];
   for (const item of itemsForRoom(next, step.room)) {
-    if (conditionMet(next, item.when)) next = applyEffects(next, item);
+    if (!conditionMet(next, item.when)) continue;
+    const cashBefore = next.cash;
+    next = applyEffects(next, item);
+    if (next.cash !== cashBefore) itemCash.push({ id: item.id, delta: next.cash - cashBefore });
   }
+  next = { ...next, room: { ...next.room, itemCash } };
 
   // 3. The time the lot spends in this room counts whether you play or not.
   const budget = next.room.timeLeft;

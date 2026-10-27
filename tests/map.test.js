@@ -59,10 +59,23 @@ test('building the map does not use the lot\'s random numbers', () => {
   assert.deepEqual(state.map, buildMap(SEED, ROUTE));
 });
 
-test('every side-stop kind has its words in sideStops.js, and nothing extra', () => {
-  assert.deepEqual(Object.keys(SIDE_STOPS).sort(), [...SIDE_STOP_KINDS].sort());
+test('every side-stop kind has its words in sideStops.js; the map offers only the ones that are built', () => {
+  const built = Object.keys(SIDE_STOPS).filter(kind => !SIDE_STOPS[kind].placeholder);
+  assert.deepEqual([...SIDE_STOP_KINDS].sort(), built.sort());
   for (const [kind, stop] of Object.entries(SIDE_STOPS)) {
     for (const field of ['name', 'short', 'what']) assert.ok(stop[field], `${kind}.${field}`);
     assert.equal(typeof stop.placeholder, 'boolean', `${kind}.placeholder`);
+  }
+});
+
+// M4.5 item 5 (David, 26 Oct 2026): a stop that only costs time is never
+// offered. Today that is metrology.
+test('no corridor offers a placeholder stop (metrology), over 100 seeds', () => {
+  assert.equal(SIDE_STOPS.metrology.placeholder, true);
+  for (let seed = SEED; seed < SEED + 100; seed++) {
+    for (const corridor of buildMap(seed, ROUTE)) {
+      assert.ok(!corridor.offers.includes('metrology'), `seed ${seed}, corridor ${corridor.afterStep}`);
+      assert.ok(corridor.offers.length >= 2 && corridor.offers.length <= 3, `seed ${seed}`);
+    }
   }
 });

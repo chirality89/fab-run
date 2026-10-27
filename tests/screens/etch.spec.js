@@ -80,6 +80,13 @@ test('the etch room shows the seed and a playable card', async ({ page }) => {
   await expect(page.locator('.seed')).toHaveText(`Seed ${SEED}`);
   await expect(timeText(page)).toHaveText('8 of 8 min left');
   await expect(card(page)).toBeVisible();
+  // What the card does, before you commit (M4.5 item 5). The points depend
+  // on this seed's scatter and drift, so only their wording is checked.
+  await expect(card(page).locator('.card-effects'))
+    .toHaveText('residue ×0.3 · underlayer attack ×1.5 · underlayer attack ×0.7 with etch stop');
+  // The forecast says what set the carried-in share (M4.5 item 3).
+  await expect(page.locator('.carried-in')).toHaveText(/^About \d+\.\d of these points come from depth variation \(etch depth differs center to edge\)\. The film stack set how big this is/);
+  await expect(card(page).locator('.card-points')).toHaveText(/^About \d+\.\d points? (less|more) lost in this room\.$/);
   await expect(runButton(page)).toBeVisible();
   // The tool's SPC chart: 11 earlier lots, the limits in words, a verdict.
   await expect(page.locator('.spc-panel .spc-title')).toHaveText('Etch rate (nm/min)');

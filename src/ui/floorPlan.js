@@ -13,7 +13,7 @@
 //
 // No game logic here, and text only through textContent (see render.js).
 
-import { el, panel, onSingleClick, actionButton, showFromTop } from './render.js';
+import { el, panel, onSingleClick, actionButton, showFromTop, notebookButton } from './render.js';
 import { drawSpcPicture } from './spcChart.js';
 
 const BAYS_PER_ROW = 3;
@@ -109,8 +109,9 @@ function drawPlan(view) {
   return box;
 }
 
-// Top bar of the map screen: the plan's own band, the seed, and the lot's numbers.
-function drawMapHeader(view) {
+// Top bar of the map screen: the plan's own band, the seed, the lot's
+// numbers and the Notebook button.
+function drawMapHeader(view, notebook) {
   const header = el('header', 'room-band map-band');
   header.append(el('h1', 'room-name', 'Floor plan'));
   header.append(el('p', 'room-step', `Inlaid Cu line · yield ${view.yieldPercent.toFixed(1)}%`));
@@ -120,7 +121,7 @@ function drawMapHeader(view) {
     el('span', 'cash', `Cash ${view.cash}`),
     el('span', 'cash', `Cycle time ${view.cycleTime} min`),
   );
-  header.append(facts);
+  header.append(facts, notebookButton(notebook));
   return header;
 }
 
@@ -168,12 +169,12 @@ function drawScrap(actions) {
   return box;
 }
 
-// Draws the map screen. `actions` holds onTakeStop(kind), onGoStraight()
-// and onScrap().
+// Draws the map screen. `actions` holds onTakeStop(kind), onGoStraight(),
+// onScrap() and notebook ({ count, onOpen }, for the Notebook button).
 export function renderMap(container, view, actions) {
   const body = el('div', 'map-body');
   body.append(drawChoices(view, actions), drawPlan(view));
-  container.replaceChildren(drawMapHeader(view), body);
+  container.replaceChildren(drawMapHeader(view, actions.notebook), body);
   showFromTop(container);
 }
 
@@ -191,7 +192,7 @@ export function renderStop(container, view, actions) {
 }
 
 // One item on sale at the procurement stop: what it is, what it costs, its
-// tradeoff, where it acts next, and a Buy button (greyed out with the
+// tradeoff, what it does in numbers, where it acts next, and a Buy button (greyed out with the
 // reason when it can't be bought).
 function drawShopItem(item, actions) {
   const box = el('li', item.bought ? 'card shop-item shop-item-bought' : 'card shop-item');
@@ -199,6 +200,7 @@ function drawShopItem(item, actions) {
   top.append(el('span', 'card-name', item.name), el('span', 'card-cost', `${item.price} cash`));
   box.append(top, el('span', 'shop-kind', `${item.kindText} · ${item.roomName}`));
   box.append(el('span', 'card-summary', item.tradeoff));
+  if (item.effectsText) box.append(el('span', 'card-effects', item.effectsText));   // what it does, in numbers
   box.append(el('span', 'shop-next', item.nextUseText));
   if (item.replacesText) box.append(el('span', 'shop-next', item.replacesText));
   if (item.buyable) {
@@ -259,8 +261,9 @@ function drawPmChoice(choice, actions) {
   if (choice.done) {
     box.append(el('span', 'shop-bought', 'PM done: the next lots run on a restored tool'));
   } else if (choice.canPm) {
-    const button = actionButton('PM this tool', 'pm-button', () => actions.onPm(choice.roomId));
-    button.setAttribute('aria-label', `PM the ${choice.roomName} tool`);
+    // The button names its tool: six identical "PM this tool" buttons led a
+    // player to PM the wrong one (Lane F issue 8).
+    const button = actionButton(`PM the ${choice.roomName} tool`, 'pm-button', () => actions.onPm(choice.roomId));
     box.append(button);
   }
   return box;
