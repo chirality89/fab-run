@@ -12,7 +12,7 @@
 5. A service marks the chart (`resolve.js` `toolHealth`, health up only); the audit test checks it. `SAVE_VERSION` 6.
 6. Physics-review fixes: on a one-sided chart a run below the centre is "Shift (low side): … no yield cost" (my first verdict said it cost yield: lesson added); Excursion now says "Standard practice is to re-measure and check the tool. If it was a bad measurement or a one-off, the next lots come back inside the limits."; "until it is PM'd or serviced"; a content test that no card or item adds risk in a room or services its tool on every visit.
 
-**Checks:** `npm test` 262/262; etch and PM screens 5 runs in a row; screenshots checked (desktop room: axis numbers and "Shift"; phone result: the drift line). Seed 123456's etch tool starts at 73: the chart says Shift, and the result shows the drift cost only 0.1 points after over-etch, which is the point: the chart was right, and the line says how much it mattered.
+**Checks:** `npm test` 264/264; `npm run screens` 78/78 on the final code; etch and PM screens 5 runs in a row; idle bot unchanged (58.5%); screenshots checked (desktop room: axis numbers and "Shift"; phone result: the drift line). Seed 123456's etch tool starts at 73: the chart says Shift, and the result shows the drift cost only 0.1 points after over-etch, which is the point: the chart was right, and the line says how much it mattered.
 
 **Original plan below.**
 
