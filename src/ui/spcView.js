@@ -25,11 +25,24 @@ function lotsText(count) {
   return count === 1 ? '1 lot' : `${count} lots`;
 }
 
-// The one-line verdict under the chart.
-function verdictText(name, lotsSincePm, anyRuleTripped, hadPm) {
-  if (lotsSincePm === 0) return 'Just PM\'d: no lots measured since the PM yet.';
-  if (anyRuleTripped) return `Out of control: the ${name} may be shifting. A shifted tool costs yield in this room.`;
-  const since = hadPm ? ' since the PM' : '';
+// The one-line verdict under the chart, named by the worst finding (David,
+// 26 Oct 2026; physics review claim 9): one point past a limit is an
+// excursion, not a shift.
+//   rules 2 or 3 (2 of 3 past 2σ, 8 on one side)  → Shift
+//   rule 4 (6 steadily rising or falling)          → Trend (with a shift: both)
+//   rule 1 alone (one point past the control limit) → Excursion
+// The chart's own name ("the etch rate chart") keeps the sentence right for
+// every parameter, singular or plural.
+function verdictText(name, lotsSincePm, tripped, hadPm) {
+  if (lotsSincePm === 0) return 'Just PM\'d or serviced: no lots measured since yet.';
+  const has = rule => tripped.some(entry => entry.rule === rule);
+  const shift = has(2) || has(3);
+  const PM_COST = 'A shifted tool costs yield in this room until it is PM\'d.';
+  if (shift && has(4)) return `Shift and trend: the ${name} chart has moved off centre and is still moving lot by lot. ${PM_COST}`;
+  if (shift) return `Shift: the ${name} chart has moved off centre. ${PM_COST}`;
+  if (has(4)) return `Trend: the ${name} chart is moving lot by lot. The further it goes, the more yield it costs.`;
+  if (has(1)) return 'Excursion: one lot measured past the control limit. One point can be a bad measurement or a one-off; watch the next lot.';
+  const since = hadPm ? ' since the last PM or service' : '';
   return `In control: no rule tripped in the last ${lotsText(lotsSincePm)}${since}.`;
 }
 
@@ -38,7 +51,8 @@ function ruleText(tripped) {
   const side = tripped.side;
   if (tripped.rule === 1) return `A point beyond the ${side === 'above' ? 'upper' : 'lower'} control limit`;
   if (tripped.rule === 2) return `2 of 3 points in a row beyond 2σ ${side} the centre`;
-  return `8 points in a row ${side} the centre line`;
+  if (tripped.rule === 3) return `8 points in a row ${side} the centre line`;
+  return `6 points in a row steadily ${side}`;
 }
 
 // The SPC chart for a room's tool, or null if the room has no monitored
@@ -76,6 +90,6 @@ export function spcView(state, roomId) {
       + ` · spec ${specText(monitor, toUnits, format)} ${monitor.unit}`,
     rules: tripped.map(ruleText),
     inControl: tripped.length === 0,
-    verdictText: verdictText(name, sincePm.length, tripped.length > 0, pmMarks.length > 0),
+    verdictText: verdictText(name, sincePm.length, tripped, pmMarks.length > 0),
   };
 }

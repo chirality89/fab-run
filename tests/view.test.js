@@ -304,11 +304,26 @@ test('spcView: rules in words, and the verdict', () => {
   const spc = roomView({ ...state, tools }).spc;
   assert.deepEqual(spc.rules, ['A point beyond the lower control limit', '8 points in a row below the centre line']);
   assert.equal(spc.inControl, false);
-  assert.match(spc.verdictText, /^Out of control: the etch rate may be shifting/);
+  assert.equal(spc.verdictText, "Shift: the etch rate chart has moved off centre. A shifted tool costs yield in this room until it is PM'd.");
   assert.deepEqual(spc.outOfControl.map((out, i) => (out ? i : null)).filter(i => i !== null), [9]);
 
   const calm = { ...state.tools, etch: { ...state.tools.etch, spc: [0.5, -0.5, 0.2] } };
   assert.equal(roomView({ ...state, tools: calm }).spc.verdictText, 'In control: no rule tripped in the last 3 lots.');
+});
+
+// Verdicts by rule (M4.5 item 4): one point is an excursion, not a shift.
+test('spcView: the verdict names the worst finding: excursion, trend, shift and trend', () => {
+  const state = idleToEtch();
+  const verdictFor = spc => roomView({ ...state, tools: { ...state.tools, etch: { ...state.tools.etch, spc } } }).spc;
+  const spike = verdictFor([0.5, -0.5, 3.2, 0.1]);
+  assert.deepEqual(spike.rules, ['A point beyond the upper control limit']);
+  assert.equal(spike.verdictText, 'Excursion: one lot measured past the control limit. One point can be a bad measurement or a one-off; watch the next lot.');
+  const rising = verdictFor([-0.5, -0.3, 0, 0.2, 0.6, 0.7]);
+  assert.deepEqual(rising.rules, ['6 points in a row steadily rising']);
+  assert.equal(rising.verdictText, 'Trend: the etch rate chart is moving lot by lot. The further it goes, the more yield it costs.');
+  const both = verdictFor([-0.1, -0.2, -0.3, -0.4, -0.5, -0.6, -0.7, -0.8]);
+  assert.deepEqual(both.rules, ['8 points in a row below the centre line', '6 points in a row steadily falling']);
+  assert.match(both.verdictText, /^Shift and trend: the etch rate chart has moved off centre and is still moving lot by lot\./);
 });
 
 test('the metrology room has no SPC chart', () => {
@@ -348,10 +363,10 @@ test('spcView: after a PM the rules look only at lots measured since it', () => 
   const justPmd = { ...state.tools.etch, spc: drifting, pmAt: [8] };
   const view = roomView({ ...state, tools: { ...state.tools, etch: justPmd } }).spc;
   assert.equal(view.inControl, true);
-  assert.equal(view.verdictText, "Just PM'd: no lots measured since the PM yet.");
+  assert.equal(view.verdictText, "Just PM'd or serviced: no lots measured since yet.");
   const oneLater = { ...justPmd, spc: [...drifting, 0.3] };
   assert.equal(roomView({ ...state, tools: { ...state.tools, etch: oneLater } }).spc.verdictText,
-    'In control: no rule tripped in the last 1 lot since the PM.');
+    'In control: no rule tripped in the last 1 lot since the last PM or service.');
 });
 
 // --- the event screen (M3 item 2e) -----------------------------------------

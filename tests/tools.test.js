@@ -95,6 +95,13 @@ test('rule 3: 8 in a row on one side, not 7', () => {
   assert.deepEqual(spcRules([0.3, ...below8.slice(1), 0.4]), [], 'only 7');
 });
 
+test('rule 4: 6 in a row steadily rising or falling, not 5, and a tie breaks the run', () => {
+  assert.deepEqual(spcRules([-0.5, -0.3, 0, 0.2, 0.6, 0.7]), [{ rule: 4, side: 'rising' }]);
+  assert.deepEqual(spcRules([0.9, 0.4, 0.3, -0.1, -0.2, -0.8, 0.1]), [{ rule: 4, side: 'falling' }]);
+  assert.deepEqual(spcRules([1, -0.5, -0.3, 0, 0.2, 0.6]), [], 'only 5 rising');
+  assert.deepEqual(spcRules([-0.5, -0.3, 0, 0, 0.2, 0.6, 0.7]), [], 'a tie at 0 breaks it');
+});
+
 test('starting tools: from the seed, 50–100, same seed same tools; metrology has no chart', () => {
   const first = startingTools(SEED);
   assert.deepEqual(startingTools(SEED), first);
