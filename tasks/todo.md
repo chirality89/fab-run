@@ -11,6 +11,7 @@
 - Physics-review text fixes: DOE over-etch says it is the same as the plain card on a stop; the Cu line's physicsNote and `docs/process-primer.md` say the stop is optional.
 - Hand checks (independent python model, seed 123456, scatter and drift off): stop + nothing 10.6861 points, yield after 0.834904; stop + over-etch 8.3540, 0.858225 (the DOE version gives the same); carried in 6.8 (no stop) and 2.8 (stop). Test value 0.075 → 0.105 as in the plan. `lotTypes.test.js` checks step effects.
 - `SAVE_VERSION` 5.
+- Checks: `npm test` 257/257, `npm run screens` 78/78 (etch spec 5 runs in a row), idle bot unchanged (58.5%, rejected), phone etch screenshot checked.
 
 **Original plan below.**
 
