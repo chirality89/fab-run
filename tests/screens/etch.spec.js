@@ -92,7 +92,9 @@ test('the etch room shows the seed and a playable card', async ({ page }) => {
   await expect(page.locator('.spc-panel .spc-title')).toHaveText('Etch rate (nm/min)');
   await expect(page.locator('.spc-chart .spc-point')).toHaveCount(11);
   await expect(page.locator('.spc-limits').first()).toContainText('Centre 300.0');
-  await expect(page.locator('.spc-verdict')).toHaveText(/^(In control|Out of control)/);
+  await expect(page.locator('.spc-verdict')).toHaveText(/^(In control|Excursion|Shift|Trend)/);
+  // Each line's value at the chart's left edge (M4.5 item 4).
+  await expect(page.locator('.spc-panel .spc-axis-label')).toHaveText(['332', '268', '324', '276', '300']);
   await expectNoSidewaysScroll(page);
   await screenshot(page, '1-room');
   expect(errors, `console errors (seed ${SEED})`).toEqual([]);
@@ -120,6 +122,9 @@ test('Run etch shows the result; Replay brings back the same start', async ({ pa
   await press(page, runButton(page));
   await expect(page.locator('.outcome-text')).toHaveText('The lot moves on to step 5: Resist strip + wet clean.');
   await expect(page.locator('.yield-number')).toContainText('→');
+  // This seed's etch tool starts worn (health 73), so the result says what
+  // its drift cost (M4.5 item 4).
+  await expect(page.locator('.drift-note')).toHaveText(/^Of this, about \d+\.\d points? came from the Etch tool's drift \(see its SPC chart\)\.$/);
   await expect(page.locator('.site')).toHaveCount(25);
   await expectNoSidewaysScroll(page);
   await screenshot(page, '3-result');

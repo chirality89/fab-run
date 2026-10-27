@@ -118,7 +118,7 @@ Taken from what went wrong before (`tasks/lessons.md`):
 **Lane A (engine, screens; this branch)**
 1. Land Lane F's reports and Lane D's commit on `main` (after PR #23 merges).
 2. ~~Etch-stop rule and the route label; the etch forecast split (stack vs this etch).~~ Done 26 Oct 2026.
-3. SPC: trend rule, verdicts by rule, excursion wording; a flagged tool should cost more (issue 4).
+3. ~~SPC: trend rule, verdicts by rule, excursion wording; a flagged tool should cost more (issue 4).~~ Done 27 Oct 2026.
 4. Diagnosis explains itself; offer only failure modes whose cause could have been there, including T-top only with CAR (issue 2).
 5. Skip the hand screen in a room with nothing to play (starter deck, part 2).
 6. Round 21-site wafer map, engine side (`lot.js` site weights and the tests), after Lane D's drawing is agreed.

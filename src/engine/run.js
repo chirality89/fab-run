@@ -197,8 +197,16 @@ export function enterStep(state) {
   const monitor = TOOL_MONITORS[step.room];
   const drift = monitor ? driftRisk(state.tools[step.room].health, monitor.oneSided) : 0;
   if (drift > 0) lot = addRisk(lot, monitor.pattern, drift);
+  // The drift's share of its pattern, so the result screen can say what the
+  // drift cost (M4.5 item 4). Cards and items only multiply a pattern, so
+  // the share holds until the room resolves (tests/content.test.js checks
+  // that no card or item uses addRisk). Null for a healthy tool.
+  const driftShare = drift > 0 ? { pattern: monitor.pattern, fraction: drift / lot.risks[monitor.pattern] } : null;
   // Entering a room also closes any shop, PM/DOE or event stop the lot was at.
-  let next = { ...state, lot, shop: null, pm: null, event: null, room: { id: step.room, timeLeft: TIME_BUDGETS[step.room], revealed: [] } };
+  let next = {
+    ...state, lot, shop: null, pm: null, event: null,
+    room: { id: step.room, timeLeft: TIME_BUDGETS[step.room], revealed: [], driftShare },
+  };
 
   // 2. Equipment and materials for this room act once, before any card.
   // applyEffects skips effects whose own `when` fails, but not the item's

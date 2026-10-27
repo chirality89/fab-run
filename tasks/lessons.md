@@ -365,3 +365,8 @@ The expected names were written from the items' ids, not read from `content.js`.
 - **What happened:** the etch forecast's new sentence said depth variation "was not added in this room". The physics review caught that it is false: without a stop, depth variation comes from this etch's own rate non-uniformity, and dishing is made by the polish itself. Only how big each risk gets was set earlier (stack, layout).
 - **Root cause:** I wrote plain words for "startRisks" (risk entered at the start) and read that as "caused earlier". Where a risk enters the model is not where the physics happens.
 - **Rule:** text that explains a model mechanic must say what the physics does, not what the code does. Have `physics-reviewer` read player-facing explanations, not only effect numbers, and keep the reason per pattern in data next to the pattern.
+
+## 27 Oct 2026 — An SPC verdict said fewer particles cost yield
+- **What happened:** the new verdicts said "A shifted tool costs yield" for any shift, including a run below the centre line on a one-sided chart (particle adders, seam rate), where fewer is never out of spec. The physics review caught it.
+- **Root cause:** I wrote the verdict from the rule alone and forgot the chart's spec shape, the same miss as the earlier lower-spec-line lesson.
+- **Rule:** any text that says a chart signal costs yield must check `oneSided` and the drift `direction` first. Test every new SPC sentence on a one-sided chart as well as a two-sided one.

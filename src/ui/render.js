@@ -200,6 +200,7 @@ function drawResultYield(view) {
   bar.append(fill, barMark(view.scrapLine, `Scrap ${view.scrapLine}%`, 'mark-scrap'),
     barMark(view.spec, `Spec ${view.spec}%`, 'mark-spec'));
   box.append(bar, el('p', 'expected-loss', view.lossText));
+  if (view.driftText) box.append(el('p', 'drift-note', view.driftText));
   return box;
 }
 

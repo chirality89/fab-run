@@ -246,6 +246,25 @@ function outcomeText(after, route) {
   return `The lot moves on to step ${after.stepIndex + 1}: ${next.label}.`;
 }
 
+// The points of this room's loss that came from its tool's drift: the
+// drift's share of its pattern (run.js room.driftShare) times what that
+// pattern cost here. 0 for a healthy tool. (M4.5 item 4: the SPC chart's
+// warning, checked after the room.)
+function driftPoints(before, after) {
+  const share = before.room.driftShare;
+  if (!share) return 0;
+  const lostHere = (after.lot.lost?.[share.pattern] ?? 0) - (before.lot.lost?.[share.pattern] ?? 0);
+  return lostHere * share.fraction * 100;
+}
+
+// "Of this, about 1.9 points came from the Etch tool's drift (see its SPC
+// chart)." Null under 0.05 points.
+export function driftText(points, roomId) {
+  if (points.toFixed(1) === '0.0') return null;
+  const unit = points.toFixed(1) === '1.0' ? 'point' : 'points';
+  return `Of this, about ${points.toFixed(1)} ${unit} came from the ${ROOMS[roomId].name} tool's drift (see its SPC chart).`;
+}
+
 // Everything the result screen shows after a room is run. `before` is the
 // state while the lot was still in the room; `after` is what resolveStep
 // returned. Reads both; changes neither.
@@ -272,6 +291,8 @@ export function resultView(before, after) {
     spec: toPercent(CUSTOMER_SPEC),
     lossPoints,
     lossText: `This room cost ${lossPoints.toFixed(1)} points of yield.`,
+    driftPoints: driftPoints(before, after),
+    driftText: driftText(driftPoints(before, after), before.room.id),
     sites: after.lot.sites.map(siteView),
     mapKeyText: mapKeyText(),
     status: after.status,

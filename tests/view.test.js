@@ -295,6 +295,7 @@ test('spcView: etch rate in nm/min with centre, control and spec limits in units
   assert.equal(spc.zs.length, 11, 'earlier lots only: this lot has not run yet');
   // target 300, sigma 8: control 300 ± 24, spec 300 ± 32.
   assert.equal(spc.limitsText, 'Centre 300.0 · control 276.0–324.0 · spec 268.0–332.0 nm/min');
+  assert.deepEqual(spc.axisLabels.map(label => label.text), ['332', '268', '324', '276', '300'], 'axis numbers');
 });
 
 test('spcView: rules in words, and the verdict', () => {
@@ -304,11 +305,36 @@ test('spcView: rules in words, and the verdict', () => {
   const spc = roomView({ ...state, tools }).spc;
   assert.deepEqual(spc.rules, ['A point beyond the lower control limit', '8 points in a row below the centre line']);
   assert.equal(spc.inControl, false);
-  assert.match(spc.verdictText, /^Out of control: the etch rate may be shifting/);
+  assert.equal(spc.verdictText, "Shift: the etch rate chart has moved off centre. A shifted tool costs yield in this room until it is PM'd or serviced.");
   assert.deepEqual(spc.outOfControl.map((out, i) => (out ? i : null)).filter(i => i !== null), [9]);
 
   const calm = { ...state.tools, etch: { ...state.tools.etch, spc: [0.5, -0.5, 0.2] } };
   assert.equal(roomView({ ...state, tools: calm }).spc.verdictText, 'In control: no rule tripped in the last 3 lots.');
+});
+
+// Verdicts by rule (M4.5 item 4): one point is an excursion, not a shift.
+test('spcView: the verdict names the worst finding: excursion, trend, shift and trend', () => {
+  const state = idleToEtch();
+  const verdictFor = spc => roomView({ ...state, tools: { ...state.tools, etch: { ...state.tools.etch, spc } } }).spc;
+  const spike = verdictFor([0.5, -0.5, 3.2, 0.1]);
+  assert.deepEqual(spike.rules, ['A point beyond the upper control limit']);
+  assert.equal(spike.verdictText, 'Excursion: one lot measured past the control limit. Standard practice is to re-measure and check the tool. If it was a bad measurement or a one-off, the next lots come back inside the limits.');
+  const rising = verdictFor([-0.5, -0.3, 0, 0.2, 0.6, 0.7]);
+  assert.deepEqual(rising.rules, ['6 points in a row steadily rising']);
+  assert.equal(rising.verdictText, 'Trend: the etch rate chart is moving lot by lot. The further it goes, the more yield it costs.');
+  const both = verdictFor([-0.1, -0.2, -0.3, -0.4, -0.5, -0.6, -0.7, -0.8]);
+  assert.deepEqual(both.rules, ['8 points in a row below the centre line', '6 points in a row steadily falling']);
+  assert.match(both.verdictText, /^Shift and trend: the etch rate chart has moved off centre and is still moving lot by lot\./);
+});
+
+test('spcView: on a one-sided chart a low-side run costs nothing, and the verdict says so', () => {
+  const inClean = enterStep(createRun({ seed: SEED, scatterStrength: 0, toolDrift: false }));
+  const withSpc = spc => roomView({ ...inClean, tools: { ...inClean.tools, clean: { ...inClean.tools.clean, spc } } }).spc;
+  const low = withSpc([-0.2, -0.5, -0.1, -0.9, -0.3, -0.4, -0.2, -0.6]);
+  assert.deepEqual(low.rules, ['8 points in a row below the centre line']);
+  assert.equal(low.verdictText, 'Shift (low side): the particle adders chart reads below its centre line. Fewer is never out of spec, so no yield cost, but an engineer still checks the gauge and the centre line.');
+  const high = withSpc([0.2, 0.5, 0.1, 0.9, 0.3, 0.4, 0.2, 0.6]);
+  assert.match(high.verdictText, /^Shift: the particle adders chart has moved off centre\./);
 });
 
 test('the metrology room has no SPC chart', () => {
@@ -323,6 +349,7 @@ test('spcView: a one-sided spec (particle adders) shows only an upper spec limit
   assert.deepEqual(spc.specSides, [1]);
   // target 20, sigma 4: control 8–32, spec up to 36.
   assert.equal(spc.limitsText, 'Centre 20.0 · control 8.0–32.0 · spec up to 36.0 per wafer');
+  assert.deepEqual(spc.axisLabels.map(label => label.text), ['36', '32', '8', '20'], 'one spec number only');
 });
 
 // --- PM and the map's SPC chip (M3 item 2c) ---------------------------------
@@ -348,10 +375,10 @@ test('spcView: after a PM the rules look only at lots measured since it', () => 
   const justPmd = { ...state.tools.etch, spc: drifting, pmAt: [8] };
   const view = roomView({ ...state, tools: { ...state.tools, etch: justPmd } }).spc;
   assert.equal(view.inControl, true);
-  assert.equal(view.verdictText, "Just PM'd: no lots measured since the PM yet.");
+  assert.equal(view.verdictText, "Just PM'd or serviced: no lots measured since yet.");
   const oneLater = { ...justPmd, spc: [...drifting, 0.3] };
   assert.equal(roomView({ ...state, tools: { ...state.tools, etch: oneLater } }).spc.verdictText,
-    'In control: no rule tripped in the last 1 lot since the PM.');
+    'In control: no rule tripped in the last 1 lot since the last PM or service.');
 });
 
 // --- the event screen (M3 item 2e) -----------------------------------------
@@ -512,4 +539,27 @@ test('etch forecast says how much is carried in: 6.8 of 16.2 points, 2.8 with th
 test('a room that realizes nothing carried in has no carried-in sentence', () => {
   const inClean = enterStep(createRun({ seed: SEED, scatterStrength: 0, toolDrift: false }));
   assert.equal(roomView(inClean).carriedInText, null);
+});
+
+// --- M4.5 item 4: what the tool's drift cost, after the room -------------
+// Hand check (tasks/todo.md, M4.5 item 4; independent python model): etch
+// tool at health 60 = 2σ shift, drift risk −ln((1 − Φ(−2) − Φ(−6)) ÷
+// (1 − 2Φ(−4))) = 0.022950 on residue, beside etch's own 0.04.
+
+test('result: the etch tool at health 60 cost 1.9475 of 17.9668 points, said in words', () => {
+  const before = idleToEtch({ startingHealth: { etch: 60 } });
+  close(before.room.driftShare.fraction, 0.364570, 'drift share of residue: 0.0229496 ÷ 0.0629496');
+  const view = resultView(before, resolveStep(before));
+  assert.ok(Math.abs(view.lossPoints - 17.9668) < 1e-4, `loss: got ${view.lossPoints}, expected 17.9668 (seed ${SEED})`);
+  assert.ok(Math.abs(view.driftPoints - 1.9475) < 1e-4, `drift: got ${view.driftPoints}, expected 1.9475 (seed ${SEED})`);
+  assert.equal(view.driftText, "Of this, about 1.9 points came from the Etch tool's drift (see its SPC chart).");
+});
+
+test('result: over-etch cuts the drift share too (0.5925 points), a healthy tool has no drift line', () => {
+  const before = playCard(idleToEtch({ startingHealth: { etch: 60 } }), 'timedOveretch');
+  const view = resultView(before, resolveStep(before));
+  assert.ok(Math.abs(view.driftPoints - 0.5925) < 1e-4, `drift: got ${view.driftPoints}, expected 0.5925 (seed ${SEED})`);
+  const healthy = idleToEtch();
+  assert.equal(healthy.room.driftShare, null);
+  assert.equal(resultView(healthy, resolveStep(healthy)).driftText, null);
 });

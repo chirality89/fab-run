@@ -114,3 +114,18 @@ test('a DOE version keeps every cost field and every flag or enables of its card
     }
   }
 });
+
+// The result screen's drift share (run.js room.driftShare) holds only if
+// nothing in a room ADDS risk: cards and items may only multiply. Events
+// (between rooms) may add. A positive toolHealth on an item would also
+// restart the SPC chart every visit (M4.5 item 4).
+test('no card, equipment, material or consumable adds risk or services its tool on every visit', () => {
+  for (const item of [...PRACTICES, ...EQUIPMENT, ...MATERIALS, ...CONSUMABLES]) {
+    for (const effect of item.effects ?? []) {
+      assert.notEqual(effect.op, 'addRisk', `${item.id} uses addRisk in a room`);
+      if (item.kind === 'equipment' || item.kind === 'material') {
+        assert.ok(!(effect.op === 'toolHealth' && effect.delta > 0), `${item.id} services its tool on every visit`);
+      }
+    }
+  }
+});

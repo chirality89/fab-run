@@ -111,6 +111,7 @@ test('the audit in the Q-time corridor: +30 min, Q-time oxide +0.001 × 30, the 
   assert.equal(walked.cycleTime, atAudit.cycleTime + 30);
   close(walked.lot.risks.qtime_oxide, 0.07, 'qtime_oxide 0.04 + 0.03');
   assert.equal(walked.tools.clean.health, 85, 'wet bench serviced');
+  assert.deepEqual(walked.tools.clean.pmAt, [walked.tools.clean.spc.length], 'the service marks its chart, so old flags stop counting (M4.5 item 4)');
   const later = chooseEventOption(atAudit, 1);
   assert.equal(later.cash, atAudit.cash - 100);
   close(later.lot.risks.qtime_oxide, 0.04, 'no wait, no extra oxide');

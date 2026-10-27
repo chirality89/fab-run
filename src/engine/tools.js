@@ -7,7 +7,8 @@
 //   - The shift costs yield by process capability: the fraction of the lot
 //     outside the spec limits (±SPEC_LIMIT_SIGMA) grows with the shift.
 //   - The SPC chart shows noisy measurements of the shift, lot by lot, and
-//     flags three Western Electric rules: the telegraph (CLAUDE.md §5 rule 5).
+//     flags four rules (three Western Electric and a trend): the telegraph
+//     (CLAUDE.md §5 rule 5).
 //
 // The yield uses the TRUE shift; only the chart is noisy. The chart's noise
 // comes from the tools' own generator (toolRngState), started from the seed
@@ -175,11 +176,12 @@ export function pointsSinceLastPm(tool) {
 
 // --- SPC rules -------------------------------------------------------------
 
-// The rules' numbers: 2 of 3 beyond 2σ, and a run of 8.
+// The rules' numbers: 2 of 3 beyond 2σ, a run of 8, and a trend of 6.
 const RULE2_COUNT = 2;
 const RULE2_WINDOW = 3;
 const RULE2_SIGMA = 2;
 const RULE3_RUN = 8;
+const RULE4_TREND = 6;
 
 // Which side of the centre line a point is on: 'above', 'below' or null.
 function sideOf(z) {
@@ -188,13 +190,23 @@ function sideOf(z) {
   return null;
 }
 
-// The three Western Electric rules (David, 25 Oct 2026), checked over the
-// points given (oldest first). Returns each rule tripped, once, with its side:
+// True if every point is higher than the one before (or, with `down`, lower).
+// A tie breaks the run.
+function steadily(points, down) {
+  return points.every((z, i) => i === 0 || (down ? z < points[i - 1] : z > points[i - 1]));
+}
+
+// The three Western Electric rules (David, 25 Oct 2026) and the trend rule
+// (David, 26 Oct 2026, physics review claim 9), checked over the points
+// given (oldest first). Returns each rule tripped, once, with its side:
 //   { rule: 1, side }  one point beyond the 3σ control limit
 //   { rule: 2, side }  2 of 3 in a row beyond 2σ on the same side
 //   { rule: 3, side }  8 in a row on the same side of the centre
-// (Numbered 1–3 here for the three we use; in the full Western Electric
-// list the 8-in-a-row rule is rule 4.)
+//   { rule: 4, side }  6 in a row steadily rising or falling
+//                      (side 'rising' or 'falling')
+// (Numbered 1–4 here for the four we use; in the textbook lists the
+// 8-in-a-row rule is Western Electric rule 4, and the trend is one of the
+// Nelson rules.)
 export function spcRules(points) {
   const tripped = [];
   // Each rule is reported once per side, however often it trips.
@@ -213,6 +225,11 @@ export function spcRules(points) {
   for (let i = 0; i + RULE3_RUN <= points.length; i++) {
     const sides = points.slice(i, i + RULE3_RUN).map(sideOf);
     if (sides[0] !== null && sides.every(side => side === sides[0])) add(3, sides[0]);
+  }
+  for (let i = 0; i + RULE4_TREND <= points.length; i++) {
+    const run = points.slice(i, i + RULE4_TREND);
+    if (steadily(run, false)) add(4, 'rising');
+    if (steadily(run, true)) add(4, 'falling');
   }
   return tripped.sort((a, b) => a.rule - b.rule);   // rule 1 first
 }
