@@ -530,3 +530,26 @@ test('a room that realizes nothing carried in has no carried-in sentence', () =>
   const inClean = enterStep(createRun({ seed: SEED, scatterStrength: 0, toolDrift: false }));
   assert.equal(roomView(inClean).carriedInText, null);
 });
+
+// --- M4.5 item 4: what the tool's drift cost, after the room -------------
+// Hand check (tasks/todo.md, M4.5 item 4; independent python model): etch
+// tool at health 60 = 2σ shift, drift risk −ln((1 − Φ(−2) − Φ(−6)) ÷
+// (1 − 2Φ(−4))) = 0.022950 on residue, beside etch's own 0.04.
+
+test('result: the etch tool at health 60 cost 1.9475 of 17.9668 points, said in words', () => {
+  const before = idleToEtch({ startingHealth: { etch: 60 } });
+  close(before.room.driftShare.fraction, 0.364570, 'drift share of residue: 0.0229496 ÷ 0.0629496');
+  const view = resultView(before, resolveStep(before));
+  assert.ok(Math.abs(view.lossPoints - 17.9668) < 1e-4, `loss: got ${view.lossPoints}, expected 17.9668 (seed ${SEED})`);
+  assert.ok(Math.abs(view.driftPoints - 1.9475) < 1e-4, `drift: got ${view.driftPoints}, expected 1.9475 (seed ${SEED})`);
+  assert.equal(view.driftText, "Of this, about 1.9 points came from the Etch tool's drift (see its SPC chart).");
+});
+
+test('result: over-etch cuts the drift share too (0.5925 points), a healthy tool has no drift line', () => {
+  const before = playCard(idleToEtch({ startingHealth: { etch: 60 } }), 'timedOveretch');
+  const view = resultView(before, resolveStep(before));
+  assert.ok(Math.abs(view.driftPoints - 0.5925) < 1e-4, `drift: got ${view.driftPoints}, expected 0.5925 (seed ${SEED})`);
+  const healthy = idleToEtch();
+  assert.equal(healthy.room.driftShare, null);
+  assert.equal(resultView(healthy, resolveStep(healthy)).driftText, null);
+});
