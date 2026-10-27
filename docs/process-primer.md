@@ -32,17 +32,28 @@ Every layer in a fab is the same loop: **make a film → coat resist → expose 
 8. CMP back to the dielectric.
 9. Measure and test: line resistance, opens and shorts.
 
-## Lot type 2: NMOS transistor (four masks: active, gate, contact, metal 1)
+## Lot type 2: NMOS transistor (two masks in the game: active and gate)
+
+The full textbook flow has four masks (active, gate, contact, metal 1). The game plays the transistor front end, 13 steps:
 
 1. Clean a p-type wafer.
-2. Isolation: grow pad oxide, deposit SiN, pattern the active area, etch the trench, fill with oxide, CMP stopping on SiN, strip SiN.
-3. Grow a thin gate oxide.
-4. Deposit poly-Si, pattern the gate, etch stopping on gate oxide.
-5. Implant n+ source and drain. The gate blocks the implant, so it self-aligns. Anneal to activate.
-6. Deposit the dielectric and planarize.
-7. Pattern and etch contacts to silicon; Ti/TiN liner, W fill, CMP.
-8. Metal 1: Al deposit and etch, or the Cu damascene above.
-9. Test: threshold voltage, drive current, leakage.
+2. Pad oxide and SiN (the CMP stop for isolation).
+3. Pattern the active areas.
+4. Etch the isolation trench into silicon.
+5. Fill the trench with oxide and CMP, stopping on SiN. Wide trenches dish.
+6. Strip the SiN and pad oxide and clean before the gate. This starts a Q-time clock: native oxide grows while the lot waits.
+7. Grow the thin gate oxide. Contamination and native oxide left by step 6 show up here.
+8. Deposit poly-Si.
+9. Pattern the gate.
+10. Etch the gate, stopping on the gate oxide. A punch-through degrades or kills the device.
+11. Implant n+ source and drain. The gate blocks the implant, so it self-aligns. Ions can channel deep along the crystal.
+12. Anneal to repair implant damage and activate the dopant. Dopant also diffuses (thermal budget).
+13. Electrical test: threshold voltage, drive current, leakage.
+
+Simplified (not shown): wells and threshold adjust, spacers, the separate trench-fill deposition, contacts and metal 1. The textbook steps they stand for are:
+
+- Deposit the dielectric and planarize; pattern and etch contacts to silicon; Ti/TiN liner, W fill, CMP.
+- Metal 1: Al deposit and etch, or the Cu damascene above.
 
 ## One rule per step (level and card ideas)
 

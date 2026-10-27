@@ -213,6 +213,25 @@ That makes 24 + 5 + ~5 + ~6 = **about 40 items**, plus new failure modes. Every 
   - 197/197; screens 40/40; bot clean.
   - For David: fm_dose_offset has no `when`, so it is right in 314/400 Cu runs (cd_error is on every lot). Main gave fm_ped_ttop a cause `when` for the same reason. Should dose offset need a cause too (e.g. litho drift)?
 
+- 2026-10-27: item 2, NMOS lot type, on a new branch off main (David).
+  - `nmos` in lotTypes.js: the 13-step route David chose, traits siliconFrontEnd and thinGateOxide, startRisks dishing 0.06 (wide isolation trenches). Risk entry points: pre-gate clean (step 6) adds gate_oxide 0.04 and qtime_oxide 0.03 (Q-time step), gate oxidation (7) realizes them; gate etch (10) adds underlayer_attack; implant (11) adds channeling_tail and implant_damage; the anneal (12) adds junction_spread and realizes all three.
+  - Do-nothing values, computed and copied: center 0.565525, inner 0.565525, outer 0.514917, yield 0.533136 (Cu line 0.589352). Center equals inner because NMOS has no center-to-edge pattern.
+  - 'NMOS step N' comments in content.js renumbered to the 13 steps. PATTERNS.dishing now reads 'wide features polished below the surface' (not metal-only).
+  - physics-reviewer must-fixes, done:
+    - fm_residue, fm_underlayer, fm_dishing and fm_qtime are Cu-worded; they now need `when: { lot: 'narrowFeatures' }` (the only Cu trait), so they are not right answers on NMOS. Checked over 400 Cu runs: right answers identical before and after.
+    - New failure modes for NMOS: fm_sti_dishing (unlocks dummyFill, lowPressurePolish), fm_fe_residue (poly stringers, shallow trenches), fm_thermal_budget (junction_spread, unlocks rta).
+    - dummyFill and lowPressurePolish text made not copper-only.
+    - lotTypes.test.js now counts failure-mode `when: { lot }` as trait use.
+  - Reviewer's smaller points, done: startRiskNotes says 'the active litho'; the pad oxide strip is named as folded into the pre-gate clean; primer says a punch-through 'degrades or kills'.
+  - 266/266; NMOS bot runs (seeds 1-20 x idle/random x starter/full) finish with every number finite.
+- **Waiting on David (item 2):**
+  1. Confirm the NMOS do-nothing values above.
+  2. A 'copperLine' trait would read better than narrowFeatures on the Cu failure modes, but it changes the expected lotTraits in run.test.js. OK to change that test?
+  3. Channeling on a high-dose arsenic n+ S/D implant is largely self-suppressed (it amorphizes the surface). Keep channeling_tail 0.04 as a simplification, make it smaller, or reword the step?
+  4. The nmos `tradeoff` describes a burden with no 'versus'. Fine?
+  5. Still open from item 1: should fm_dose_offset need a cause `when`? (Right in 314/400 NMOS runs, 160/400 Cu runs.)
+- **For the other lanes:** NMOS is not on screen yet: `src/ui/main.js` starts every run with `LOT_TYPE_ID = 'cuLine'`. A lot-type choice (or a seed-picked lot) is UI work. Please tick ROADMAP M5 'Content to about 40 items' (PR #16) and, after this PR, 'Second lot type: NMOS'.
+
 ### Held back: ceriaSlurry (add back when the shop checks an item's `when`)
 Also needs: an `fm_sti_dishing` failure mode (field-oxide step height, thinning in wide isolation areas, edge leakage at the active areas) to unlock it; the `dishing` pattern text made not metal-only; and NMOS step 6 adding dishing and particles.
 ```js
