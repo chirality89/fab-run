@@ -295,6 +295,7 @@ test('spcView: etch rate in nm/min with centre, control and spec limits in units
   assert.equal(spc.zs.length, 11, 'earlier lots only: this lot has not run yet');
   // target 300, sigma 8: control 300 ± 24, spec 300 ± 32.
   assert.equal(spc.limitsText, 'Centre 300.0 · control 276.0–324.0 · spec 268.0–332.0 nm/min');
+  assert.deepEqual(spc.axisLabels.map(label => label.text), ['332', '268', '324', '276', '300'], 'axis numbers');
 });
 
 test('spcView: rules in words, and the verdict', () => {
@@ -338,6 +339,7 @@ test('spcView: a one-sided spec (particle adders) shows only an upper spec limit
   assert.deepEqual(spc.specSides, [1]);
   // target 20, sigma 4: control 8–32, spec up to 36.
   assert.equal(spc.limitsText, 'Centre 20.0 · control 8.0–32.0 · spec up to 36.0 per wafer');
+  assert.deepEqual(spc.axisLabels.map(label => label.text), ['36', '32', '8', '20'], 'one spec number only');
 });
 
 // --- PM and the map's SPC chip (M3 item 2c) ---------------------------------

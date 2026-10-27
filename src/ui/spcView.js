@@ -88,6 +88,13 @@ export function spcView(state, roomId) {
     latestText: zs.length > 0 ? `Last lot measured: ${format(toUnits(zs[zs.length - 1]))} ${monitor.unit}` : '',
     limitsText: `Centre ${format(monitor.target)} · control ${format(toUnits(-CONTROL_LIMIT_SIGMA))}–${format(toUnits(CONTROL_LIMIT_SIGMA))}`
       + ` · spec ${specText(monitor, toUnits, format)} ${monitor.unit}`,
+    // Numbers at the left edge of the chart, one per line (Lane F issue 4:
+    // the chart had no axis numbers). Shorter than the text below: whole
+    // units, or one decimal for a small sigma.
+    axisLabels: [
+      ...(monitor.oneSided ? [1] : [1, -1]).map(side => side * SPEC_LIMIT_SIGMA),
+      CONTROL_LIMIT_SIGMA, -CONTROL_LIMIT_SIGMA, 0,
+    ].map(z => ({ z, text: toUnits(z).toFixed(decimals - 1) })),
     rules: tripped.map(ruleText),
     inControl: tripped.length === 0,
     verdictText: verdictText(name, sincePm.length, tripped, pmMarks.length > 0),
