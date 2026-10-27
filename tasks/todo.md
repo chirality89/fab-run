@@ -4,6 +4,8 @@
 
 **Status: built 27 Oct 2026. David: Q1 A (keep the numbers), Q2 yes (a service restarts the chart), Q3 yes (Excursion, Shift, Trend).**
 
+**David (27 Oct 2026), after the physics review asked:** any service restarts the chart, a partial one (the audit's +15) included, for simplicity.
+
 **What was built (one commit each)**
 1. Trend rule (`tools.js`, rule 4: 6 in a row steadily rising or falling; a tie breaks it).
 2. Verdicts by rule (`spcView.js`): Excursion / Shift / Trend / Shift and trend. The sentences say "the etch rate chart", so they read right for plural parameters (particle adders) too. "Just PM'd or serviced: no lots measured since yet."
