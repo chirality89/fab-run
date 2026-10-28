@@ -2,6 +2,20 @@
 
 Open work only. Finished tasks (their plans, numbers and David's answers) are in `tasks/done.md`, newest first.
 
+## Setup tidy (not a roadmap item; David OK'd the plan, 28 Oct 2026)
+
+- [x] CLAUDE.md §0 status, §12 personas row, one place for agent models, hooks note
+- [x] Standing rules at the top of `lessons.md`; `PROJECT.md` step 1 reads those; finished tasks moved to `tasks/done.md`
+- [x] Hooks: commit blocked while `npm test` fails (`FABRUN_ALLOW_RED=1` to override when David says so); warning on `Math.random` or a hard-coded color in `src/`
+- [x] Permission allow list for routine commands
+- [x] `code-explainer` and four personas on Sonnet (`persona-fab-engineer` stays on Opus); shared persona rules in `docs/playtest/persona-rules.md`, printed by `drive.mjs <persona> rules`
+- [ ] **Next session:** check the transcript shows Sonnet turns after leaving plan mode (`opusplan` has an open report of staying on Opus), and that both hooks fire
+- [ ] **Next playtest pass:** compare the Sonnet personas' reports with Lane F's Opus ones; move a persona back to Opus if its report gets shallow
+
+**Decisions settled:** taken as the proposed defaults on David's go-ahead, 28 Oct 2026 (change any in review): hooks yes; fab engineer stays on Opus; finished tasks move to `tasks/done.md`.
+
+**Result:** PR `claude/setup-tidy`. `npm test` 264/264; no game code changed.
+
 ## M4.5 items 1 and 2 — land the pending lane work (item 1, waits for PR #23 to merge); remove the fixed etch and litho yield tax (item 2, DONE 26 Oct 2026)
 
 **Status: David OK'd the plan and the test-value changes. Item 2 is built and verified: `npm test` 233/233, `npm run screens` 74/74, bot clean on 200 runs, `physics-reviewer` passed all four numbers. Item 1 is still to do.**
