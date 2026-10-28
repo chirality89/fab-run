@@ -40,7 +40,7 @@ Current milestone: **M4.5 — Winnable and readable** (David, 26 Oct 2026: do th
 
 ## M4.5 — Winnable and readable (from Lane F's playtest reports)
 Items are Lane F issue numbers (`docs/playtest/summary.md`) and physics-review claims. Each item is planned in `tasks/todo.md` first. Exit test is in `tasks/next-stages.md`.
-- [ ] Bring Lane F's reports and Lane D's native-oxide commit onto `main`
+- [x] Bring Lane F's reports and Lane D's native-oxide commit onto `main` (checked 28 Oct 2026: PR #20 and #25 are merged)
 - [x] Remove the fixed etch and litho yield tax, so tool health and choices drive the loss (issue 1, claim 8)
 - [x] Etch-stop logic (claim 11; David: the stop is a choice, route label "Deposition (oxide)"; needs a small engine rule, plan and ask first)
 - [x] SPC flags that predict, and a flagged tool that costs more (issue 4; David, 27 Oct 2026: keep the numbers and show the drift cost after each room)
