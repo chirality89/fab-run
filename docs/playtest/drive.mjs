@@ -2,6 +2,7 @@
 //
 // A persona runs this through Bash, one command at a time:
 //
+//   node docs/playtest/drive.mjs <persona> rules [--phone]   the shared persona rules (run first)
 //   node docs/playtest/drive.mjs <persona> open <seed> [--phone]
 //   node docs/playtest/drive.mjs <persona> look            what is on screen + numbered buttons
 //   node docs/playtest/drive.mjs <persona> tap <n|"text">  tap a button by number or by its words
@@ -201,6 +202,25 @@ function send(persona, command, args) {
   });
 }
 
+// `rules`: print the shared persona rules (docs/playtest/persona-rules.md)
+// with this persona's name and screen size filled in. One file holds the
+// rules for all five personas, so a change is made once.
+function printRules(persona, phone) {
+  const rulesPath = path.join(path.dirname(fileURLToPath(import.meta.url)), 'persona-rules.md');
+  const template = fs.readFileSync(rulesPath, 'utf8')
+    .replace(/^<!--[\s\S]*?-->\s*/, ''); // drop the note for editors at the top
+  const open = phone
+    ? '`open <seed> --phone`'
+    : '`open <seed>` (desktop 1280x800)';
+  const sizeCheck = phone
+    ? 'Check the pixel size the driver prints. Phone shots must be 375 wide and 812 tall. If a shot is not 375 wide, the phone setup is broken: stop and say so in your report.'
+    : 'Check the pixel size the driver prints. Desktop shots must be 1280 wide.';
+  console.log(template
+    .replaceAll('{persona}', persona)
+    .replaceAll('{open}', open)
+    .replaceAll('{sizeCheck}', sizeCheck));
+}
+
 async function main() {
   const [first, ...rest] = process.argv.slice(2);
 
@@ -215,7 +235,12 @@ async function main() {
   const persona = first;
   const [command, ...args] = rest;
   if (!persona || !command) {
-    console.log('Usage: node docs/playtest/drive.mjs <persona> open|look|tap|shot|reload|goto|scroll|url|close ...');
+    console.log('Usage: node docs/playtest/drive.mjs <persona> rules|open|look|tap|shot|reload|goto|scroll|url|close ...');
+    return;
+  }
+
+  if (command === 'rules') {
+    printRules(persona, args.includes('--phone'));
     return;
   }
 

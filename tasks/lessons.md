@@ -4,6 +4,22 @@ Add an entry after any bug or correction. Format: what happened â†’ root cause â
 
 The first two entries are carried over from FabSim2 because they apply here too.
 
+## Standing rules (read these every session)
+
+The patterns that came up more than once below. Read the full entry only when you touch that area (search this file for the area's name).
+
+1. **Check that an edit landed.** Look at the diff before reporting a change as done; prefer the Edit tool, which fails loudly.
+2. **Expected values come from the source, never from memory.** Compute numbers first and copy them from the output; print names from `content.js`; read an effect op's code for its sign. A test's limits come from the written decision.
+3. **Prove a check can fail.** After writing or loosening a guard or test, switch the guard off once and watch it fail. A "with X vs without X" test first asserts the result isn't empty.
+4. **Raw numbers for verdicts, rounded numbers for printing.** Pass/fail, colours and contrast limits are judged from the raw value.
+5. **Anything offered must still be able to matter.** Shop items, PM tools, DOE cards and events are checked against the route still ahead, not the whole route.
+6. **Every new way to lose yield shows on screen** (SPC, wafer map, metrology) before it ships. Name where.
+7. **Respect one-sided parameters.** Particles and seam rate have no lower spec; any chart line or verdict text checks `oneSided` and drift `direction`.
+8. **Words about physics are content.** Player-facing explanations go to `physics-reviewer`, not only effect numbers; say what the physics does, not what the code does.
+9. **Screen tests:** explicit phone viewport; wait `DOUBLE_CLICK_WINDOW_MS` between taps across a screen change; `scrollIntoViewIfNeeded()` before a raw tap; run a new phone spec with `--repeat-each=5`. Look at the screenshot of every screen a change could reach.
+10. **Lanes:** check open PRs and remote branches at session start; before merging a second lane PR, merge both locally and run `npm test` and `npm run screens`.
+11. **Repairs never make things worse.** Test any restore action on something already healthy.
+
 ## Template
 
 ### What Happened

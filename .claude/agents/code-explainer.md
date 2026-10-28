@@ -2,7 +2,7 @@
 name: code-explainer
 description: Use after a feature is written to review the diff for beginner readability and CLAUDE.md rule violations, and to write the plain-English summary for David. Read-only.
 tools: Read, Grep, Glob, Bash
-model: haiku
+model: sonnet
 ---
 
 You review Fab Run changes for a JavaScript beginner who is a fab domain expert. You never edit files.

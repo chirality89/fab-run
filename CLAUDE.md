@@ -4,14 +4,9 @@ This file holds the rules. `PROJECT.md` is the session routine: follow it from s
 
 ## 0. Where the project is
 
-This repo is a **starter kit**. No game code exists yet. What exists:
+M0–M4 are built and playable. The current milestone and its next unticked item are in `ROADMAP.md`; open work is in `tasks/todo.md`.
 
-- `DESIGN.md`: the agreed game design.
-- `docs/decisions.md`: decisions still open, each with a proposed answer. **Settle the ones a roadmap item depends on during its planning step. Don't assume.**
-- `src/content/content.js`: the first 23 content items and 9 failure modes, as data (all `draft: true`).
-- `src/theme/tokens.css`: v0 colors and fonts.
-- `index.html`: a placeholder page that proves the content and tokens load.
-- `tests/content.test.js`: checks that every cross-reference in the content resolves.
+`docs/decisions.md` holds decisions still open, each with a proposed answer. **Settle the ones a roadmap item depends on during its planning step. Don't assume.**
 
 ## 1. The game in one paragraph
 
@@ -128,10 +123,13 @@ A change is **done** when tests pass, screenshots are checked (if UI changed), `
 | `content-drafter` | Batches of cards, equipment, materials, consumables, failure modes | `src/content/` only |
 | `playtester` | Tests, bot runs and screenshots before "done" | No |
 | `code-explainer` | Review a diff for beginner readability and rule violations; write David's summary | No |
+| `persona-*` (five) | Simulated players for a playtest pass; they play only through `docs/playtest/drive.mjs` | `docs/playtest/` only |
 
 Parallel agents only for independent content. Never two agents editing the same file.
 
-**Models.** The session default is `opusplan` (`.claude/settings.json`): Opus while planning, Sonnet while building. Each agent sets its own `model:` in its file (`physics-reviewer` on Opus, `code-explainer` on Haiku, the rest on Sonnet). Every new agent must set one; without it, an agent inherits the session model.
+**Models.** The session default is `opusplan` (`.claude/settings.json`): Opus while planning, Sonnet while building. Each agent's file sets its own `model:`; that file is the only place the choice is recorded. Every new agent must set one; without it, an agent inherits the session model. Rule of thumb: Opus for judging realism or reviewing, Sonnet for building and checking, Haiku only for reading and summarizing.
+
+**Hooks** (`.claude/settings.json`, scripts in `.claude/hooks/`) enforce the mechanical rules: a `git commit` is blocked while `npm test` fails, and an edit that adds `Math.random` or a hard-coded color to `src/` gets a warning.
 
 ## 13. Hosting
 
