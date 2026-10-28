@@ -122,11 +122,11 @@ test('traits are static traits that content checks with when: { lot }', () => {
   }
 });
 
-test('cuLine doing nothing: center 0.657047, inner 0.625002, outer 0.567295, yield 0.589352', () => {
+test('cuLine doing nothing: center 0.745276, inner 0.719643, outer 0.672460, yield 0.690471', () => {
   const lot = walkRouteDoingNothing(LOT_TYPES.cuLine);
-  const byRing = [0.657047, 0.625002, 0.567295];
+  const byRing = [0.745276, 0.719643, 0.672460];
   lot.sites.forEach((s, i) => close(s, byRing[ring(i)], `site ${i}`));
-  close(lotYield(lot), 0.589352, 'yield');
+  close(lotYield(lot), 0.690471, 'yield');
 });
 
 test('a Q-time step names a known pattern that a later step realizes', () => {

@@ -63,7 +63,7 @@ test('createRun: defaults are the cuLine, the starter deck, i-line resist loaded
   assert.deepEqual(state.slots, { resist: { id: 'resistIline', shelfLife: 8, decay: 1 } });
   assert.equal(state.cash, 1500);
   assert.deepEqual(state.lotTraits, ['narrowFeatures']);
-  assert.deepEqual(state.lot.risks, { depth_variation: 0.08, dishing: 0.08 });
+  assert.deepEqual(state.lot.risks, { depth_variation: 0.056, dishing: 0.056 });
   assert.equal(createRun({ seed: SEED, toolDrift: false }).tools.etch.health, 100, 'with drift off, tools start at 100');
   assert.equal(state.status, 'running');
   assert.equal(state.room, null);
@@ -80,9 +80,9 @@ test('fullPool holds every practice', () => {
   assert.ok(fullPool().includes('endpointEtch'));
 });
 
-test('idle, scatter off: yield 0.589352, rejected, cash 1500, 0 minutes played', () => {
+test('idle, scatter off: yield 0.690471, rejected, cash 1500, 0 minutes played', () => {
   const end = playIdle(scatterOff());
-  close(lotYield(end.lot), 0.589352, 'yield');
+  close(lotYield(end.lot), 0.690471, 'yield');
   assert.equal(end.status, 'rejected');
   assert.equal(end.cash, 1500);
   assert.equal(end.minutesUsed, 0);
@@ -95,8 +95,8 @@ test('idle, scatter off: cycle time 133 (litho 30 + 5 given back by the i-line r
 
 test('enterStep adds the step risks and deals only cards for this room', () => {
   const inEtch = enterStepNumber(scatterOff({ deck: ETCH_TEST_DECK }), ETCH);
-  close(inEtch.lot.risks.residue, 0.04, 'residue');
-  close(inEtch.lot.risks.underlayer_attack, 0.03, 'underlayer_attack');
+  close(inEtch.lot.risks.residue, 0.028, 'residue');
+  close(inEtch.lot.risks.underlayer_attack, 0.021, 'underlayer_attack');
   assert.deepEqual([...inEtch.hand].sort(), ['endpointEtch', 'timedOveretch']);
   assert.equal(inEtch.room.timeLeft, 8);
 });
@@ -106,7 +106,7 @@ test('equipment acts once on entering its room: endpoint detector', () => {
   const inLitho = enterStepNumber(scatterOff({ loadout }), LITHO);
   assert.deepEqual(inLitho.enabled, [], 'not applied outside etch');
   const inEtch = enterStepNumber(scatterOff({ loadout }), ETCH);
-  close(inEtch.lot.risks.depth_variation, 0.056, 'depth_variation 0.08 × 0.7');
+  close(inEtch.lot.risks.depth_variation, 0.0392, 'depth_variation 0.056 × 0.7');
   assert.deepEqual(inEtch.enabled, ['endpointEtch']);
 });
 
@@ -115,8 +115,8 @@ test('timedOveretch costs 4 minutes and scales residue ×0.3, underlayer attack 
   assert.deepEqual(legalCards(inEtch), ['timedOveretch']);
   const after = playCard(inEtch, 'timedOveretch');
   assert.equal(after.room.timeLeft, 4);
-  close(after.lot.risks.residue, 0.012, 'residue');
-  close(after.lot.risks.underlayer_attack, 0.045, 'underlayer_attack');
+  close(after.lot.risks.residue, 0.0084, 'residue');
+  close(after.lot.risks.underlayer_attack, 0.0315, 'underlayer_attack');
   assert.deepEqual(after.hand, []);
   assert.equal(resolveStep(after).minutesUsed, 4);
 });
@@ -168,13 +168,13 @@ test('strip and re-expose is never legal yet (lastStepWasLitho is not set by any
 });
 
 test('scrap: yield below 0.40 mid-route stops the run there', () => {
-  // Heavy particles added to the lot in the first room: e^(−1.01) ≈ 0.364.
+  // Heavy particles added to the lot in the first room: e^(−1.007) ≈ 0.365.
   const inClean = enterStepNumber(scatterOff(), 0);
   const dirty = { ...inClean, lot: addRisk(inClean.lot, 'particles', 1.0) };
   const end = resolveStep(dirty);
   assert.equal(end.status, 'scrapped');
   assert.equal(end.stepIndex, 0);
-  close(lotYield(end.lot), Math.exp(-1.01), 'yield');
+  close(lotYield(end.lot), Math.exp(-1.007), 'yield');
   assert.throws(() => enterStep(end), /over/);
   assert.throws(() => playCard(end, 'timedOveretch'), /over/);
   assert.throws(() => resolveStep(end), /over/);
@@ -210,8 +210,8 @@ test('slotEntry builds the slot shape resolve.js expects', () => {
 // --- M3 item 1: corridors and side stops ---------------------------------
 // Hand check (tasks/todo.md, M3 item 1). The corridor after step 5 (index 4,
 // "Resist strip + wet clean") is the Q-time window. Going straight on, the
-// lot carries qtime_oxide 0.04 into step 6. A 40-minute PM stop there adds
-// 0.001 × 40 = 0.04 more, so 0.08. qtime_oxide is an even pattern (weight 1
+// lot carries qtime_oxide 0.028 into step 6 (base risks cut to 70%, 28 Oct 2026).
+// A 40-minute PM stop there adds 0.001 × 40 = 0.04 more, so 0.068. qtime_oxide is an even pattern (weight 1
 // at every site), so every site, and the final yield, is × e^(−0.04).
 
 const QTIME_CORRIDOR = 4;
@@ -275,16 +275,16 @@ test('the last room ends the run with no corridor after it', () => {
   assert.throws(() => walkCorridor(end, null), /over/);
 });
 
-test('PM in the Q-time corridor: qtime_oxide 0.08, final yield × e^(−0.04), +40 min', () => {
+test('PM in the Q-time corridor: qtime_oxide 0.068, final yield × e^(−0.04), +40 min', () => {
   const seed = seedWithPmInQtimeCorridor();
   const start = createRun({ seed, scatterStrength: 0, toolDrift: false });
   const straight = playIdle(start);
   const withPm = playIdleWithStop(start, QTIME_CORRIDOR, 'pm');
-  close(lotYield(straight.lot), 0.589352, `straight on everywhere is today's idle run (seed ${seed})`);
+  close(lotYield(straight.lot), 0.690471, `straight on everywhere is today's idle run (seed ${seed})`);
   close(lotYield(withPm.lot) / lotYield(straight.lot), 0.960789, `yield ratio e^(-0.04) (seed ${seed})`);
   assert.equal(withPm.cycleTime, straight.cycleTime + 40, `seed ${seed}`);
 
   // The risk itself, just after the stop and before step 6 realizes it.
   const atStop = walkCorridor(resolveStep(enterStepNumber(start, QTIME_CORRIDOR)), 'pm');
-  close(atStop.lot.risks.qtime_oxide, 0.08, `qtime_oxide after a PM stop (seed ${seed})`);
+  close(atStop.lot.risks.qtime_oxide, 0.068, `qtime_oxide after a PM stop (seed ${seed})`);
 });

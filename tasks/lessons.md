@@ -370,3 +370,13 @@ The expected names were written from the items' ids, not read from `content.js`.
 - **What happened:** the new verdicts said "A shifted tool costs yield" for any shift, including a run below the centre line on a one-sided chart (particle adders, seam rate), where fewer is never out of spec. The physics review caught it.
 - **Root cause:** I wrote the verdict from the rule alone and forgot the chart's spec shape, the same miss as the earlier lower-spec-line lesson.
 - **Rule:** any text that says a chart signal costs yield must check `oneSided` and the drift `direction` first. Test every new SPC sentence on a one-sided chart as well as a two-sided one.
+
+## 28 Oct 2026 — A flow change broke 16 screen specs I had not run
+- **What happened:** letting a room with nothing to play run itself, and adding starter practices to most rooms, passed `npm test` but broke 16 Playwright specs (they press Run in every room, expect an empty plating hand, and expect certain DOE offers). I found out only because I ran `npm run screens` before committing; the first commit went out with the unit tests green and the screens not yet run.
+- **Root cause:** `npm test` does not cover the screens, and I treated it as the whole check for a change that touches what the player does on a screen.
+- **Rule:** a change to the room flow, the starter deck or any text a spec reads needs `npm run screens` before the commit, and the commit message says if any spec is still red. Check specs for flows that "press the same button in every room".
+
+## 28 Oct 2026 — The starter cards were too small to change the outcome, and I found out late
+- **What happened:** five starter practices raised the smart bot's starter-deck result by only 2 points. Each card acts on one room's pattern, and those patterns hold about 1% of risk, so no single card could move the lot.
+- **Root cause:** I drafted cards before measuring how much yield each room can give back. The bot (`npm run exit-check`) shows it in seconds.
+- **Rule:** before drafting cards for a balance goal, run the smart bot with the full deck and note where the points are lost (`pointsLostByPattern`). Draft for the patterns that hold the points, or change the base risks.

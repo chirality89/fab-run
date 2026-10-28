@@ -60,7 +60,11 @@ test('loss adds up over steps and never changes the yield', () => {
 });
 
 test('T-top is only right when the lot waited before bake, whatever the CD loss', () => {
-  const end = playIdle(createRun({ seed: SEED }));
+  // Since the base risks were cut to 70% (28 Oct 2026) an idle run's CD error
+  // costs under DIAGNOSE_MIN_POINTS, so 0.02 more CD-error risk is added at the
+  // start to make it cost points, which is what this test needs.
+  const start = createRun({ seed: SEED });
+  const end = playIdle({ ...start, lot: addRisk(start.lot, 'cd_error', 0.02) });
   assert.ok(pointsLostByPattern(end.lot).cd_error >= DIAGNOSE_MIN_POINTS, 'CD error did cost points');
   assert.ok(!diagnosisFor(end, emptyNotebook()).rightIds.includes('fm_ped_ttop'));
 });

@@ -69,3 +69,11 @@ Measured on seeds 1 to 100 (mean yield %, share shipped at spec 70% / 62% / 60%)
 - Yield barely varies from seed to seed (about 2 points), so the ship rate flips from near 0 to near 100 across a 4-point change of spec: the outcome is decided by the build, not by luck.
 - Where smart/starter still loses yield (points): particles 7.7, depth variation 6.8, dishing 5.1, void 4.6, underlayer attack 3.9. Starter cards act on one room each, so each can recover only about 1 point.
 - Levers: (a) spec 70 down to about 61; (b) scale down the base risks in `lotTypes.js` by about 15% (particles 0.01, stack risks 0.08); (c) more scatter between seeds. (a) and (b) both move hand-computed tests in `view.test.js`, `run.test.js` and others; each would be recomputed by hand and shown to David first.
+
+### P3 applied (28 Oct 2026)
+
+David approved the recomputed test values. Applied: all base risks in `lotTypes.js` × 0.7 (`tasks/p3-test-changes.md`, `tasks/p3-risk70.patch`); 27 hand-computed tests recomputed from an independent Python model (it reproduced every old value first). Extra values checked the same way while editing: shop endpoint-detector yield 0.798418 → 0.854045 and 0.779789 → 0.839977 (the same 0.779789 → 0.839977 and 0.789992 → 0.847656 in the etch result test). The T-top test now adds 0.02 CD-error risk at the start so CD error still costs 3 points.
+
+`npm run exit-check -- --seeds 100`: all six targets pass (idle 0%, random 3%, casual 20%, smart with starter deck 49%, smart with every card 100%, 21.4 points over idle).
+
+Open for David: the exit-check targets are proposals (see `tools/exit-check.js`); P4 (diagnosis explains itself) and P5 (simulated and real playtests) are next.
