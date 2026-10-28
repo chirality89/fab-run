@@ -7,6 +7,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { playRun } from '../tools/bot.js';
 import { checkTargets, runPolicy } from '../tools/exit-check.js';
+import { smartCorridor } from '../tools/smartBot.js';
+import { createRun, enterStep, resolveStep, walkCorridor } from '../src/engine/run.js';
 
 const SEEDS = Array.from({ length: 50 }, (_, i) => i + 1);
 const POLICIES = ['idle', 'random', 'casual', 'smart'];
@@ -81,6 +83,37 @@ test('the casual bot lands between idle and smart (full deck, seeds 1–20)', ()
   const smart = runPolicy('smart', 20, 'full');
   assert.ok(casual.mean > idle.mean && casual.mean < smart.mean,
     `idle ${idle.mean.toFixed(1)}, casual ${casual.mean.toFixed(1)}, smart ${smart.mean.toFixed(1)}`);
+});
+
+// A player picks a side stop by its kind only: what is inside (shop stock,
+// event, DOE offers) comes from the run's seed, and a PM's restore roll from
+// the tools' generator. So two runs that differ only in those hidden dice
+// must get the same choice of stop from the smart bot. On these seeds the
+// old bot, which opened each stop to look inside, chose differently in at
+// least one corridor (18, 19, 20 and 28; checked 28 Oct 2026).
+test('the smart bot picks a side stop without seeing what is inside it (seeds 18, 19, 20, 28, every corridor)', () => {
+  let compared = 0;
+  for (const seed of [18, 19, 20, 28]) {
+    let state = createRun({ seed });
+    while (state.status === 'running') {
+      if (state.room !== null) state = resolveStep(state);
+      else if (state.corridor === null) state = enterStep(state);
+      else {
+        if (state.map[state.corridor].offers.length > 0) {
+          const choice = smartCorridor(state, 0, 1).stopKind;
+          for (const other of [5000, 7000, 9000]) {
+            const otherDice = { ...state, seed: seed + other, toolRngState: seed + other + 1 };
+            const choiceWithOtherDice = smartCorridor(otherDice, 0, 1).stopKind;
+            assert.equal(choiceWithOtherDice, choice,
+              `seed ${seed}, corridor ${state.corridor}: chose ${choice}, but ${choiceWithOtherDice} with other hidden dice`);
+          }
+          compared += 1;
+        }
+        state = walkCorridor(state, null);   // go straight on to the next room
+      }
+    }
+  }
+  assert.ok(compared > 0, 'no corridor offered a stop, so nothing was compared');
 });
 
 test('exit-check: targets pass on good numbers and fail on bad ones', () => {

@@ -16,6 +16,13 @@
 // The make-believe runs turn scatter off (scatterStrength 0), so the bot does
 // not peek at the lot's luck. Its own random choices come from its own
 // generator, never the lot's (CLAUDE.md §8).
+//
+// No peeking at hidden dice. Two things a player cannot see before choosing:
+// what is inside a side stop (shop stock, which event, which DOE offers; all
+// picked from the run's seed) and the PM's 75-95 restore roll (picked from
+// the tools' generator). For those choices the bot scores each option on a
+// few IMAGINED runs that use made-up dice, and takes the average. Once inside
+// a stop it sees the real contents, as a player does.
 
 import { nextRandom, pick } from '../src/engine/rng.js';
 import { lotYield } from '../src/engine/lot.js';
@@ -33,6 +40,9 @@ const CASH_VALUE = 0.00005;
 const MIN_GAIN = 0.0005;
 // How often the casual policy ignores the scores and picks at random.
 const CASUAL_NOISE = 0.3;
+// The made-up dice for imagined runs. Any whole numbers work; four is enough
+// to average out one lucky stock or roll and keeps the bot quick.
+const IMAGINED_SEEDS = [101, 202, 303, 404];
 
 export const SMART_POLICIES = ['smart', 'casual'];
 
@@ -58,6 +68,20 @@ function score(state) {
   return idleFinish(state) + CASH_VALUE * state.cash;
 }
 
+// A copy of the state with made-up dice in place of the run's: a new seed
+// (side-stop contents) and a new tools' generator number (PM restore rolls).
+// Everything the player can already see (yield, tools, map, cash) is kept.
+function imagined(state, imaginedSeed) {
+  return { ...state, seed: imaginedSeed, toolRngState: imaginedSeed };
+}
+
+// The average score of doing `action` (a function from state to state) on
+// each imagined run: what the bot can expect, not what the dice will give.
+function expectedScore(state, action) {
+  const scores = IMAGINED_SEEDS.map(imaginedSeed => score(action(imagined(state, imaginedSeed))));
+  return scores.reduce((sum, s) => sum + s, 0) / scores.length;
+}
+
 // Rolls the casual bot's dice: true with probability `noise` (always false
 // for the smart bot, which then uses no random numbers at all).
 function ignoresScores(noise, botRng) {
@@ -66,8 +90,8 @@ function ignoresScores(noise, botRng) {
   return { random: roll.value < noise, rngState: roll.rngState };
 }
 
-// Picks among options, each { value, state } where `state` is the state after
-// taking it. `doNothing` is the state if none is taken. Returns the chosen
+// Picks among options, each { value, score } where `score` is how good the
+// state after taking it is. `doNothing` is the state if none is taken. Returns the chosen
 // option's value (null for "none") and the bot's next generator number.
 // The best option must beat doing nothing by MIN_GAIN. A noisy bot
 // sometimes picks at random instead.
@@ -80,8 +104,7 @@ function choose(options, doNothing, noise, botRng) {
   let best = { value: null };
   let bestScore = score(doNothing) + MIN_GAIN;
   for (const option of options) {
-    const optionScore = score(option.state);
-    if (optionScore > bestScore) { best = option; bestScore = optionScore; }
+    if (option.score > bestScore) { best = option; bestScore = option.score; }
   }
   return { value: best.value, rngState: dice.rngState };
 }
@@ -92,7 +115,7 @@ export function smartRoom(state, noise, botRng) {
   let rng = botRng;
   const played = [];
   while (legalCards(current).length > 0) {
-    const options = [...new Set(legalCards(current))].map(id => ({ value: id, state: playCard(current, id) }));
+    const options = [...new Set(legalCards(current))].map(id => ({ value: id, score: score(playCard(current, id)) }));
     const choice = choose(options, current, noise, rng);
     rng = choice.rngState;
     if (choice.value === null) break;
@@ -110,7 +133,7 @@ function smartShop(state, noise, botRng) {
   let lowestCash = Infinity;
   while (current.shop !== null) {
     const affordable = current.shop.stock.filter(id => whyCannotBuy(current, id) === null);
-    const options = affordable.map(id => ({ value: id, state: buyItem(current, id) }));
+    const options = affordable.map(id => ({ value: id, score: score(buyItem(current, id)) }));
     const choice = choose(options, current, noise, rng);
     rng = choice.rngState;
     if (choice.value === null) break;
@@ -126,9 +149,10 @@ function smartPmOrDoe(state, noise, botRng) {
   const nothing = { state, botRng, pmRoom: null, doeCardId: null };
   if (state.pm === null) return nothing;
   const options = [
-    ...state.pm.choices.map(room => ({ value: { pm: room }, state: pmTool(state, room) })),
+    // A PM's restore roll is hidden until it is done, so it is scored on imagined rolls.
+    ...state.pm.choices.map(room => ({ value: { pm: room }, score: expectedScore(state, s => pmTool(s, room)) })),
     ...state.pm.doeOffers.filter(id => whyCannotDoe(state, id) === null)
-      .map(id => ({ value: { doe: id }, state: doeCard(state, id) })),
+      .map(id => ({ value: { doe: id }, score: score(doeCard(state, id)) })),
   ];
   const choice = choose(options, state, noise, botRng);
   if (choice.value === null) return { ...nothing, botRng: choice.rngState };
@@ -153,17 +177,28 @@ function smartEvent(state, noise, botRng) {
   return { state: chosen.state, botRng: rng, label: `${event.id}: ${event.options[chosen.index].label}` };
 }
 
-// A whole corridor: for each way through it (straight on, or each side stop
-// on offer), use the stop as well as possible, then keep the way that leaves
-// the lot best off. Returns what playRun needs to log.
+// A whole corridor. The player sees only the KIND of each stop on offer, not
+// what is inside, so each way through (straight on, or each stop) is scored
+// on imagined runs: go in, use the stop as well as possible, average. Then
+// the bot walks the real corridor into the best kind and uses the real stop.
+// Returns what playRun needs to log.
 export function smartCorridor(state, noise, botRng) {
   const stopKinds = [null, ...state.map[state.corridor].offers];
-  const tried = stopKinds.map(stopKind => ({ stopKind, ...useStop(walkCorridor(state, stopKind), noise, botRng) }));
-  let best = tried[0];
-  for (const attempt of tried) if (score(attempt.state) > score(best.state) + MIN_GAIN) best = attempt;
+  let bestKind = null;
+  let bestScore = -Infinity;
+  for (const stopKind of stopKinds) {
+    // noise 0: the imagined visits never roll the casual bot's dice.
+    const kindScore = expectedScore(state, s => useStop(walkCorridor(s, stopKind), 0, botRng).state);
+    if (kindScore > bestScore + MIN_GAIN) { bestKind = stopKind; bestScore = kindScore; }
+  }
   const dice = ignoresScores(noise, botRng);
-  if (dice.random) best = pick(dice.rngState, tried).value;
-  return best;   // best.botRng is the generator number after that attempt's choices
+  let rng = dice.rngState;
+  if (dice.random) {
+    const random = pick(rng, stopKinds);
+    bestKind = random.value;
+    rng = random.rngState;
+  }
+  return { stopKind: bestKind, ...useStop(walkCorridor(state, bestKind), noise, rng) };
 }
 
 // Whatever the stop just opened (shop, PM/DOE, event): use it well.

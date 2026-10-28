@@ -7,8 +7,8 @@ Finished plans (M0 to M4.5 item 4) are in `docs/archive/todo-done.md`. The curre
 ### Task: M4.5 "A real decision in every room" (issue 3), plan approved 28 Oct 2026
 Most of it was already built on `claude/winnable-p0-p1` (P1 bots, P2 starter practices and skipped rooms); this session brings that in and closes the gaps.
 - [x] 1. Fast-forward this branch to `claude/winnable-p0-p1`; plan copied here
-- [ ] 2. Check: `npm test`, `npm run screens`, `exit-check` on 100 seeds, no `Math.random`
-- [ ] 3. Fair smart bot: its make-believe runs use their own random numbers, not the lot's future drift and deals
+- [x] 2. Check: `npm test` 278 pass, `npm run screens` 78 pass (plating and etch phone shots look right), `exit-check` 100 seeds all PASS, no `Math.random`
+- [x] 3. Fair smart bot: side-stop kinds and PM choices are scored on 4 imagined runs with made-up dice (`tools/smartBot.js` `IMAGINED_SEEDS`), so it no longer sees a stop's contents or a PM's roll before choosing. (Correction to the plan: drift was not a leak; wear is a fixed amount per lot and scatter is off in the make-believe runs.)
 - [ ] 4. exit-check target: smart beats idle by over 10 points with the starter deck; if it fails, options to David, no tuning
 - [ ] 5. Test: every Cu-line room offers a starter practice or runs by itself
 - [ ] 6. David's calls on `doseTrimSpc`, `chamberPurge` (particles ×1.1), `waferPrewet`; then `physics-reviewer`
@@ -23,6 +23,8 @@ Most of it was already built on `claude/winnable-p0-p1` (P1 bots, P2 starter pra
 - A test proves every process room has a decision or runs itself
 
 **Progress notes:**
+- 28 Oct 2026, step 3: the old bot changed its stop choice in 17 of 240 corridors (seeds 1–30) when only the hidden dice changed; the fair bot in 0 of 240. The new test fails on the old bot and passes on the new one. Peeking was worth almost nothing: exit-check 100 seeds, smart/starter 69.6 → 69.5 (49 ship both), casual 68.2 → 67.7 (20 → 19), smart/full 82.4 (100). Cost: `npm test` went from about 15 s to about 78 s.
+- 28 Oct 2026, step 2: exit-check 100 seeds (before step 3): starter idle 61.1 (0 ship), random 61.5 (3), casual 68.2 (20), smart 69.6 (49); full smart 82.4 (100).
 - 28 Oct 2026: before this session, exit-check on seeds 1–40: starter idle 61.1, random 60.2, casual 67.9, smart 69.6 (22/40 ship); full smart 82.6 (40/40).
 
 **Result:**
