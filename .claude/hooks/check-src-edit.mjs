@@ -44,9 +44,25 @@ if (codeLines.some((line) => line.includes('Math.random'))) {
   problems.push('Math.random in src/: use the seeded generator in src/engine/rng.js (CLAUDE.md §8).');
 }
 
-const isUiCode = /(^|\/)src\/ui\/.*\.(js|css)$/.test(filePath);
-const colorPattern = /#[0-9a-fA-F]{3,8}\b|\b(rgb|rgba|hsl|hsla)\(/;
-if (isUiCode && codeLines.some((line) => colorPattern.test(line))) {
+// Colors. In CSS, any hex or rgb()/hsl() value is a hard-coded color. In JS,
+// "#add" is as likely to be an element id or a link ("#add" is also valid
+// hex), so JS is only flagged when it clearly holds a color:
+//   - a quoted 6- or 8-digit hex string, like '#1a2b3c'
+//   - a hex after a color-like word, like  fill: #fff  or  background = '#fff'
+//   - an rgb()/hsl() call
+const hexAnywhere = /#[0-9a-fA-F]{3,8}\b/;
+const colorFunction = /\b(rgb|rgba|hsl|hsla)\(/;
+const jsQuotedHex = /(['"`])#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})\1/;
+const jsHexAfterColorWord = /(color|background|fill|stroke|border|shadow)\b[^;\n]*#[0-9a-fA-F]{3,8}\b/i;
+
+const isUiCss = /(^|\/)src\/ui\/.*\.css$/.test(filePath);
+const isUiJs = /(^|\/)src\/ui\/.*\.js$/.test(filePath);
+const hasHardCodedColor = (line) =>
+  colorFunction.test(line) ||
+  (isUiCss && hexAnywhere.test(line)) ||
+  (isUiJs && (jsQuotedHex.test(line) || jsHexAfterColorWord.test(line)));
+
+if ((isUiCss || isUiJs) && codeLines.some(hasHardCodedColor)) {
   problems.push('Hard-coded color in UI code: use a token from src/theme/tokens.css (CLAUDE.md §10).');
 }
 
