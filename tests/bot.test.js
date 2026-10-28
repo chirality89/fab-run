@@ -85,8 +85,12 @@ test('the casual bot lands between idle and smart (full deck, seeds 1–20)', ()
 
 test('exit-check: targets pass on good numbers and fail on bad ones', () => {
   const result = (shipRate, mean) => ({ shipRate, mean });
-  const good = checkTargets({ idle: result(0, 52), random: result(0.1, 55), smart: result(0.7, 75) });
+  const good = checkTargets({
+    idle: result(0, 52), random: result(0.02, 55), casual: result(0.1, 62), smart: result(0.5, 70), smartFull: result(0.95, 85),
+  });
   assert.ok(good.every(check => check.ok), good.map(check => check.text).join('; '));
-  const bad = checkTargets({ idle: result(0, 52), random: result(0.1, 55), smart: result(0, 58) });
-  assert.equal(bad.filter(check => !check.ok).length, 2);   // smart ship rate, and the spread
+  const bad = checkTargets({
+    idle: result(0, 52), random: result(0.02, 55), casual: result(0.1, 62), smart: result(0, 58), smartFull: result(0.95, 85),
+  });
+  assert.equal(bad.filter(check => !check.ok).length, 1);   // only the smart starter-deck ship rate
 });

@@ -43,8 +43,8 @@ const pmCard = (page, roomName) =>
   page.locator('.pm-panel .shop-item').filter({ has: page.locator('.card-name', { hasText: roomName }) });
 
 // Plays steps 1 and 2 doing nothing, then takes the PM/DOE stop.
-async function walkToPm(page) {
-  await page.goto(PAGE);
+async function walkToPm(page, seed = SEED) {
+  await page.goto(`/?seed=${seed}`);
   await press(page, goButton(page));
   await press(page, page.locator('.run-button'));
   await press(page, continueButton(page));
@@ -94,9 +94,14 @@ test('the PM stop lists the tools ahead with their charts; PM one, then continue
 const doeOffer = (page, name) =>
   page.locator('.doe-panel .shop-item').filter({ has: page.locator('.card-name', { hasText: name }) });
 
+// Seed 5, not 123456: its DOE stop offers the over-etch and the dose trim, so
+// the tuned recipe can be checked at etch (at seed 123456 the offers are strip
+// and re-expose and the pump-purge cycles). Found with the engine: a seed whose
+// first PM/DOE corridor offers timedOveretch and one other card.
+const DOE_SEED = 5;
 test('the DOE section offers 2 practices; a DOE costs 100 and the card shows its tuned recipe', async ({ page }) => {
   const errors = watchForErrors(page);
-  await walkToPm(page);
+  await walkToPm(page, DOE_SEED);
   await expect(page.locator('.doe-panel .shop-item')).toHaveCount(2);
   const overEtch = doeOffer(page, 'Timed over-etch (+20%)');
   await expect(overEtch).toContainText('Now: 4 min · residue ×0.3 · underlayer attack ×1.5');

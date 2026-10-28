@@ -79,7 +79,7 @@ async function walkToShipReport(page) {
     await expect(title(page)).toHaveText('Floor plan');
     await pressAfterChange(page, goButton(page));
   }
-  await pressAfterChange(page, runButton(page));
+  // The last room has nothing to play, so it has already run by itself.
   await pressAfterChange(page, button(page, 'See the ship report'));
   await expect(title(page)).toHaveText('Ship report');
 }
@@ -171,10 +171,11 @@ test('with keyhole void in the notebook, the plating room deals Low-current star
   expect(errors, `console errors (seed ${SEED})`).toEqual([]);
 });
 
-test('with an empty notebook, the plating room deals nothing', async ({ page }) => {
+test('with an empty notebook, the plating room deals only its starter practice', async ({ page }) => {
   test.slow();
   const errors = watchForErrors(page);
   await walkIntoStep(page, PLATING_STEP);
-  await expect(page.locator('.hand-empty')).toBeVisible();
+  await expect(page.locator('.hand .card-name')).toHaveText(['Wafer pre-wet']);
+  await expect(page.locator('.hand-empty')).toHaveCount(0);
   expect(errors, `console errors (seed ${SEED})`).toEqual([]);
 });

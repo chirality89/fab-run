@@ -129,8 +129,10 @@ test('going straight on through every room ends the run shipped or rejected', as
     await runRoomAndContinue(page);
     await press(page, goButton(page));
   }
+  // The last room (metrology) has nothing to play, so it runs by itself and
+  // the result screen follows (P2 of tasks/plan-winnable.md).
   await expect(page.locator('.room-step')).toContainText(`Step ${STEP_COUNT} of ${STEP_COUNT}`);
-  await press(page, runButton(page));
+  await expect(page.locator('.skipped-text')).toHaveText('Nothing could be played here, so the lot went straight through.');
   await expect(page.locator('.outcome-text')).toHaveText(/^Lot (shipped|rejected)/);
   await expect(continueButton(page)).toHaveCount(0);
   await screenshot(page, '8-run-end');

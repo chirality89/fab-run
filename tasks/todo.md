@@ -47,10 +47,25 @@ Content in `src/content/content.js` that needs engine behavior beyond the eight 
 - Tool wear: tool health stays at 100 in run.js; no rule yet for how much a room wears its tool
 - Consumables: no engine code plays them yet (the starter qual wafer and spare part, and the unlocked bath analysis, fresh resist, implant monitor and oxide monitor). They are left off the Notebook page's "Unlocks" until they can be used (David, 26 Oct 2026)
 
-### Screen tests (`npm run screens`) after P2: 16 red, 62 pass (28 Oct 2026)
+### Screen tests after P2 (28 Oct 2026): fixed, all pass
 
-Not yet fixed; they need David's OK because they change what the screens expect:
-- Rooms with nothing to play now run on their own, so specs that press `.run-button` in every room (`map`, `ship`, `notebook`, `shop`, `pm`, `events`, `saves` helpers) wait for a button that no longer shows. Proposed: a helper that presses Run only when the room screen is shown.
-- `notebook.spec.js` "with an empty notebook, the plating room deals nothing": plating now deals `waferPrewet`.
-- `pm.spec.js` "the DOE section offers 2 practices": the offers at seed 123456 are now strip and re-expose and the pump-purge cycles.
-- Also still to do: look at the new skipped-room result screen in a desktop and a phone screenshot.
+David approved the edits. The last room (metrology) now runs by itself, so specs no longer press Run there; `map.spec` checks the skipped note. The plating spec expects the starter practice `Wafer pre-wet`. The DOE spec uses seed 5, whose DOE stop offers the over-etch (seed 123456 now offers other cards). The skipped-room result screen was checked on a phone screenshot.
+
+### P3 balance pass (David chose option 3, 28 Oct 2026: first run winnable but tight, unlocks give margin)
+
+`tools/exit-check.js` now has these targets (numbers proposed by Claude, David to confirm): starter deck: idle 0%, random under 5%, casual under 25%, smart 40-75%; full deck: smart at least 90% and over 15 points above idle.
+
+Measured on seeds 1 to 100 (mean yield %, share shipped at spec 70% / 62% / 60%):
+
+| Policy / deck | mean | 70% | 62% | 60% |
+|---|---|---|---|---|
+| idle / starter | 52.1 | 0 | 0 | 0 |
+| random / starter | 53.2 | 0 | 0 | 6 |
+| casual / starter | 58.9 | 0 | 4 | 30 |
+| smart / starter | 60.2 | 0 | 8 | 62 |
+| casual / full | 72.3 | 71 | 97 | 100 |
+| smart / full | 76.9 | 100 | 100 | 100 |
+
+- Yield barely varies from seed to seed (about 2 points), so the ship rate flips from near 0 to near 100 across a 4-point change of spec: the outcome is decided by the build, not by luck.
+- Where smart/starter still loses yield (points): particles 7.7, depth variation 6.8, dishing 5.1, void 4.6, underlayer attack 3.9. Starter cards act on one room each, so each can recover only about 1 point.
+- Levers: (a) spec 70 down to about 61; (b) scale down the base risks in `lotTypes.js` by about 15% (particles 0.01, stack risks 0.08); (c) more scatter between seeds. (a) and (b) both move hand-computed tests in `view.test.js`, `run.test.js` and others; each would be recomputed by hand and shown to David first.

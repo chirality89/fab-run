@@ -224,7 +224,7 @@ export function notebookButton(notebook) {
 export function renderResult(container, view, actions) {
   const outcome = panel('Result', 'result-panel');
   outcome.setAttribute('role', 'status');
-  if (view.skippedText) outcome.append(el('p', 'outcome-text skipped-text', view.skippedText));
+  if (view.skippedText) outcome.append(el('p', 'skipped-text', view.skippedText));
   outcome.append(el('p', 'outcome-text', view.outcomeText));
   const buttons = el('div', 'result-buttons');
   // While the run goes on, Continue is the main button; once it is over,

@@ -64,7 +64,7 @@ test('going straight on to the end leads to the ship report', async ({ page }) =
     await runRoomAndContinue(page);
     await pressAfterChange(page, goButton(page));
   }
-  await pressAfterChange(page, runButton(page));
+  // The last room has nothing to play, so it has already run by itself.
   await pressAfterChange(page, button(page, 'See the ship report'));
 
   await expect(title(page)).toHaveText('Ship report');
@@ -137,7 +137,7 @@ async function walkToShipReport(page) {
     await runRoomAndContinue(page);
     await pressAfterChange(page, goButton(page));
   }
-  await pressAfterChange(page, runButton(page));
+  // The last room has nothing to play, so it has already run by itself.
   await pressAfterChange(page, button(page, 'See the ship report'));
   await expect(title(page)).toHaveText('Ship report');
 }
