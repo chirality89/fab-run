@@ -15,6 +15,7 @@ Most of it was already built on `claude/winnable-p0-p1` (P1 bots, P2 starter pra
 - [ ] 7. playtester, code-explainer, lesson, tick ROADMAP, 3-bullet summary; ask about a PR (check together with PR #26 first)
 
 **Decisions settled:** none open for this item (Q2 "both", 26 Oct).
+**David, 28 Oct 2026:** (1) first-run gap: try A first (starter cards with a visible downside). (2) `doseTrimSpc` stays as a placeholder. (3) `chamberPurge` particles ×1.1 is fair. (5) exit-check targets approved. (6) slow bots on fewer seeds (done: casual and smart 1–5 per deck, the beats-idle checks on 10 seeds; `npm test` about 40 s). (4) `waferPrewet` bubble-void cause: not answered, left for later.
 
 **Acceptance criteria:**
 - `npm test`, `npm run screens` pass; bots have no NaN/Infinity
@@ -23,6 +24,7 @@ Most of it was already built on `claude/winnable-p0-p1` (P1 bots, P2 starter pra
 - A test proves every process room has a decision or runs itself
 
 **Progress notes:**
+- 28 Oct 2026, card values (seeds 1–60, starter deck, walking straight on, yield points gained by playing the card, by whether the room's SPC chart flags a rule): chamberPurge flagged median +0.47 / quiet −0.01; extraDiRinse +0.56 / +0.11; doseTrimSpc +0.65 / +0.28; padBreakIn +0.63 / +0.38; timedOveretch +1.30 / +0.63; waferPrewet +0.96 / +0.70. A flagged chart roughly doubles a card's worth, but only chamberPurge and extraDiRinse can lose. The others never do, because one card per room means their minutes are free.
 - 28 Oct 2026, step 4 finding (seeds 1–30, starter deck): the smart bot plays `extraDiRinse`, `doseTrimSpc`, `timedOveretch`, `waferPrewet` and `padBreakIn` in **30 of 30** lots, and `chamberPurge` in 1 of 30. It never buys from the shop and takes a PM at almost every corridor. So with the starter deck, 5 of the 6 cards are "always play" (no real decision), and `chamberPurge` is almost never worth it. Points still lost with smart play: particles 6.0, depth variation 5.0, dishing 4.0, void 3.6, underlayer attack 2.9, Q-time 2.3, CD error 2.0.
 - 28 Oct 2026, step 3: the old bot changed its stop choice in 17 of 240 corridors (seeds 1–30) when only the hidden dice changed; the fair bot in 0 of 240. The new test fails on the old bot and passes on the new one. Peeking was worth almost nothing: exit-check 100 seeds, smart/starter 69.6 → 69.5 (49 ship both), casual 68.2 → 67.7 (20 → 19), smart/full 82.4 (100). Cost: `npm test` went from about 15 s to about 78 s.
 - 28 Oct 2026, step 2: exit-check 100 seeds (before step 3): starter idle 61.1 (0 ship), random 61.5 (3), casual 68.2 (20), smart 69.6 (49); full smart 82.4 (100).

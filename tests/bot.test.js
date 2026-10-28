@@ -24,11 +24,12 @@ function numbersIn(value, path = 'state', found = []) {
   return found;
 }
 
-test('seeds 1–50 × {idle, random} and 1–15 × {casual, smart}, × × {starter, full}: no exception, all numbers finite, yield 0..1, buying never below 0 cash', () => {
+test('seeds 1–50 × {idle, random} and 1–5 × {casual, smart}, × × {starter, full}: no exception, all numbers finite, yield 0..1, buying never below 0 cash', () => {
   for (const seed of SEEDS) {
     for (const policy of POLICIES) {
-      // The smart policies try every option on copies of the run, so they are slower: fewer seeds.
-      if (SLOW_POLICIES.includes(policy) && seed > 15) continue;
+      // The smart policies try every option on imagined copies of the run, so they
+      // are slow: fewer seeds (David, 28 Oct 2026). exit-check covers 100 seeds.
+      if (SLOW_POLICIES.includes(policy) && seed > 5) continue;
       for (const deck of DECKS) {
         const label = `seed ${seed}, ${policy}, ${deck} deck`;
         const { state, summary } = playRun(seed, policy, { deck });
@@ -71,16 +72,16 @@ test('an unknown policy throws', () => {
   assert.throws(() => playRun(1, 'greedy'), /greedy/);
 });
 
-test('the smart bot beats the idle bot on average (full deck, seeds 1–20)', () => {
-  const idle = runPolicy('idle', 20, 'full');
-  const smart = runPolicy('smart', 20, 'full');
+test('the smart bot beats the idle bot on average (full deck, seeds 1–10)', () => {
+  const idle = runPolicy('idle', 10, 'full');
+  const smart = runPolicy('smart', 10, 'full');
   assert.ok(smart.mean > idle.mean + 5, `smart ${smart.mean.toFixed(1)} vs idle ${idle.mean.toFixed(1)}`);
 });
 
-test('the casual bot lands between idle and smart (full deck, seeds 1–20)', () => {
-  const idle = runPolicy('idle', 20, 'full');
-  const casual = runPolicy('casual', 20, 'full');
-  const smart = runPolicy('smart', 20, 'full');
+test('the casual bot lands between idle and smart (full deck, seeds 1–10)', () => {
+  const idle = runPolicy('idle', 10, 'full');
+  const casual = runPolicy('casual', 10, 'full');
+  const smart = runPolicy('smart', 10, 'full');
   assert.ok(casual.mean > idle.mean && casual.mean < smart.mean,
     `idle ${idle.mean.toFixed(1)}, casual ${casual.mean.toFixed(1)}, smart ${smart.mean.toFixed(1)}`);
 });
