@@ -24,7 +24,7 @@ P0 and P1 of `tasks/plan-winnable.md` (branch `claude/winnable-p0-p1`):
 ### P2 status (28 Oct 2026)
 
 - [x] 2b (committed): a room with nothing to play runs on its own; the greyed-out Strip and re-expose says what it needs. Tests in `tests/skip.test.js`.
-- [ ] 2a (drafted, NOT committed because 7 old tests fail): five starter practices `extraDiRinse`, `chamberPurge` (now "Pump-purge cycles before the run"), `doseTrimSpc`, `waferPrewet`, `padBreakIn` (now "Condition the pad before the lot"), with art in `src/art/sections/`. The physics review's wording and art fixes are applied. Waiting for David on:
+- [x] 2a (committed 28 Oct 2026; David approved the 7 unit-test edits; `npm test` 273 pass. The `doe.test.js` checks now use a fixed 2-card deck so their hand-computed values are unchanged, plus one new test for the real starter deck's offers): five starter practices `extraDiRinse`, `chamberPurge` (now "Pump-purge cycles before the run"), `doseTrimSpc`, `waferPrewet`, `padBreakIn` (now "Condition the pad before the lot"), with art in `src/art/sections/`. The physics review's wording and art fixes are applied. Open items:
   1. **7 old tests** hold the old 2-card starter deck: `run.test.js` "createRun defaults" (deck becomes the 7 starter cards) and "strip and re-expose is never legal yet" (hand `['reworkLitho','doseTrimSpc']`, legal `['doseTrimSpc']`); `doe.test.js` offers become `['reworkLitho','chamberPurge']`, and the 4 DOE tests that upgrade `timedOveretch` need `upgraded: ['timedOveretch']` set in the test state. No hand-computed yield value changes.
   2. **`doseTrimSpc`**: its flat cd_error ×0.8 also cuts the base scatter, which teaches the opposite of its own note (physics review). Keep out of the starter deck until an effect that acts only on drift exists (NEEDS NEW LOGIC), or accept it as a placeholder? Also: ×0.8 stacks with `sendAheadWafer` ×0.5 to ×0.4.
   3. **`chamberPurge`**: is particles ×1.1 a fair side effect?
@@ -46,3 +46,11 @@ Content in `src/content/content.js` that needs engine behavior beyond the eight 
 - Dead cards: a practice whose target pattern was already realized earlier on the route (e.g. `etchStopLayer` at the second dep visit) should be greyed out or hidden
 - Tool wear: tool health stays at 100 in run.js; no rule yet for how much a room wears its tool
 - Consumables: no engine code plays them yet (the starter qual wafer and spare part, and the unlocked bath analysis, fresh resist, implant monitor and oxide monitor). They are left off the Notebook page's "Unlocks" until they can be used (David, 26 Oct 2026)
+
+### Screen tests (`npm run screens`) after P2: 16 red, 62 pass (28 Oct 2026)
+
+Not yet fixed; they need David's OK because they change what the screens expect:
+- Rooms with nothing to play now run on their own, so specs that press `.run-button` in every room (`map`, `ship`, `notebook`, `shop`, `pm`, `events`, `saves` helpers) wait for a button that no longer shows. Proposed: a helper that presses Run only when the room screen is shown.
+- `notebook.spec.js` "with an empty notebook, the plating room deals nothing": plating now deals `waferPrewet`.
+- `pm.spec.js` "the DOE section offers 2 practices": the offers at seed 123456 are now strip and re-expose and the pump-purge cycles.
+- Also still to do: look at the new skipped-room result screen in a desktop and a phone screenshot.

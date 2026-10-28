@@ -56,7 +56,9 @@ test('createRun: defaults are the cuLine, the starter deck, i-line resist loaded
   assert.equal(state.rngState, SEED);
   assert.equal(state.lotTypeId, 'cuLine');
   // measureAll is a starter card but is not dealt yet (run.js NOT_DEALT_YET).
-  assert.deepEqual(state.deck, ['timedOveretch', 'reworkLitho']);
+  assert.deepEqual(state.deck, [
+    'timedOveretch', 'reworkLitho', 'extraDiRinse', 'chamberPurge', 'doseTrimSpc', 'waferPrewet', 'padBreakIn',
+  ]);
   assert.deepEqual(state.deck, starterDeck());
   assert.deepEqual(state.slots, { resist: { id: 'resistIline', shelfLife: 8, decay: 1 } });
   assert.equal(state.cash, 1500);
@@ -160,8 +162,9 @@ test('a card that an item enables is refused until it is enabled', () => {
 
 test('strip and re-expose is never legal yet (lastStepWasLitho is not set by anything)', () => {
   const inLitho = enterStepNumber(scatterOff(), LITHO);
-  assert.deepEqual(inLitho.hand, ['reworkLitho']);
-  assert.deepEqual(legalCards(inLitho), []);
+  // Litho's starter practices: strip and re-expose, and the dose trim (seeded hand order).
+  assert.deepEqual(inLitho.hand, ['reworkLitho', 'doseTrimSpc']);
+  assert.deepEqual(legalCards(inLitho), ['doseTrimSpc']);
 });
 
 test('scrap: yield below 0.40 mid-route stops the run there', () => {

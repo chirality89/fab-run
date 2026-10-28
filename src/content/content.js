@@ -445,6 +445,84 @@ export const PRACTICES = [
       physicsNote: 'A DOE on dip time finds a shorter etch. At the same HF concentration, oxide is removed at a finite rate, so less time leaves a little more chemical oxide and contamination, while the hydrogen-terminated surface still regrows native oxide when the lot waits.' },
     tradeoff: 'A final dip in dilute HF strips the thin chemical oxide left by the earlier cleans and the contamination in it, but the bare silicon regrows native oxide as soon as the lot waits, so the Q-time window gets tighter.',
     physicsNote: 'Dilute HF removes silicon dioxide and the metals trapped in it, leaving a hydrogen-terminated silicon surface that makes a cleaner, more uniform gate oxide. That surface is only stable for a short time; it regrows native oxide in air and moisture.' },
+
+  // --- Starter practices for the Cu line rooms (26 Oct 2026). Plainer and weaker than the unlockable remedies. ---
+  { id: 'extraDiRinse', draft: true, kind: 'practice', room: 'clean', rarity: 'standard',
+    name: 'Extra DI-water rinse', unlockedBy: null,
+    cost: { time: 3, cash: 10 },
+    effects: [
+      { op: 'defectMult', pattern: 'particles', mult: 0.75 },
+      { op: 'defectMult', pattern: 'qtime_oxide', mult: 1.1 },
+    ],
+    upgrade: { name: 'Extra DI-water rinse, DOE-tuned', cost: { time: 2, cash: 10 },
+      effects: [
+        { op: 'defectMult', pattern: 'particles', mult: 0.8 },
+        { op: 'defectMult', pattern: 'qtime_oxide', mult: 1.05 },
+      ],
+      tradeoff: 'Shorter and less water time, so less oxide regrowth, but it also carries off fewer particles.',
+      physicsNote: 'A DOE on rinse time and flow finds the point where most loose particles are gone; the rest are held by surface forces that more flow barely changes, while a shorter soak in water with dissolved oxygen grows less oxide.' },
+    tradeoff: 'Fewer loose particles, but it costs minutes of a short budget, and wafers wet longer in oxygen-bearing water grow a little more oxide. That only matters after the strip clean, where the barrier goes on next.',
+    physicsNote: 'Rinsing with more DI water carries away loose particles, but it does not break the bond of small ones stuck by surface forces (that takes megasonic energy). Water holds dissolved oxygen, which grows native oxide on a bare surface.' },
+
+  { id: 'chamberPurge', draft: true, kind: 'practice', room: 'dep', rarity: 'standard',
+    name: 'Pump-purge cycles before the run', unlockedBy: null,
+    cost: { time: 5, cash: 20 },
+    effects: [
+      { op: 'defectMult', pattern: 'flakes', mult: 0.75 },
+      { op: 'defectMult', pattern: 'particles', mult: 1.1 },
+    ],
+    upgrade: { name: 'Pump-purge cycles before the run, DOE-tuned', cost: { time: 7, cash: 20 },
+      effects: [
+        { op: 'defectMult', pattern: 'flakes', mult: 0.7 },
+        { op: 'defectMult', pattern: 'particles', mult: 1.15 },
+      ],
+      tradeoff: 'Carries away more loose flakes, but the longer, harder purge cycles shake more particles loose and take more minutes.',
+      physicsNote: 'A DOE on the number of purge cycles and the pump-down rate finds that more cycles lift more loose wall film, but each pump and vent stirs up deposits and settling particles.' },
+    tradeoff: 'Less loose film on the chamber walls to flake off, but it takes minutes and money, and the vent and pump cycle stirs up particles. With a healthy chamber it buys almost nothing.',
+    physicsNote: 'Film on chamber walls cracks and flakes as stress grows. Repeated pump-down and gas purge cycles before the wafers go in carry away loose flakes, but the pressure swings also shake particles off the walls, and the stressed film still stuck on stays.' },
+
+  { id: 'doseTrimSpc', draft: true, kind: 'practice', room: 'litho', rarity: 'standard',
+    name: 'Trim dose from the SPC trend', unlockedBy: null,
+    cost: { time: 5, cash: 30 },
+    effects: [ { op: 'defectMult', pattern: 'cd_error', mult: 0.8 } ],
+    upgrade: { name: 'Trim dose from the SPC trend, DOE-tuned', cost: { time: 8, cash: 30 },
+      effects: [ { op: 'defectMult', pattern: 'cd_error', mult: 0.75 } ],
+      tradeoff: 'Averages more past lots, so noise moves the dose less, but the correction lags a tool that is still drifting.',
+      physicsNote: 'A DOE on how many past lots to average and how hard to correct finds a steadier correction. Averaging more lots separates a real shift from noise, but takes more time to gather and check.' },
+    tradeoff: 'Moves the dose toward target using the line widths of recent lots, but it does not measure this lot, so it only fixes a steady shift, not scatter, and it costs minutes and money.',
+    physicsNote: 'Printed size follows dose: in a positive resist, resist lines get narrower and exposed trenches get wider as dose rises. A steady shift seen on the SPC chart can be undone with a small dose change, but adjusting for random scatter makes the spread larger, not smaller. Measuring a send-ahead wafer is the better check.' },
+
+  { id: 'waferPrewet', draft: true, kind: 'practice', room: 'plate', rarity: 'standard',
+    name: 'Wafer pre-wet', unlockedBy: null,
+    cost: { time: 4 },
+    effects: [
+      { op: 'defectMult', pattern: 'void', mult: 0.8 },
+      { op: 'defectMult', pattern: 'particles', mult: 1.1 },
+    ],
+    upgrade: { name: 'Wafer pre-wet, DOE-tuned', cost: { time: 5 },
+      effects: [
+        { op: 'defectMult', pattern: 'void', mult: 0.75 },
+        { op: 'defectMult', pattern: 'particles', mult: 1.15 },
+      ],
+      tradeoff: 'Gas clears better with a longer, deeper-vacuum wet, but it takes more time and more handling in the wet cell.',
+      physicsNote: 'A DOE on vacuum level and wet time finds a better way to clear gas from narrow features, but a longer wet and more transfers add handling particles and time in the cell.' },
+    tradeoff: 'Wets narrow features so liquid reaches the bottom, but it takes minutes the plating room needs, so a long low-current start may no longer fit, and it adds an extra wet transfer.',
+    physicsNote: 'A dry seed surface and gas in narrow features keep the plating solution and its additives from reaching the bottom, so bottom-up fill starts late and the mouth can close first. Wetting under vacuum first lets liquid reach the bottom, so fill starts evenly.' },
+
+  { id: 'padBreakIn', draft: true, kind: 'practice', room: 'cmp', rarity: 'standard',
+    name: 'Condition the pad before the lot', unlockedBy: null,
+    cost: { time: 3, cash: 20 },
+    effects: [
+      { op: 'defectMult', pattern: 'rr_drift', mult: 0.8 },
+    ],
+    upgrade: { name: 'Condition the pad before the lot, DOE-tuned', cost: { time: 4, cash: 20 },
+      effects: [
+        { op: 'defectMult', pattern: 'rr_drift', mult: 0.7 },
+      ],
+      tradeoff: 'A steadier removal rate with a longer conditioning sweep and more dummy wafers, but it uses more pad life, dummy wafers and minutes.',
+      physicsNote: 'A DOE on the number of dummy wafers and the conditioning force finds a steadier surface; each extra pass also grinds more off the pad.' },
+    tradeoff: 'A steadier removal rate at the start, but it spends minutes, dummy wafers and pad life (the 20 cash).',
+    physicsNote: 'A fresh or glazed pad polishes at a different rate than a conditioned one (its Preston coefficient differs). A conditioning sweep, then a few dummy wafers, roughens the pad surface to a steady state before product, at the cost of pad life and dummy wafers.' },
 ];
 
 // ---------------------------------------------------------------------------

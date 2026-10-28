@@ -17,12 +17,15 @@ const TOLERANCE = 1e-6;
 const close = (actual, expected, label) =>
   assert.ok(Math.abs(actual - expected) < TOLERANCE, `${label}: got ${actual}, expected ${expected}`);
 
-// Seed 123456: the corridor after step 2 (index 1) offers PM/DOE, and its
-// DOE offers timed over-etch and strip and re-expose (measure all is not
-// dealt since M4.5 item 5, so it is in no deck).
+// These checks use a fixed two-card deck, the starter deck as it was before
+// the five room starters of P2 (28 Oct 2026), so the hand checks below keep
+// their hand-computed values whatever the starter deck grows into.
+// Seed 123456: the corridor after step 2 (index 1) offers PM/DOE, and with
+// this deck its DOE offers timed over-etch and strip and re-expose.
+const TWO_CARD_DECK = ['timedOveretch', 'reworkLitho'];
 const DOE_CORRIDOR = 1;
 const ETCH = 3;
-const handCheckRun = () => createRun({ seed: SEED, scatterStrength: 0, toolDrift: false });
+const handCheckRun = () => createRun({ seed: SEED, scatterStrength: 0, toolDrift: false, deck: TWO_CARD_DECK });
 
 // Runs rooms doing nothing, straight on, until the lot stands in the DOE
 // corridor; then takes the PM/DOE stop.
@@ -48,6 +51,12 @@ test('a DOE stop offers 2–3 practices from the deck whose rooms are still ahea
   // After step 8 (CMP) only metrology is left, and no card in the deck is
   // for it, so there is nothing to offer.
   assert.deepEqual(doeOffers(atStop, 7), []);
+});
+
+// With the real starter deck (7 cards) the same corridor offers other cards.
+test('with the starter deck, seed 123456\'s DOE stop offers strip and re-expose and the pump-purge cycles', () => {
+  const atStop = openStop(createRun({ seed: SEED, scatterStrength: 0, toolDrift: false }));
+  assert.deepEqual(atStop.pm.doeOffers, ['reworkLitho', 'chamberPurge'], `seed ${SEED}`);
 });
 
 test('a DOE costs 100 cash and the card then plays as its DOE version', () => {

@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 140" role="img">
-  <title>Chamber purge and wall wipe: the inside wall of a deposition chamber carries a built-up film. Loose pieces of film have flaked off and fall toward the wafer below. The pump and vent cycle stirs up a few extra small particles near the wafer.</title>
+  <title>Pump-purge cycles before the run: the inside wall of a deposition chamber carries a built-up film. Loose pieces of film have flaked off. Purge gas flows past the wall toward the pump and carries them out, while the pressure swings stir up a few extra small particles near the wafer.</title>
   <rect class="mat-si"      x="0"   y="124" width="260" height="16"/>
   <!-- Chamber wall at the top with its built-up film. -->
   <rect class="mat-barrier" x="0"   y="10"  width="260" height="14"/>
@@ -18,7 +18,8 @@
   <text class="art-label-on-dark" x="6"   y="21">chamber wall</text>
   <text class="art-label" x="6"   y="52">built-up film</text>
   <text class="art-label" x="6"   y="138" display="none"></text>
-  <!-- Scale bar. Thin films are drawn at least 6 px thick, so it is a guide, not a ruler. -->
-  <path class="mat-measure" d="M208 56h44M208 52v8M252 52v8"/>
-  <text class="art-label" x="252" y="49" text-anchor="end">200 nm</text>
+  <!-- Purge gas flows down past the wall toward a pump port, carrying flakes out. -->
+  <path class="mat-measure" d="M236 40v70M230 104l6 6 6-6"/>
+  <text class="art-label" x="254" y="36" text-anchor="end">gas to pump</text>
+  <text class="art-label" x="254" y="138" text-anchor="end">not to scale</text>
 </svg>
