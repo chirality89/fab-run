@@ -282,6 +282,7 @@ function drawDiagnose(view, actions) {
   const box = panel('Diagnose', 'diagnose-panel');
   box.setAttribute('role', 'status');   // the result is announced when it appears
   box.append(el('p', 'diagnose-text', view.text));
+  if (view.evidence) box.append(el('p', 'map-key diagnose-evidence', view.evidence));
   if (view.state === 'choose') {
     const list = el('div', 'stop-list');
     for (const choice of view.candidates) {

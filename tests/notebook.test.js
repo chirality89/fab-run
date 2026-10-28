@@ -7,7 +7,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createLot, addRisk, realizeRisks, lotYield, pointsLostByPattern } from '../src/engine/lot.js';
 import { createRun, enterStep, resolveStep, walkCorridor, runDeck, starterDeck } from '../src/engine/run.js';
-import { emptyNotebook, diagnosisFor, diagnoseLot, findFailureMode, unlockedIds } from '../src/engine/notebook.js';
+import { emptyNotebook, diagnosisFor, diagnoseLot, findFailureMode, unlockedIds, stepsThatLost } from '../src/engine/notebook.js';
 import { DIAGNOSE_MIN_POINTS, DIAGNOSE_CANDIDATES } from '../src/content/balance.js';
 import { LOT_TYPES } from '../src/content/lotTypes.js';
 import { FAILURE_MODES, PRACTICES } from '../src/content/content.js';
@@ -168,4 +168,50 @@ test('a run keeps the unlocked list it began with', () => {
   unlocked.push('eChuckUpgrade');   // the caller's list changing later...
   assert.deepEqual(state.unlocked, ['slowStartPlate', 'additiveBath'], '...does not change the run');
   assert.deepEqual(createRun({ seed: 123456 }).unlocked, [], 'none by default');
+});
+
+// --- P4: diagnosis explains itself (28 Oct 2026). No yield numbers here: these
+// check rules that must hold on every seed, not one hand-computed value.
+
+test('every wrong choice could have happened: its pattern is on the route and its `when` holds', () => {
+  for (const lotTypeId of Object.keys(LOT_TYPES)) {
+    for (let seed = 1; seed <= 20; seed++) {
+      const end = playIdle(createRun({ seed, lotTypeId }));
+      const { rightIds, candidates } = diagnosisFor(end, emptyNotebook());
+      if (candidates.length === 0) continue;
+      assert.equal(candidates.length, DIAGNOSE_CANDIDATES, `${lotTypeId} seed ${seed}`);
+      for (const id of candidates.filter(id => !rightIds.includes(id))) {
+        const mode = findFailureMode(id);
+        const onRoute = LOT_TYPES[lotTypeId].route.some(step => step.realizes.includes(mode.pattern));
+        assert.ok(onRoute, `${id} is on the ${lotTypeId} route (seed ${seed})`);
+        assert.ok(!mode.when || end.lotTraits.some(trait => trait === mode.when.lot), `${id} cause present (seed ${seed})`);
+      }
+    }
+  }
+});
+
+test('T-top is not offered as a wrong choice on a lot that never waited before bake', () => {
+  for (let seed = 1; seed <= 30; seed++) {
+    const end = playIdle(createRun({ seed }));
+    if (end.lotTraits.includes('delayBeforeBake')) continue;
+    assert.ok(!diagnosisFor(end, emptyNotebook()).candidates.includes('fm_ped_ttop'), `seed ${seed}`);
+  }
+});
+
+test('stepsThatLost: the steps add up to the pattern total and follow route order', () => {
+  const end = playIdle(createRun({ seed: SEED }));
+  const points = pointsLostByPattern(end.lot);
+  for (const [pattern, total] of Object.entries(points)) {
+    const steps = stepsThatLost(end, pattern, 0);
+    const sum = steps.reduce((acc, step) => acc + step.points, 0);
+    assert.ok(Math.abs(sum - total) < 1e-9, `${pattern}: steps add to ${total}, got ${sum}`);
+    steps.forEach((step, index) => { if (index > 0) assert.ok(step.stepIndex > steps[index - 1].stepIndex); });
+  }
+  assert.deepEqual(stepsThatLost(end, 'no_such_pattern'), []);
+});
+
+test('stepsThatLost skips steps from an old save that has no lostAfter', () => {
+  const end = playIdle(createRun({ seed: SEED }));
+  const old = { ...end, stepYields: end.stepYields.map(({ lostAfter, ...rest }) => rest) };
+  assert.deepEqual(stepsThatLost(old, 'particles'), []);
 });

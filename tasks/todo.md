@@ -9,6 +9,13 @@ P0 and P1 of `tasks/plan-winnable.md` (branch `claude/winnable-p0-p1`):
 - [x] P0: check the lane work is on `main`, tick the roadmap box, archive the finished sections of this file
 - [x] P1: `smart` and `casual` bot policies (`tools/smartBot.js`, wired into `tools/bot.js`), and `npm run exit-check` (`tools/exit-check.js`), with tests in `tests/bot.test.js`
 
+### P4 diagnosis explains itself (28 Oct 2026)
+
+- [x] Wrong choices now come only from causes that could have been there: the pattern is on the route and the mode's `when` holds (`notebook.js`). The old fallback to off-route modes is gone.
+- [x] Each step now records `lostAfter` (yield lost per pattern so far). `stepsThatLost()` turns that into "which step cost how many points". Saves replay actions, so no save bump.
+- [x] After a guess, right or wrong, the Diagnose panel adds a line: where the yield went, and how to spot that failure mode (its signature).
+- [ ] Still open: signatures that can be read from the screen (keyhole void, dishing, underlayer attack) need `content-drafter` and `physics-reviewer`; the wafer map and cross-section may need hints. Not started.
+
 ### P1 result (28 Oct 2026, seeds 1 to 30)
 
 | Deck | idle | random | casual | smart |
