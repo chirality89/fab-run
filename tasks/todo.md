@@ -1,5 +1,45 @@
 # Fab Run — Task Tracker
 
+## Plan: M4.5 item 5 — Diagnosis explains itself, and offers only modes that could have been there (issue 2)
+
+**Status: PLAN, waiting for David's OK. No code edited.**
+
+### What the players hit (Lane F issue 2, the parts that are Lane A's)
+- After a guess the game gives a name only: no which step, no why, no what to do instead.
+- A scrapped lot was offered failure modes from rooms it never reached, so one player won by elimination.
+- A right answer "unlocks" items the player already holds this run (SiN etch stop on seed 42), which reads as a reward for nothing.
+- Failure modes whose cause was absent are offered as decoys (T-top on a lot that never waited before bake; silicon front-end modes on a Cu line).
+
+### What the code does today (read, not guessed)
+- `notebook.js` `diagnosisFor`: right = pattern cost ≥ 3 points AND its `when` held. Decoys come from any mode that is not right, preferring patterns the whole route could make. Nothing checks that the lot reached that room, and nothing checks the decoy's `when`.
+- `lot.lost` is the total points per pattern for the whole lot. It does not say which step lost them, so "which step" cannot be answered yet.
+- `shipView.js` `resultText` is one sentence: "Diagnosed: X. Written in your notebook." / "Not this one. What did hurt this lot: Y."
+
+### The plan (Lane A, `notebook.js`, `run.js`, `shipView.js`, `render.js`; Lane C text in `content.js`)
+1. **Decoys that could have been there** (`notebook.js`). A mode is offered only if (a) a room the lot actually ran realizes its pattern (`stepYields` rooms against the route's `realizes`) and (b) its `when` holds. Right answers are unchanged. If fewer than 3 decoys qualify, offer fewer choices rather than an impossible one (never fewer than 2). Tests: scrapped lot at step 3 offers nothing from CMP or plating; Cu line offers no `siliconFrontEnd` mode; T-top is offered only when the lot waited before bake. Hand-made states, no yield numbers change.
+2. **Record which step lost each pattern** (`run.js`). Each `stepYields` entry gets `lostByPattern` (the change in `lot.lost` across that room). `SAVE_VERSION` 7 because the saved shape changes. Test with a hand-made two-room lot where the split is worked out by hand first.
+3. **Say which step and why** (`shipView.js`, `render.js`). After the guess, a short block for the right answer, shown for a right *and* a wrong guess:
+   - "Step 6, CMP, lost 4.1 points to Dishing." (the step(s) with the most loss for that pattern; up to two)
+   - the cause in one plain sentence, and what to do instead (from step 4).
+   - Wrong guess: "You named X. Y hurt the lot: ..." then the same block, so a miss teaches.
+4. **Cause and remedy per failure mode** (`content.js`, Lane C). Two new short fields on each of the 18 modes: `cause` (the physics, one sentence) and `remedy` (what to do or buy). Documented at the top of `content.js`. They stay `draft: true`; drafted by `content-drafter`, read by `physics-reviewer`, then David. Public information only, no vendor names.
+5. **Don't "unlock" what you already hold** (`shipView.js`). The unlock line becomes "Future runs can find: …"; items in this run's loadout are marked "(you had this one)". If the notebook already has the mode, nothing is listed.
+6. **Screens and checks.** Screen tests on the ship report at 1280×800 and 375×812 (`--repeat-each=5` on phone): the explanation block after a right guess and after a wrong guess; looked at by eye. `npm test`, `npm run screens`, the bot, seed 123456 and 777 (the scrapped-lot case) replayed.
+
+### Order of commits
+1 decoys → 2 per-step loss + save version → 4 content fields (agents) → 3 explanation block → 5 unlock wording → 6 screens, tracker, roadmap tick.
+
+### Not in this item
+- Rewriting signatures that cite a cross-section or line widths nothing shows (edge ring vs red inner sites, dishing, underlayer attack). That is Lane C's separate item and needs the metrology and cross-section views (NEEDS NEW LOGIC, already listed). This item makes the *answer* explain itself; it does not make every signature readable.
+- "The answer is always the tool with the red flag." That is the SPC item (done) plus a design question for the balance pass.
+
+### Questions for David
+- **Q1.** Show the explanation after a *wrong* guess too (my recommendation, so a miss teaches), or only after a right one?
+- **Q2.** If a lot is scrapped early and only 1 or 2 decoys qualify, is a 2- or 3-choice panel OK (my recommendation), or should we always show 4 and let a not-yet-reached mode in?
+- **Q3.** The `cause` and `remedy` text: OK for `content-drafter` to draft all 18 and `physics-reviewer` to check, with you reading them before the draft flags come off?
+
+---
+
 ## Done: M4.5 item 4 — SPC flags that predict, and a flagged tool that costs more (issue 4, claim 9)
 
 **Status: built 27 Oct 2026. David: Q1 A (keep the numbers), Q2 yes (a service restarts the chart), Q3 yes (Excursion, Shift, Trend).**
