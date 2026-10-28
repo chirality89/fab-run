@@ -224,6 +224,7 @@ export function notebookButton(notebook) {
 export function renderResult(container, view, actions) {
   const outcome = panel('Result', 'result-panel');
   outcome.setAttribute('role', 'status');
+  if (view.skippedText) outcome.append(el('p', 'outcome-text skipped-text', view.skippedText));
   outcome.append(el('p', 'outcome-text', view.outcomeText));
   const buttons = el('div', 'result-buttons');
   // While the run goes on, Continue is the main button; once it is over,
@@ -238,7 +239,9 @@ export function renderResult(container, view, actions) {
     actionButton('New seed', 'new-seed-button secondary-button', actions.onNewSeed),
   );
   outcome.append(buttons);
-  container.replaceChildren(drawHeader(view), drawResultYield(view), outcome, drawWaferMap(view));
+  container.replaceChildren(
+    drawHeader(view), drawResultYield(view), outcome, ...(view.spc ? [drawSpc(view.spc)] : []), drawWaferMap(view),
+  );
   showFromTop(container);
 }
 

@@ -252,6 +252,14 @@ export function legalCards(state) {
   return state.hand.filter(id => whyIllegal(state, id) === null);
 }
 
+// True when the lot is in a room and no card in the hand can be played, so
+// the room holds no decision. The screen then runs the room for the player
+// (P2 of tasks/plan-winnable.md; David, 26 Oct 2026: skip the hand screen
+// when there is nothing to play).
+export function nothingToPlay(state) {
+  return state.status === 'running' && state.room !== null && legalCards(state).length === 0;
+}
+
 // Plays one card: pays its base time and cash, applies its effects, and
 // takes it out of the hand.
 export function playCard(state, cardId) {
