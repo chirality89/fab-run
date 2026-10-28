@@ -3,6 +3,10 @@
 // Usage:  npm run bot -- --seed 123456 --policy random [--deck full]
 //
 // Policies (how the bot picks cards and side stops):
+//   smart   tries every option on a copy of the state and takes the best
+//           (tools/smartBot.js); it knows the whole route, so it shows how
+//           good play can be
+//   casual  the smart bot, but 3 decisions in 10 it picks at random
 //   idle    plays nothing and always goes straight on: the baseline you can
 //           check by hand
 //   random  plays random legal cards until none fits, then resolves the
@@ -32,7 +36,9 @@ import { findEvent } from '../src/engine/events.js';
 import { whyCannotBuy } from '../src/engine/shop.js';
 
 const BOT_SEED_MIX = 0x9E3779B9;   // any fixed number works; this one is a common "mixing" constant
-const POLICIES = ['idle', 'random'];
+import { SMART_POLICIES, noiseFor, smartRoom, smartCorridor } from './smartBot.js';
+
+const POLICIES = ['idle', 'random', ...SMART_POLICIES];
 
 // The bot's own generator start: (seed XOR constant), made a positive 32-bit number.
 function botSeed(seed) {
@@ -46,6 +52,7 @@ function playRoom(state, policy, botRng) {
   let rng = botRng;
   const played = [];
   if (policy === 'idle') return { state: current, botRng: rng, played };
+  if (SMART_POLICIES.includes(policy)) return smartRoom(current, noiseFor(policy), rng);
   let choices = legalCards(current);
   while (choices.length > 0) {
     const choice = pick(rng, choices);
@@ -126,6 +133,32 @@ function doEvent(state, policy, botRng) {
   return { state: chooseEventOption(state, roll.value), botRng: roll.rngState, choice: label };
 }
 
+// The idle and random policies' way through one corridor (the smart ones are
+// in smartBot.js). Adds what it did to the lists in `record`.
+function oneCorridorRandomly(start, policy, startRng, record) {
+  let state = start;
+  let botRng = startRng;
+  const corridor = chooseSideStop(state, policy, botRng);
+  botRng = corridor.botRng;
+  if (corridor.stopKind !== null) record.sideStops.push(corridor.stopKind);
+  state = walkCorridor(state, corridor.stopKind);
+  const shopping = shop(state, policy, botRng);
+  botRng = shopping.botRng;
+  record.itemsBought.push(...shopping.bought);
+  record.noteCash(shopping.lowestCash);
+  state = shopping.state;
+  const pm = doPmOrDoe(state, policy, botRng);
+  botRng = pm.botRng;
+  if (pm.pmRoom !== null) record.toolsPmd.push(pm.pmRoom);
+  if (pm.doeCardId !== null) record.cardsUpgraded.push(pm.doeCardId);
+  state = pm.state;
+  const event = doEvent(state, policy, botRng);
+  botRng = event.botRng;
+  if (event.choice !== null) record.eventChoices.push(event.choice);
+  state = event.state;
+  return { state, botRng };
+}
+
 // Plays a run to the end. options.deck is 'starter' (default), 'full' or a
 // list of card ids; other options go straight to createRun.
 export function playRun(seed, policy = 'idle', options = {}) {
@@ -149,24 +182,22 @@ export function playRun(seed, policy = 'idle', options = {}) {
     cardsPlayed.push(...room.played);
     state = resolveStep(room.state);
     if (state.corridor !== null) {
-      const corridor = chooseSideStop(state, policy, botRng);
-      botRng = corridor.botRng;
-      if (corridor.stopKind !== null) sideStops.push(corridor.stopKind);
-      state = walkCorridor(state, corridor.stopKind);
-      const shopping = shop(state, policy, botRng);
-      botRng = shopping.botRng;
-      itemsBought.push(...shopping.bought);
-      lowestCashAfterBuying = Math.min(lowestCashAfterBuying, shopping.lowestCash);
-      state = shopping.state;
-      const pm = doPmOrDoe(state, policy, botRng);
-      botRng = pm.botRng;
-      if (pm.pmRoom !== null) toolsPmd.push(pm.pmRoom);
-      if (pm.doeCardId !== null) cardsUpgraded.push(pm.doeCardId);
-      state = pm.state;
-      const event = doEvent(state, policy, botRng);
-      botRng = event.botRng;
-      if (event.choice !== null) eventChoices.push(event.choice);
-      state = event.state;
+      if (SMART_POLICIES.includes(policy)) {
+        const smart = smartCorridor(state, noiseFor(policy), botRng);
+        botRng = smart.botRng;
+        if (smart.stopKind !== null) sideStops.push(smart.stopKind);
+        itemsBought.push(...smart.bought);
+        lowestCashAfterBuying = Math.min(lowestCashAfterBuying, smart.lowestCash);
+        if (smart.pmRoom !== null) toolsPmd.push(smart.pmRoom);
+        if (smart.doeCardId !== null) cardsUpgraded.push(smart.doeCardId);
+        if (smart.eventLabel !== null) eventChoices.push(smart.eventLabel);
+        state = smart.state;
+      } else {
+        ({ state, botRng } = oneCorridorRandomly(state, policy, botRng, {
+          sideStops, itemsBought, toolsPmd, cardsUpgraded, eventChoices,
+          noteCash: cash => { lowestCashAfterBuying = Math.min(lowestCashAfterBuying, cash); },
+        }));
+      }
     }
   }
 
