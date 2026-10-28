@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 140" role="img">
+  <title>Chamber purge and wall wipe: the inside wall of a deposition chamber carries a built-up film. Loose pieces of film have flaked off and fall toward the wafer below. The pump and vent cycle stirs up a few extra small particles near the wafer.</title>
+  <rect class="mat-si"      x="0"   y="124" width="260" height="16"/>
+  <!-- Chamber wall at the top with its built-up film. -->
+  <rect class="mat-barrier" x="0"   y="10"  width="260" height="14"/>
+  <rect class="mat-oxide"   x="0"   y="24"  width="90"  height="10"/>
+  <rect class="mat-oxide"   x="170" y="24"  width="90"  height="10"/>
+  <!-- Film that has come loose in the middle, curling off the wall. -->
+  <path class="mat-oxide" d="M90 24h80l-10 8-20 -2-20 6-20-4z"/>
+  <!-- Flakes falling, with arrows. -->
+  <rect class="mat-particle" x="108" y="62"  width="8" height="6"/>
+  <rect class="mat-particle" x="146" y="78"  width="6" height="6"/>
+  <path class="mat-measure" d="M112 72v10M149 88v10"/>
+  <!-- Small particles stirred up by the pump and vent cycle. -->
+  <circle class="mat-particle" cx="40"  cy="110" r="3"/>
+  <circle class="mat-particle" cx="206" cy="106" r="3"/>
+  <circle class="mat-particle" cx="230" cy="114" r="3"/>
+  <text class="art-label-on-dark" x="6"   y="21">chamber wall</text>
+  <text class="art-label" x="6"   y="52">built-up film</text>
+  <text class="art-label" x="6"   y="138" display="none"></text>
+  <!-- Scale bar. Thin films are drawn at least 6 px thick, so it is a guide, not a ruler. -->
+  <path class="mat-measure" d="M208 56h44M208 52v8M252 52v8"/>
+  <text class="art-label" x="252" y="49" text-anchor="end">200 nm</text>
+</svg>

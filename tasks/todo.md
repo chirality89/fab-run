@@ -21,13 +21,24 @@ P0 and P1 of `tasks/plan-winnable.md` (branch `claude/winnable-p0-p1`):
 - Decision for David: `exit-check` targets (idle 0%, random under 15%, smart 60-80% ship, smart beats idle by over 10 points) are in `tools/exit-check.js` `TARGETS`. Change them there.
 - `npm test` now takes about 10 seconds instead of 1, because the smart bots try every option on copies of the run.
 
+### P2 status (28 Oct 2026)
+
+- [x] 2b (committed): a room with nothing to play runs on its own; the greyed-out Strip and re-expose says what it needs. Tests in `tests/skip.test.js`.
+- [ ] 2a (drafted, NOT committed because 7 old tests fail): five starter practices `extraDiRinse`, `chamberPurge` (now "Pump-purge cycles before the run"), `doseTrimSpc`, `waferPrewet`, `padBreakIn` (now "Condition the pad before the lot"), with art in `src/art/sections/`. The physics review's wording and art fixes are applied. Waiting for David on:
+  1. **7 old tests** hold the old 2-card starter deck: `run.test.js` "createRun defaults" (deck becomes the 7 starter cards) and "strip and re-expose is never legal yet" (hand `['reworkLitho','doseTrimSpc']`, legal `['doseTrimSpc']`); `doe.test.js` offers become `['reworkLitho','chamberPurge']`, and the 4 DOE tests that upgrade `timedOveretch` need `upgraded: ['timedOveretch']` set in the test state. No hand-computed yield value changes.
+  2. **`doseTrimSpc`**: its flat cd_error ×0.8 also cuts the base scatter, which teaches the opposite of its own note (physics review). Keep out of the starter deck until an effect that acts only on drift exists (NEEDS NEW LOGIC), or accept it as a placeholder? Also: ×0.8 stacks with `sendAheadWafer` ×0.5 to ×0.4.
+  3. **`chamberPurge`**: is particles ×1.1 a fair side effect?
+  4. **`waferPrewet`**: reworded to the mechanism the model has (late bottom-up fill). Add a separate bubble-void cause later?
+  5. **Balance**: with the 5 starter cards the smart bot's best starter-deck run is 63.4% (spec 70%); mean 60.2% (was 58.1%). Options for P3: first run is a hard learning run; or move the balance levers; or both (recommended).
+
 ## NEEDS NEW LOGIC
 
 Content in `src/content/content.js` that needs engine behavior beyond the eight effect operations:
 
 - `when: { lot: 'tightCD' | 'deepEtch' | 'narrowFeatures' }`: lot-type properties, set in `lotTypes.js` (M1)
 - `when: { lot: 'delayBeforeBake' }`: needs a timer between the litho expose and bake practices
-- `when: { lot: 'lastStepWasLitho' }`: needs route history in the lot state
+- `when: { lot: 'lastStepWasLitho' }`: needs route history in the lot state. Until then the condition never holds, so `reworkLitho` can never be played (needs a greyed-out reason message)
+- A drift-only `defectMult` (or `when: { toolShifted: room }`): so `doseTrimSpc` can act only on the part of cd_error that comes from a shifted tool, not on base scatter (physics review, 28 Oct 2026)
 - `when: { lot: 'rightPartChosen' }` and `needsTarget: 'faultType'`: the spare part asks the player to pick a fault
 - `resets: { slot, field, fraction }`: fresh resist and bath analysis reset a material's shelf life or decay
 - `limit: { perLayer: 1 }`: strip and re-expose once per layer

@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 140" role="img">
+  <title>Extra DI-water rinse: a film of water flows over a wafer with oxide lines. Loose particles lift off and leave with the water. A thin layer of native oxide has started to grow on the bare silicon between the lines, because the water holds dissolved oxygen.</title>
+  <rect class="mat-si"    x="0"   y="108" width="260" height="32"/>
+  <!-- Thin native oxide on the bare silicon (drawn 6 px thick so it can be seen). -->
+  <rect class="mat-oxide" x="0"   y="102" width="260" height="6"/>
+  <!-- Oxide lines on the wafer. -->
+  <rect class="mat-oxide" x="30"  y="78"  width="14"  height="24"/>
+  <rect class="mat-oxide" x="90"  y="78"  width="14"  height="24"/>
+  <rect class="mat-oxide" x="150" y="78"  width="14"  height="24"/>
+  <!-- Water flowing over the wafer (wavy lines). -->
+  <path class="mat-measure" d="M6 52q8-6 16 0t16 0t16 0t16 0t16 0t16 0t16 0t16 0t16 0t16 0t16 0t16 0t16 0t16 0t16 0t16 0"/>
+  <!-- Particles carried away, with arrows. -->
+  <circle class="mat-particle" cx="70"  cy="68" r="4"/>
+  <circle class="mat-particle" cx="128" cy="64" r="5"/>
+  <circle class="mat-particle" cx="212" cy="40" r="4"/>
+  <path class="mat-measure" d="M70 62v-6M128 57v-6"/>
+  <text class="art-label-on-dark" x="6"   y="26">DI water</text>
+  <text class="art-label" x="170" y="122">native oxide</text>
+  <text class="art-label" x="6"   y="124">Si</text>
+  <!-- Scale bar. Thin films are drawn at least 6 px thick, so it is a guide, not a ruler. -->
+  <path class="mat-measure" d="M208 16h44M208 12v8M252 12v8"/>
+  <text class="art-label-on-dark" x="252" y="9" text-anchor="end">200 nm</text>
+</svg>

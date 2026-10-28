@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 140" role="img">
+  <title>Pad break-in on dummy wafers: a polishing pad presses on a blank dummy wafer with an oxide film. The pad surface is rough where it has been worked in. The film thins evenly, so the removal rate settles before a product wafer is polished. Each break-in uses up a little pad life.</title>
+  <rect class="mat-si"      x="0"   y="124" width="260" height="16"/>
+  <rect class="mat-oxide"   x="0"   y="104" width="260" height="20"/>
+  <!-- Pad above the wafer, rough on its working face. -->
+  <rect class="mat-polymer" x="0"   y="40"  width="260" height="48"/>
+  <path class="mat-polymer" d="M0 88l8 6 8-6l8 6 8-6l8 6 8-6l8 6 8-6l8 6 8-6l8 6 8-6l8 6 8-6l8 6 8-6l8 6 8-6l8 6 8-6l8 6 8-6l8 6 8-6l8 6 8-6l8 6 8-6l8 6 8-6l8 6 8-6v-6H0z"/>
+  <!-- Rotation and down-force arrows. -->
+  <path class="mat-measure" d="M30 30h60M84 24l6 6-6 6"/>
+  <path class="mat-measure" d="M200 20v14M194 28l6 6 6-6"/>
+  <text class="art-label-on-dark" x="6"   y="62">pad</text>
+  <text class="art-label" x="6"   y="118">dummy wafer film</text>
+  <!-- Scale bar. Thin films are drawn at least 6 px thick, so it is a guide, not a ruler. -->
+  <path class="mat-measure" d="M208 56h44M208 52v8M252 52v8"/>
+  <text class="art-label-on-dark" x="252" y="49" text-anchor="end">200 nm</text>
+</svg>
