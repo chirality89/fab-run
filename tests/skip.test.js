@@ -59,3 +59,27 @@ test('a greyed-out Strip and re-expose says what it needs, not just "condition n
   assert.equal(card.playable, false);
   assert.match(card.reason, /litho step just before/, `seed ${SEED}`);
 });
+
+// "A real decision in every room" (M4.5, issue 3): with only the starter
+// deck, every room on the Cu line deals at least one playable practice,
+// except the rooms listed here, which run by themselves. If a content
+// change empties a room, this test names it.
+const ROOMS_THAT_RUN_THEMSELVES = ['metro'];   // metrology: measuring, no process choice
+
+test('starter deck: every Cu-line room has a playable practice, except metrology, which runs by itself', () => {
+  let state = createRun({ seed: SEED });
+  let roomsChecked = 0;
+  while (state.status === 'running') {
+    if (state.corridor !== null) { state = walkCorridor(state, null); continue; }
+    state = enterStep(state);
+    const label = `seed ${SEED}, step ${state.stepIndex} (${state.room.id})`;
+    if (ROOMS_THAT_RUN_THEMSELVES.includes(state.room.id)) {
+      assert.equal(nothingToPlay(state), true, `${label}: expected to run by itself`);
+    } else {
+      assert.equal(nothingToPlay(state), false, `${label}: no starter practice can be played here`);
+    }
+    roomsChecked += 1;
+    state = resolveStep(state);
+  }
+  assert.equal(roomsChecked, 9, 'the Cu line has 9 rooms');
+});

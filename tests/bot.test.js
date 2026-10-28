@@ -123,7 +123,12 @@ test('exit-check: targets pass on good numbers and fail on bad ones', () => {
   });
   assert.ok(good.every(check => check.ok), good.map(check => check.text).join('; '));
   const bad = checkTargets({
-    idle: result(0, 52), random: result(0.02, 55), casual: result(0.1, 62), smart: result(0, 58), smartFull: result(0.95, 85),
+    idle: result(0, 52), random: result(0.02, 55), casual: result(0.1, 62), smart: result(0, 63), smartFull: result(0.95, 85),
   });
   assert.equal(bad.filter(check => !check.ok).length, 1);   // only the smart starter-deck ship rate
+  const narrow = checkTargets({
+    idle: result(0, 61), random: result(0.02, 61), casual: result(0.2, 68), smart: result(0.5, 69.5), smartFull: result(1, 82),
+  });
+  assert.deepEqual(narrow.filter(check => !check.ok).map(check => check.text),
+    ['smart (starter deck) beats idle by 8.5 points (target over 10)']);   // only the first-run spread
 });

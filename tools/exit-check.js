@@ -11,6 +11,8 @@
 //   random  under 5%
 //   casual  under 25%    (an average player usually misses on the first run)
 //   smart   40% to 75%   (a very good player wins often, not always)
+//   spread  smart beats idle by over 10 points (good play matters on the
+//           first run too; the exit test in tasks/next-stages.md)
 // and with every card unlocked:
 //   smart   at least 90%
 //   spread  smart (full deck) beats idle by over 15 points (choices matter)
@@ -29,6 +31,7 @@ export const TARGETS = {
   smartMaxShipRate: 0.75,
   smartFullMinShipRate: 0.90,
   minSpreadPoints: 15,
+  minStarterSpreadPoints: 10,
 };
 
 // Plays seeds 1..count with one policy and totals the results.
@@ -52,6 +55,7 @@ export function runPolicy(policy, count, deck) {
 export function checkTargets(results) {
   const { idle, random, casual, smart, smartFull } = results;
   const spread = smartFull.mean - idle.mean;
+  const starterSpread = smart.mean - idle.mean;
   const pct = fraction => `${(fraction * 100).toFixed(0)}%`;
   return [
     { ok: idle.shipRate <= TARGETS.idleMaxShipRate, text: `idle ships ${pct(idle.shipRate)} (target 0%)` },
@@ -61,6 +65,7 @@ export function checkTargets(results) {
       ok: smart.shipRate >= TARGETS.smartMinShipRate && smart.shipRate <= TARGETS.smartMaxShipRate,
       text: `smart (starter deck) ships ${pct(smart.shipRate)} (target ${pct(TARGETS.smartMinShipRate)} to ${pct(TARGETS.smartMaxShipRate)})`,
     },
+    { ok: starterSpread > TARGETS.minStarterSpreadPoints, text: `smart (starter deck) beats idle by ${starterSpread.toFixed(1)} points (target over ${TARGETS.minStarterSpreadPoints})` },
     { ok: smartFull.shipRate >= TARGETS.smartFullMinShipRate, text: `smart (full deck) ships ${pct(smartFull.shipRate)} (target at least ${pct(TARGETS.smartFullMinShipRate)})` },
     { ok: spread > TARGETS.minSpreadPoints, text: `smart (full deck) beats idle by ${spread.toFixed(1)} points (target over ${TARGETS.minSpreadPoints})` },
   ];

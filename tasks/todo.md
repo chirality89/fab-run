@@ -9,8 +9,8 @@ Most of it was already built on `claude/winnable-p0-p1` (P1 bots, P2 starter pra
 - [x] 1. Fast-forward this branch to `claude/winnable-p0-p1`; plan copied here
 - [x] 2. Check: `npm test` 278 pass, `npm run screens` 78 pass (plating and etch phone shots look right), `exit-check` 100 seeds all PASS, no `Math.random`
 - [x] 3. Fair smart bot: side-stop kinds and PM choices are scored on 4 imagined runs with made-up dice (`tools/smartBot.js` `IMAGINED_SEEDS`), so it no longer sees a stop's contents or a PM's roll before choosing. (Correction to the plan: drift was not a leak; wear is a fixed amount per lot and scatter is off in the make-believe runs.)
-- [ ] 4. exit-check target: smart beats idle by over 10 points with the starter deck; if it fails, options to David, no tuning
-- [ ] 5. Test: every Cu-line room offers a starter practice or runs by itself
+- [x] 4. exit-check target added (`minStarterSpreadPoints: 10`). **It fails: 8.5 points** (seeds 1–100). Waiting for David's choice of lever; nothing tuned.
+- [x] 5. Test in `tests/skip.test.js`: with the starter deck, every Cu-line room deals a playable practice except metrology (`ROOMS_THAT_RUN_THEMSELVES`). Checked it fails if CMP's card is taken out.
 - [ ] 6. David's calls on `doseTrimSpc`, `chamberPurge` (particles ×1.1), `waferPrewet`; then `physics-reviewer`
 - [ ] 7. playtester, code-explainer, lesson, tick ROADMAP, 3-bullet summary; ask about a PR (check together with PR #26 first)
 
@@ -23,6 +23,7 @@ Most of it was already built on `claude/winnable-p0-p1` (P1 bots, P2 starter pra
 - A test proves every process room has a decision or runs itself
 
 **Progress notes:**
+- 28 Oct 2026, step 4 finding (seeds 1–30, starter deck): the smart bot plays `extraDiRinse`, `doseTrimSpc`, `timedOveretch`, `waferPrewet` and `padBreakIn` in **30 of 30** lots, and `chamberPurge` in 1 of 30. It never buys from the shop and takes a PM at almost every corridor. So with the starter deck, 5 of the 6 cards are "always play" (no real decision), and `chamberPurge` is almost never worth it. Points still lost with smart play: particles 6.0, depth variation 5.0, dishing 4.0, void 3.6, underlayer attack 2.9, Q-time 2.3, CD error 2.0.
 - 28 Oct 2026, step 3: the old bot changed its stop choice in 17 of 240 corridors (seeds 1–30) when only the hidden dice changed; the fair bot in 0 of 240. The new test fails on the old bot and passes on the new one. Peeking was worth almost nothing: exit-check 100 seeds, smart/starter 69.6 → 69.5 (49 ship both), casual 68.2 → 67.7 (20 → 19), smart/full 82.4 (100). Cost: `npm test` went from about 15 s to about 78 s.
 - 28 Oct 2026, step 2: exit-check 100 seeds (before step 3): starter idle 61.1 (0 ship), random 61.5 (3), casual 68.2 (20), smart 69.6 (49); full smart 82.4 (100).
 - 28 Oct 2026: before this session, exit-check on seeds 1–40: starter idle 61.1, random 60.2, casual 67.9, smart 69.6 (22/40 ship); full smart 82.6 (40/40).
