@@ -4,6 +4,29 @@ Finished plans (M0 to M4.5 item 4) are in `docs/archive/todo-done.md`. The curre
 
 ## Current work
 
+### Task: M4.5 "A real decision in every room" (issue 3), plan approved 28 Oct 2026
+Most of it was already built on `claude/winnable-p0-p1` (P1 bots, P2 starter practices and skipped rooms); this session brings that in and closes the gaps.
+- [x] 1. Fast-forward this branch to `claude/winnable-p0-p1`; plan copied here
+- [ ] 2. Check: `npm test`, `npm run screens`, `exit-check` on 100 seeds, no `Math.random`
+- [ ] 3. Fair smart bot: its make-believe runs use their own random numbers, not the lot's future drift and deals
+- [ ] 4. exit-check target: smart beats idle by over 10 points with the starter deck; if it fails, options to David, no tuning
+- [ ] 5. Test: every Cu-line room offers a starter practice or runs by itself
+- [ ] 6. David's calls on `doseTrimSpc`, `chamberPurge` (particles ×1.1), `waferPrewet`; then `physics-reviewer`
+- [ ] 7. playtester, code-explainer, lesson, tick ROADMAP, 3-bullet summary; ask about a PR (check together with PR #26 first)
+
+**Decisions settled:** none open for this item (Q2 "both", 26 Oct).
+
+**Acceptance criteria:**
+- `npm test`, `npm run screens` pass; bots have no NaN/Infinity
+- `exit-check --seeds 100` all PASS, or David has options
+- Smart (no peeking, starter deck) beats idle by over 10 points, or David has decided what to change
+- A test proves every process room has a decision or runs itself
+
+**Progress notes:**
+- 28 Oct 2026: before this session, exit-check on seeds 1–40: starter idle 61.1, random 60.2, casual 67.9, smart 69.6 (22/40 ship); full smart 82.6 (40/40).
+
+**Result:**
+
 P0 and P1 of `tasks/plan-winnable.md` (branch `claude/winnable-p0-p1`):
 
 - [x] P0: check the lane work is on `main`, tick the roadmap box, archive the finished sections of this file
