@@ -27,8 +27,9 @@ export function onSingleClick(button, handler) {
   });
 }
 
-// Top bar: the room name on its room color, the step, the seed and cash.
-function drawHeader(view) {
+// Top bar: the room name on its room color, the step, the seed, cash and
+// the Words button (`words` is { onOpen }).
+function drawHeader(view, words) {
   const header = el('header', `room-band room-${view.roomId}`);
   header.append(el('h1', 'room-name', view.roomName));
   header.append(el('p', 'room-step', `Step ${view.stepNumber} of ${view.stepCount} · ${view.stepLabel}`));
@@ -38,6 +39,7 @@ function drawHeader(view) {
   facts.append(seed, cash);
   header.append(facts);
   if (view.cashNoteText) header.append(el('p', 'room-step cash-note', view.cashNoteText));   // where cash just went
+  header.append(headerButtons(null, words));
   return header;
 }
 
@@ -161,7 +163,8 @@ function drawHand(view, actions) {
 }
 
 // Draws the whole room into the given container, replacing what was there.
-// `actions` holds what the buttons call: onPlay(cardId) and onRunRoom().
+// `actions` holds what the buttons call: onPlay(cardId), onRunRoom() and
+// words ({ onOpen }, for the Words button).
 export function renderRoom(container, view, actions) {
   const body = el('div', 'room-body');
   body.append(
@@ -171,7 +174,7 @@ export function renderRoom(container, view, actions) {
     drawSpc(view.spc),
     drawHand(view, actions),
   );
-  container.replaceChildren(drawHeader(view), drawYield(view), body);
+  container.replaceChildren(drawHeader(view, actions.words), drawYield(view), body);
 }
 
 // After a card is played, moves keyboard focus to the playable card now in
@@ -211,10 +214,14 @@ export function actionButton(text, className, onClick) {
   return button;
 }
 
-// The button that opens the Notebook page, shown in the floor-plan and
-// ship-report headers: "Notebook (3)". `notebook` is { count, onOpen }.
-export function notebookButton(notebook) {
-  return actionButton(`Notebook (${notebook.count})`, 'notebook-button secondary-button', notebook.onOpen);
+// The row of page buttons in a header: Notebook ("Notebook (3)") when
+// `notebook` ({ count, onOpen }) is given, then Words ({ onOpen }), which
+// opens the Words page (wordsPage.js). The room header has Words only.
+export function headerButtons(notebook, words) {
+  const row = el('div', 'header-buttons');
+  if (notebook) row.append(actionButton(`Notebook (${notebook.count})`, 'notebook-button secondary-button', notebook.onOpen));
+  row.append(actionButton('Words', 'words-button secondary-button', words.onOpen));
+  return row;
 }
 
 // The screen after a room is run: what it cost, the new wafer map, what
@@ -322,14 +329,14 @@ function drawRouteSpc(view) {
 
 // The screen after a run ends: the verdict, the three numbers, the diagnose
 // panel, yield by step, the tools' SPC and the final wafer map. `actions`
-// holds onDiagnose(id), onReplay(), onNewSeed() and notebook ({ count,
-// onOpen }, for the Notebook button).
+// holds onDiagnose(id), onReplay(), onNewSeed(), notebook ({ count,
+// onOpen }, for the Notebook button) and words ({ onOpen }).
 export function renderShip(container, view, actions) {
   const header = el('header', 'room-band map-band');
   header.append(el('h1', 'room-name', 'Ship report'), el('p', 'room-step', view.lotName));
   const facts = el('p', 'room-facts');
   facts.append(el('span', 'seed', `Seed ${view.seed}`), el('span', 'cash', `Cash ${view.cash}`));
-  header.append(facts, notebookButton(actions.notebook));
+  header.append(facts, headerButtons(actions.notebook, actions.words));
 
   const verdict = panel('Verdict', `result-panel verdict-${view.status}`);
   verdict.setAttribute('role', 'status');

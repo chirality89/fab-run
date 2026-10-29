@@ -13,7 +13,7 @@
 //
 // No game logic here, and text only through textContent (see render.js).
 
-import { el, panel, onSingleClick, actionButton, showFromTop, notebookButton } from './render.js';
+import { el, panel, onSingleClick, actionButton, showFromTop, headerButtons } from './render.js';
 import { drawSpcPicture } from './spcChart.js';
 
 const BAYS_PER_ROW = 3;
@@ -110,8 +110,8 @@ function drawPlan(view) {
 }
 
 // Top bar of the map screen: the plan's own band, the seed, the lot's
-// numbers and the Notebook button.
-function drawMapHeader(view, notebook) {
+// numbers and the Notebook and Words buttons.
+function drawMapHeader(view, notebook, words) {
   const header = el('header', 'room-band map-band');
   header.append(el('h1', 'room-name', 'Floor plan'));
   header.append(el('p', 'room-step', `Inlaid Cu line · yield ${view.yieldPercent.toFixed(1)}%`));
@@ -121,7 +121,7 @@ function drawMapHeader(view, notebook) {
     el('span', 'cash', `Cash ${view.cash}`),
     el('span', 'cash', `Cycle time ${view.cycleTime} min`),
   );
-  header.append(facts, notebookButton(notebook));
+  header.append(facts, headerButtons(notebook, words));
   return header;
 }
 
@@ -170,11 +170,12 @@ function drawScrap(actions) {
 }
 
 // Draws the map screen. `actions` holds onTakeStop(kind), onGoStraight(),
-// onScrap() and notebook ({ count, onOpen }, for the Notebook button).
+// onScrap(), notebook ({ count, onOpen }, for the Notebook button) and
+// words ({ onOpen }, for the Words button).
 export function renderMap(container, view, actions) {
   const body = el('div', 'map-body');
   body.append(drawChoices(view, actions), drawPlan(view));
-  container.replaceChildren(drawMapHeader(view, actions.notebook), body);
+  container.replaceChildren(drawMapHeader(view, actions.notebook, actions.words), body);
   showFromTop(container);
 }
 

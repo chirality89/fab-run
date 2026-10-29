@@ -115,6 +115,72 @@ Finished plans (M0 to M4.5 item 4) are in `docs/archive/todo-done.md`. The curre
 - [ ] `physics-reviewer` checks the sentences. David reviews them (`draft: true` until then).
 - **Left out for now:** tapping an underlined word in room text to open its term. The Words button gives the same help from every screen. Linking words inside card text needs the text split into pieces, which is a bigger UI change. Do it if playtesters still get stuck.
 
+### Task: NMOS you can play (item 2): plan, waiting for David's OK
+**What I found (29 Oct 2026, nothing edited yet):**
+- **NMOS can't be won today.** Bot on 20 seeds with `lotTypeId: 'nmos'`:
+
+  | Deck | Policy | Shipped | Mean yield |
+  |---|---|---|---|
+  | Starter | idle | 0 | 39.8 |
+  | Starter | random | 0 | 44.0 |
+  | Starter | casual | 0 | 47.6 |
+  | Starter | smart | 0 | 49.8 |
+  | Full | smart | 0 | 57.5 |
+
+  Thirteen rooms lose about 60 points doing nothing; the nine Cu rooms lose about 47.
+- **Points lost per NMOS room** (idle, seeds 1–100):
+
+  | Step | Room | Points |
+  |---|---|---|
+  | 1 | Clean | 5.0 |
+  | 2 | Pad oxide + SiN | 4.0 |
+  | 3 | Litho active | 7.1 |
+  | 4 | Isolation etch | 9.4 |
+  | 5 | Fill + CMP | 9.6 |
+  | 6 | Pre-gate clean | 4.3 |
+  | 7 | Gate oxidation | 4.6 |
+  | 8 | Poly dep | 3.0 |
+  | 9 | Litho gate | 4.6 |
+  | 10 | Gate etch | 5.6 |
+  | 11 | Implant | 0.2 |
+  | 12 | Anneal | 2.7 |
+  | 13 | Test | 0.0 |
+
+  Each room has about 1 point of handling particles plus tool drift. NMOS's own risks were never put through the ×0.7 pass the Cu line had.
+- **Diffusion and implant have no starter practices** (`spikeAnneal`, `tiltedImplant` and `screenOxideImplant` are all unlocked by the notebook). Those three rooms would run by themselves.
+- **The screen assumes the Cu line:**
+  - `main.js` has `LOT_TYPE_ID = 'cuLine'`.
+  - The map header says "Inlaid Cu line".
+  - The floor-plan grid has room for 3 rows of bays (9 rooms); NMOS needs 5.
+  - The save doesn't store the lot type.
+
+**Steps:**
+1. **Balance first (David chooses).** Options, each tested on 100 seeds against the same exit-check targets:
+   - **A. Scale NMOS's own risks**, as the Cu line had. Same 70% spec. Fab realism is unchanged; only the sizes move.
+   - **B. A spec for each lot type** (for example 55% for NMOS). A different product can have a different customer spec. Risks stay as drafted.
+   - **C. A mix:** a smaller cut plus a slightly lower spec.
+
+   I'd go with **A**: one spec is easier to learn, and the per-room table points at the CMP and isolation-etch losses. The numbers come to David before any change, and every test value that moves is computed first.
+2. **Choosing the lot type.**
+   - `?lot=nmos` in the address.
+   - On the first floor plan, before Go, a "Lot type" choice (Cu line / NMOS).
+   - On the ship report, "New seed" keeps the lot type, and a second button switches it.
+   - The save stores `lotTypeId` (`SAVE_VERSION` 7).
+   - The map header shows the lot type's own name.
+3. **Floor plan for 13 rooms.** The grid grows to as many rows as the route needs. Checked at 375 px and 1280 px.
+4. **A starter practice in diffusion or implant?** The rule from M4.5 is that every room has a starter practice or runs by itself. If David wants a decision there, `content-drafter` drafts one (for example a slower furnace ramp, or a screen oxide that costs time). Otherwise they join `ROOMS_THAT_RUN_THEMSELVES` for NMOS.
+5. **Tests and bots.**
+   - `exit-check --lot nmos` gets the same targets.
+   - `skip.test.js` runs for each lot type.
+   - The screen tests walk an NMOS lot to its ship report.
+   - Persona bot test right after (item 3).
+6. `physics-reviewer` on any content change, then close as usual.
+
+**Questions for David:**
+1. Balance: A, B or C?
+2. Diffusion and implant: add one starter practice each, or let them run by themselves?
+3. Should the default lot stay the Cu line, with NMOS chosen on the first screen?
+
 ### Task: M4.5 "A real decision in every room" (issue 3), plan approved 28 Oct 2026
 Most of it was already built on `claude/winnable-p0-p1` (P1 bots, P2 starter practices and skipped rooms); this session brings that in and closes the gaps.
 - [x] 1. Fast-forward this branch to `claude/winnable-p0-p1`; plan copied here

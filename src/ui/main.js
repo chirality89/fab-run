@@ -29,6 +29,7 @@ import { pmView } from './pmView.js';
 import { shipView } from './shipView.js';
 import { notebookView } from './notebookView.js';
 import { renderNotebook } from './notebookPage.js';
+import { renderWords } from './wordsPage.js';
 import { diagnoseLot, unlockedIds } from '../engine/notebook.js';
 
 const LOT_TYPE_ID = 'cuLine';
@@ -174,7 +175,7 @@ function onNewSeed() {
 // --- drawing -------------------------------------------------------------
 
 function showRoom() {
-  renderRoom(app, roomView(state), { onPlay, onRunRoom });
+  renderRoom(app, roomView(state), { onPlay, onRunRoom, words: wordsOpener(showRoom) });
 }
 
 // The result of a room, right after Run. `before` is the state at Run.
@@ -193,14 +194,15 @@ function showStop(before, stopKind) {
 }
 
 function showMap() {
-  renderMap(app, mapView(state), { onTakeStop, onGoStraight, onScrap, notebook: notebookOpener(showMap) });
+  renderMap(app, mapView(state),
+    { onTakeStop, onGoStraight, onScrap, notebook: notebookOpener(showMap), words: wordsOpener(showMap) });
 }
 
 // The ship report: the one screen every finished run ends on, whether the
 // lot shipped, was rejected or was scrapped.
 function showShipReport() {
   renderShip(app, shipView(state, notebook, diagnosis),
-    { onDiagnose, onReplay, onNewSeed, notebook: notebookOpener(showShipReport) });
+    { onDiagnose, onReplay, onNewSeed, notebook: notebookOpener(showShipReport), words: wordsOpener(showShipReport) });
 }
 
 // The Notebook page (M4 item 3). Opening it is not a run action: nothing
@@ -218,6 +220,14 @@ function notebookOpener(showBehind) {
     count: notebookView(notebook).count,
     onOpen: () => safely(() => showNotebook(showBehind)),
   };
+}
+
+// What the Words button in a header does: opens the Words page, whose Back
+// redraws `showBehind`, the screen the button is on. Like the Notebook, it
+// is not a run action: nothing in the run changes. A room redraws from the
+// run state, so the cards already played stay played.
+function wordsOpener(showBehind) {
+  return { onOpen: () => safely(() => renderWords(app, { onBack: () => safely(showBehind) })) };
 }
 
 // The player names a failure mode on the ship report (M4 item 1). A right

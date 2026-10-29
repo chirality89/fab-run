@@ -328,7 +328,13 @@
 .buy-button { margin-top: 10px; }
 
 /* --- Notebook page and its button (notebookPage.js) ------------------------ */
-.notebook-button { margin-top: 10px; }   /* white on the blue band, like other secondary buttons */
+.header-buttons { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }   /* Notebook and Words: white on the band */
+
+/* --- Words page (wordsPage.js) -------------------------------------------- */
+.words-list { list-style: none; margin: 12px 0; padding: 0; display: grid; gap: 8px; }
+.words-entry { border-color: var(--line); }   /* a page to read, not a button to press */
+.words-in-game { display: block; margin-top: 6px; font-size: 15px; }
+.words-in-game strong { font-weight: 600; }
 .notebook-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .notebook-entry { border-color: var(--line); }   /* a page to read, not a button to press */
 .notebook-unlocks { display: block; margin-top: 6px; font-size: 15px; font-weight: 600; }
