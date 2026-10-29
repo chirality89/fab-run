@@ -4,6 +4,12 @@ Finished plans (M0 to M4.5 item 4) are in `docs/archive/todo-done.md`. The curre
 
 ## Current work
 
+### Task: etch is too punishing on the first run (David's playtest, 29 Oct 2026) — PLAN, waiting for David's OK
+**Finding (seeds 1–100, idle, points lost per room):** clean 4.7, dep 3.7, litho 6.1, **etch 13.5**, clean 4.6, dep 5.4, plate 4.9, cmp 5.8. Etch by pattern: residue 5.3, depth variation 4.4, underlayer attack 1.7, edge ring 1.6, particles 0.6. The smart bot with the starter deck still loses 11.7 points in etch (of 33.0 total); every etch remedy (etch stop, endpoint detector, e-chuck) is unlocked by the notebook, so a first run has almost nothing to spend on it.
+**David's choice:** cut etch's base risks, balance only.
+**Proposal (scratch-tested, 60 seeds, nothing edited in the repo):** in `lotTypes.js`, etch step adds residue 0.028 → 0.019, underlayer attack 0.021 → 0.014, edge ring 0.021 → 0.014; start risk depth variation 0.056 → 0.038 (about a third each; particles and dishing unchanged). Then the spec goes back from 68% to 70% (the original), because lots end about 3 points higher. Exit-check: idle 5%, random 5%, casual 33%, smart 53% ship, full-deck smart 98%, every target passes. (Spec 68% with the cut makes idle 8%, random 12%, casual 45%: too easy. Spec 72% drops smart to 37%.)
+**Tests that move:** the idle-run and etch values in `lot`, `lotTypes`, `run`, `events`, `tools`, `doe`, `resolve`, `view`; the 68% view tests go back to 70. Every new value would be computed by the independent python model first and listed here for David before any test is edited.
+
 ### Task: M4.5 "A real decision in every room" (issue 3), plan approved 28 Oct 2026
 Most of it was already built on `claude/winnable-p0-p1` (P1 bots, P2 starter practices and skipped rooms); this session brings that in and closes the gaps.
 - [x] 1. Fast-forward this branch to `claude/winnable-p0-p1`; plan copied here
