@@ -522,8 +522,8 @@ export const EQUIPMENT = [
       { op: 'defectMult', pattern: 'depth_variation', mult: 0.75 },
       { op: 'defectMult', pattern: 'edge_ring', mult: 1.25 },
     ],
-    tradeoff: 'Evens the etch depth from center to edge, but the extra gas at the rim changes the edge plasma, so the outer ring of sites fails a little more. Cheap, and it does less than an endpoint detector.',
-    physicsNote: 'Etch rate varies across the wafer because the reactive gas is used up toward the center and the edge sees a different plasma. Tuning the gas flow radially evens the rate and so the depth, but the rim is where plasma and temperature already differ most, so the edge profile spreads.' },
+    tradeoff: 'Sends more gas to the center to even the etch depth, but the rim then gets a different gas mix, so edge profiles shift and the outer ring of sites fails a little more. Cheap, but weaker than an endpoint detector.',
+    physicsNote: 'Etch rate often varies across the wafer: the reactive gas is used up on its way to the center, while the edge gets fresh gas from outside the wafer. Shifting more gas to the center evens the rate, and so the depth. Gas flow sets the chemistry, not the angle the ions arrive at, and at the rim the plasma and temperature already differ most, so matching the rate there shifts the sidewall profile at the edge.' },
 
   { id: 'inlineMetrology', draft: true, kind: 'equipment', room: 'metro', rarity: 'advanced',
     name: 'Inline metrology', unlockedBy: null,
