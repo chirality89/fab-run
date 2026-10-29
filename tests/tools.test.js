@@ -146,7 +146,7 @@ test('wear: each run in a room costs its tool 5 health and adds one SPC point', 
 test('hand check: a CMP tool at health 60 costs the lot × 0.977312', () => {
   const healthy = playIdle(createRun({ seed: SEED, scatterStrength: 0, toolDrift: false }));
   const worn = playIdle(createRun({ seed: SEED, scatterStrength: 0, toolDrift: false, startingHealth: { cmp: 60 } }));
-  close(lotYield(healthy.lot), 0.690471, `the healthy run is today's idle run (seed ${SEED})`);
+  close(lotYield(healthy.lot), 0.701678, `the healthy run is today's idle run (seed ${SEED})`);
   close(lotYield(worn.lot) / lotYield(healthy.lot), 0.977312, `yield ratio (seed ${SEED})`);
 });
 

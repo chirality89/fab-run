@@ -104,8 +104,8 @@ test('the DOE section offers 2 practices; a DOE costs 100 and the card shows its
   await walkToPm(page, DOE_SEED);
   await expect(page.locator('.doe-panel .shop-item')).toHaveCount(2);
   const overEtch = doeOffer(page, 'Timed over-etch (+20%)');
-  await expect(overEtch).toContainText('Now: 4 min · residue ×0.3 · underlayer attack ×1.5');
-  await expect(overEtch).toContainText('underlayer attack ×1.25');
+  await expect(overEtch).toContainText('Now: 4 min · residue ×0.3 · underlayer attack ×2');
+  await expect(overEtch).toContainText('underlayer attack ×1.85');
   await expect(page.locator('.pm-cash')).toHaveText('Cash 1500');
   await expectNoSidewaysScroll(page);
   await screenshot(page, '13-doe');

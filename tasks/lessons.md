@@ -380,3 +380,13 @@ The expected names were written from the items' ids, not read from `content.js`.
 - **What happened:** five starter practices raised the smart bot's starter-deck result by only 2 points. Each card acts on one room's pattern, and those patterns hold about 1% of risk, so no single card could move the lot.
 - **Root cause:** I drafted cards before measuring how much yield each room can give back. The bot (`npm run exit-check`) shows it in seconds.
 - **Rule:** before drafting cards for a balance goal, run the smart bot with the full deck and note where the points are lost (`pointsLostByPattern`). Draft for the patterns that hold the points, or change the base risks.
+
+## 28 Oct 2026 — The smart bot chose side stops after looking inside them
+- **What happened:** to pick a side stop, the smart bot opened each one on a copy of the run, saw its shop stock, event or PM restore roll, then chose. A player sees only the stop's kind. The bot changed its choice in 17 of 240 corridors when only those hidden dice changed.
+- **Root cause:** "try every option on a copy" also tries options whose outcome a player cannot know yet. The copy carried the run's own seed, which decides what is inside each stop.
+- **Rule:** a bot that measures good play scores a choice only on what a player could see. Where the outcome is hidden, score it on imagined dice and average (`IMAGINED_SEEDS` in `tools/smartBot.js`). Test it by changing only the hidden dice and checking the choice stays the same, and check that test fails on the old bot.
+
+## 29 Oct 2026 — A card that costs only minutes nobody else wants is always worth playing
+- **What happened:** five starter cards were "real tradeoffs" on paper, but the smart bot played them in 30 of 30 lots. In a room with one card, the card's minutes are free, and the side effects were too small to outweigh the gain.
+- **Root cause:** the tradeoff was checked as text, not measured. A cost only counts if it can ever be bigger than the gain.
+- **Rule:** before calling a card a decision, measure its worth per lot (gain with and without it, split by what the screen shows, e.g. SPC flagged or quiet). It should lose in some lots and win in others, and the screen should tell them apart. If it never loses, it is routine: make it a route step (game rule 8).

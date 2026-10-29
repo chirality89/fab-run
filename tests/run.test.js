@@ -57,7 +57,7 @@ test('createRun: defaults are the cuLine, the starter deck, i-line resist loaded
   assert.equal(state.lotTypeId, 'cuLine');
   // measureAll is a starter card but is not dealt yet (run.js NOT_DEALT_YET).
   assert.deepEqual(state.deck, [
-    'timedOveretch', 'reworkLitho', 'extraDiRinse', 'chamberPurge', 'doseTrimSpc', 'waferPrewet', 'padBreakIn',
+    'timedOveretch', 'reworkLitho', 'extraDiRinse', 'chamberPurge', 'doseTrimSpc',
   ]);
   assert.deepEqual(state.deck, starterDeck());
   assert.deepEqual(state.slots, { resist: { id: 'resistIline', shelfLife: 8, decay: 1 } });
@@ -80,10 +80,14 @@ test('fullPool holds every practice', () => {
   assert.ok(fullPool().includes('endpointEtch'));
 });
 
-test('idle, scatter off: yield 0.690471, rejected, cash 1500, 0 minutes played', () => {
+// Hand check (independent python model of the route, 29 Oct 2026): 0.690471
+// before pre-wet (void ×0.8) and pad conditioning (rr_drift ×0.8) became
+// route steps, 0.701678 after. With drift off this lot ships (spec 0.68);
+// with drift on, a do-nothing lot almost always fails (npm run exit-check).
+test('idle, scatter and drift off: yield 0.701678, shipped (spec 68%), cash 1500, 0 minutes played', () => {
   const end = playIdle(scatterOff());
-  close(lotYield(end.lot), 0.690471, 'yield');
-  assert.equal(end.status, 'rejected');
+  close(lotYield(end.lot), 0.701678, 'yield');
+  assert.equal(end.status, 'shipped');
   assert.equal(end.cash, 1500);
   assert.equal(end.minutesUsed, 0);
 });
@@ -110,13 +114,13 @@ test('equipment acts once on entering its room: endpoint detector', () => {
   assert.deepEqual(inEtch.enabled, ['endpointEtch']);
 });
 
-test('timedOveretch costs 4 minutes and scales residue ×0.3, underlayer attack ×1.5', () => {
+test('timedOveretch costs 4 minutes and scales residue ×0.3, underlayer attack ×2', () => {
   const inEtch = enterStepNumber(scatterOff(), ETCH);
   assert.deepEqual(legalCards(inEtch), ['timedOveretch']);
   const after = playCard(inEtch, 'timedOveretch');
   assert.equal(after.room.timeLeft, 4);
   close(after.lot.risks.residue, 0.0084, 'residue');
-  close(after.lot.risks.underlayer_attack, 0.0315, 'underlayer_attack');
+  close(after.lot.risks.underlayer_attack, 0.042, 'underlayer_attack');   // 0.021 × 2
   assert.deepEqual(after.hand, []);
   assert.equal(resolveStep(after).minutesUsed, 4);
 });
@@ -280,7 +284,7 @@ test('PM in the Q-time corridor: qtime_oxide 0.068, final yield × e^(−0.04), 
   const start = createRun({ seed, scatterStrength: 0, toolDrift: false });
   const straight = playIdle(start);
   const withPm = playIdleWithStop(start, QTIME_CORRIDOR, 'pm');
-  close(lotYield(straight.lot), 0.690471, `straight on everywhere is today's idle run (seed ${seed})`);
+  close(lotYield(straight.lot), 0.701678, `straight on everywhere is today's idle run (seed ${seed})`);
   close(lotYield(withPm.lot) / lotYield(straight.lot), 0.960789, `yield ratio e^(-0.04) (seed ${seed})`);
   assert.equal(withPm.cycleTime, straight.cycleTime + 40, `seed ${seed}`);
 

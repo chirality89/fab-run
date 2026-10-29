@@ -44,9 +44,12 @@ const continueButton = page => page.getByRole('button', { name: 'Continue to the
 // Runs the room the lot is in doing nothing, then continues to the corridor.
 // Each tap after a screen change waits out the double-click window first
 // (tasks/lessons.md), or a phone tap at the same spot is ignored.
+// Rooms with nothing to play (plating, CMP and metrology on a starter deck)
+// run by themselves and open on their result, so it presses Run only if it is there.
 async function runRoomAndContinue(page) {
   await page.waitForTimeout(DOUBLE_CLICK_WINDOW_MS);
-  await press(page, runButton(page));
+  await page.locator('.run-button, .skipped-text').first().waitFor();
+  if (await page.locator('.skipped-text').count() === 0) await press(page, runButton(page));
   await page.waitForTimeout(DOUBLE_CLICK_WINDOW_MS);
   await press(page, continueButton(page));
   await expect(title(page)).toHaveText('Floor plan');

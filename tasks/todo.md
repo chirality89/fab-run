@@ -11,8 +11,8 @@ Most of it was already built on `claude/winnable-p0-p1` (P1 bots, P2 starter pra
 - [x] 3. Fair smart bot: side-stop kinds and PM choices are scored on 4 imagined runs with made-up dice (`tools/smartBot.js` `IMAGINED_SEEDS`), so it no longer sees a stop's contents or a PM's roll before choosing. (Correction to the plan: drift was not a leak; wear is a fixed amount per lot and scatter is off in the make-believe runs.)
 - [x] 4. exit-check target added (`minStarterSpreadPoints: 10`). **It fails: 8.5 points** (seeds 1–100). Waiting for David's choice of lever; nothing tuned.
 - [x] 5. Test in `tests/skip.test.js`: with the starter deck, every Cu-line room deals a playable practice except metrology (`ROOMS_THAT_RUN_THEMSELVES`). Checked it fails if CMP's card is taken out.
-- [ ] 6. David's calls on `doseTrimSpc`, `chamberPurge` (particles ×1.1), `waferPrewet`; then `physics-reviewer`
-- [ ] 7. playtester, code-explainer, lesson, tick ROADMAP, 3-bullet summary; ask about a PR (check together with PR #26 first)
+- [x] 6. David's calls: `doseTrimSpc` stays a placeholder; `chamberPurge` ×1.1 fair; over-etch ×2 with the physics review's fixes; pre-wet and pad conditioning become route steps; balance option A (spec 0.68, `STARTING_HEALTH_MIN` 38, loosened idle/random/casual targets)
+- [x] 7. Checks done by hand (npm test 280 pass, npm run screens 78 pass, screenshots looked at, exit-check 100 seeds all PASS); lessons added; ROADMAP ticked. PR: ask David (check together with PR #26 first)
 
 **Decisions settled:** none open for this item (Q2 "both", 26 Oct).
 **David, 28 Oct 2026:** (1) first-run gap: try A first (starter cards with a visible downside). (2) `doseTrimSpc` stays as a placeholder. (3) `chamberPurge` particles ×1.1 is fair. (5) exit-check targets approved. (6) slow bots on fewer seeds (done: casual and smart 1–5 per deck, the beats-idle checks on 10 seeds; `npm test` about 40 s). (4) `waferPrewet` bubble-void cause: not answered, left for later.
@@ -34,7 +34,7 @@ Most of it was already built on `claude/winnable-p0-p1` (P1 bots, P2 starter pra
 - 28 Oct 2026, step 2: exit-check 100 seeds (before step 3): starter idle 61.1 (0 ship), random 61.5 (3), casual 68.2 (20), smart 69.6 (49); full smart 82.4 (100).
 - 28 Oct 2026: before this session, exit-check on seeds 1–40: starter idle 61.1, random 60.2, casual 67.9, smart 69.6 (22/40 ship); full smart 82.6 (40/40).
 
-**Result:**
+**Result:** 29 Oct 2026. `npm run exit-check -- --seeds 100`, all 7 targets PASS: starter idle 5% ship (mean 51.3), random 3% (53.0), casual 26% (63.3), smart 48% (66.4), smart beats idle by 15.2 points; full deck smart 99% (80.5), 29.2 points over idle. Moved test values were checked by an independent python model of the route and the etch room (each first reproduced the old values): idle run 0.690471 → 0.701678 (shipped at spec 0.68, drift off); over-etch values as in the progress note above; DOE ratio 1.005264 → 1.003155 (by hand, e^0.00315); spec 70 → 68 in the view tests.
 
 P0 and P1 of `tasks/plan-winnable.md` (branch `claude/winnable-p0-p1`):
 

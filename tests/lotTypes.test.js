@@ -122,7 +122,7 @@ test('traits are static traits that content checks with when: { lot }', () => {
   }
 });
 
-test('cuLine doing nothing: center 0.745276, inner 0.719643, outer 0.672460, yield 0.690471', () => {
+test('cuLine route risks alone (adds and realizes, no step effects): center 0.745276, inner 0.719643, outer 0.672460, yield 0.690471', () => {
   const lot = walkRouteDoingNothing(LOT_TYPES.cuLine);
   const byRing = [0.745276, 0.719643, 0.672460];
   lot.sites.forEach((s, i) => close(s, byRing[ring(i)], `site ${i}`));

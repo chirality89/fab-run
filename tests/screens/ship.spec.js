@@ -49,9 +49,16 @@ const goButton = page => page.locator('.go-button');
 const runButton = page => page.locator('.run-button');
 const button = (page, name) => page.getByRole('button', { name });
 
+// Rooms with nothing to play (plating, CMP and metrology on a starter deck)
+// run by themselves and open on their result, so press Run only if it is there.
+async function runUnlessItRanByItself(page) {
+  await page.locator('.run-button, .skipped-text').first().waitFor();
+  if (await page.locator('.skipped-text').count() === 0) await pressAfterChange(page, runButton(page));
+}
+
 // Runs the room doing nothing and continues to the floor plan.
 async function runRoomAndContinue(page) {
-  await pressAfterChange(page, runButton(page));
+  await runUnlessItRanByItself(page);
   await pressAfterChange(page, button(page, 'Continue to the corridor'));
   await expect(title(page)).toHaveText('Floor plan');
 }

@@ -64,9 +64,12 @@ test('a greyed-out Strip and re-expose says what it needs, not just "condition n
 // deck, every room on the Cu line deals at least one playable practice,
 // except the rooms listed here, which run by themselves. If a content
 // change empties a room, this test names it.
-const ROOMS_THAT_RUN_THEMSELVES = ['metro'];   // metrology: measuring, no process choice
+// Metrology: measuring, no process choice. Plating and CMP: their routine
+// steps (pre-wet, pad conditioning) are part of the route, not cards (game
+// rule 8; David, 29 Oct 2026); unlocked cards can still be dealt there.
+const ROOMS_THAT_RUN_THEMSELVES = ['plate', 'cmp', 'metro'];
 
-test('starter deck: every Cu-line room has a playable practice, except metrology, which runs by itself', () => {
+test('starter deck: every Cu-line room has a playable practice, except plating, CMP and metrology, which run by themselves', () => {
   let state = createRun({ seed: SEED });
   let roomsChecked = 0;
   while (state.status === 'running') {

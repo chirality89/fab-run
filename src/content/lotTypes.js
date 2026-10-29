@@ -81,11 +81,29 @@ export const LOT_TYPES = {
       { room: 'dep', label: 'Deposition (barrier + seed)',
         adds: { particles: 0.007, void: 0.056 },
         realizes: ['particles', 'qtime_oxide', 'flakes'] },
+      // Every lot is pre-wet before plating: routine, not a card (game rule 8;
+      // David, 29 Oct 2026). A dry seed surface and gas in narrow features keep
+      // the solution and its additives from the bottom, so bottom-up fill
+      // starts late and the mouth can close first; wetting under vacuum lets
+      // the liquid reach the bottom (void ×0.8). The extra wet transfer adds
+      // a few handling particles (×1.1).
       { room: 'plate', label: 'Plating (Cu fill)',
         adds: { particles: 0.007 },
+        effects: [
+          { op: 'defectMult', pattern: 'void', mult: 0.8 },
+          { op: 'defectMult', pattern: 'particles', mult: 1.1 },
+        ],
         realizes: ['particles', 'void'] },
+      // The pad is conditioned before every lot: routine, not a card (game
+      // rule 8; David, 29 Oct 2026). A fresh or glazed pad polishes at a
+      // different rate than a conditioned one (its Preston coefficient
+      // differs); a conditioning sweep and a few dummy wafers bring it to a
+      // steady state first (rr_drift ×0.8).
       { room: 'cmp', label: 'CMP',
         adds: { particles: 0.007, rr_drift: 0.028 },
+        effects: [
+          { op: 'defectMult', pattern: 'rr_drift', mult: 0.8 },
+        ],
         realizes: ['particles', 'dishing', 'rr_drift'] },
       // Measure, then ship against the customer spec. Nothing added here.
       { room: 'metro', label: 'Metrology',

@@ -135,23 +135,28 @@ export const PRACTICES = [
     cost: { time: 4 },
     effects: [
       { op: 'defectMult', pattern: 'residue', mult: 0.3 },
-      { op: 'defectMult', pattern: 'underlayer_attack', mult: 1.5 },
-      // On a stop the extra time barely reaches the film below: ×1.5 × 0.7 = ×1.05.
-      { op: 'defectMult', pattern: 'underlayer_attack', mult: 0.7, when: { flag: 'etch_stop' } },
+      // ×2 (was ×1.5, 29 Oct 2026): on a tool whose etch-rate chart is quiet
+      // the attack about cancels the residue cleared, so the card pays off
+      // only when the chart shows the rate falling (M4.5, a real decision).
+      { op: 'defectMult', pattern: 'underlayer_attack', mult: 2.0 },
+      // On a stop the extra time barely reaches the film below: ×2.0 × 0.525 = ×1.05.
+      { op: 'defectMult', pattern: 'underlayer_attack', mult: 0.525, when: { flag: 'etch_stop' } },
     ],
     upgrade: {
       name: 'Timed over-etch, DOE-centred',
       effects: [
         { op: 'defectMult', pattern: 'residue', mult: 0.3 },
-        { op: 'defectMult', pattern: 'underlayer_attack', mult: 1.25 },
-        // ×1.25 × 0.84 = ×1.05 on a stop, the same as the plain card.
-        { op: 'defectMult', pattern: 'underlayer_attack', mult: 0.84, when: { flag: 'etch_stop' } },
+        // ×1.85, not lower: the DOE-centred card still needs a drifting tool
+        // to pay off without a stop (physics review, 29 Oct 2026).
+        { op: 'defectMult', pattern: 'underlayer_attack', mult: 1.85 },
+        // ×1.85 × 0.568 ≈ ×1.05 on a stop, the same as the plain card.
+        { op: 'defectMult', pattern: 'underlayer_attack', mult: 0.568, when: { flag: 'etch_stop' } },
       ],
-      tradeoff: 'Still attacks the film below, but less: the DOE found the shortest over-etch that still clears. On an etch stop, the same as the plain card.',
+      tradeoff: 'Still attacks the film below, but less: the DOE found the shortest over-etch that still clears. Without a stop it still pays only when the etch rate has drifted down. On an etch stop, the same as the plain card.',
       physicsNote: 'A designed experiment across over-etch times finds where residue is gone but punch-through has barely started, so less extra time is needed for the same clearing.',
     },
-    tradeoff: 'Clears residue but attacks the film below, much less if an etch stop is there.',
-    physicsNote: 'Extra etch time removes what is left in slow spots and keeps etching wherever the film has already cleared. Selectivity to the underlayer sets how much damage that does.' },
+    tradeoff: 'Clears residue but attacks the film below, much less if an etch stop is there. Without a stop, it pays when the etch-rate chart shows the rate falling; on a steady tool the attack costs about what it saves.',
+    physicsNote: 'Extra etch time removes what is left in slow spots and keeps etching wherever the film has already cleared. Selectivity to the underlayer sets how much damage that does. A centred recipe already has its over-etch; extra time pays when the rate has drifted down and a timed etch leaves film behind.' },
 
   { id: 'measureAll', draft: true, kind: 'practice', room: 'metro', rarity: 'standard',
     name: 'Measure all 25 sites', unlockedBy: null,
@@ -491,38 +496,6 @@ export const PRACTICES = [
       physicsNote: 'A DOE on how many past lots to average and how hard to correct finds a steadier correction. Averaging more lots separates a real shift from noise, but takes more time to gather and check.' },
     tradeoff: 'Moves the dose toward target using the line widths of recent lots, but it does not measure this lot, so it only fixes a steady shift, not scatter, and it costs minutes and money.',
     physicsNote: 'Printed size follows dose: in a positive resist, resist lines get narrower and exposed trenches get wider as dose rises. A steady shift seen on the SPC chart can be undone with a small dose change, but adjusting for random scatter makes the spread larger, not smaller. Measuring a send-ahead wafer is the better check.' },
-
-  { id: 'waferPrewet', draft: true, kind: 'practice', room: 'plate', rarity: 'standard',
-    name: 'Wafer pre-wet', unlockedBy: null,
-    cost: { time: 4 },
-    effects: [
-      { op: 'defectMult', pattern: 'void', mult: 0.8 },
-      { op: 'defectMult', pattern: 'particles', mult: 1.1 },
-    ],
-    upgrade: { name: 'Wafer pre-wet, DOE-tuned', cost: { time: 5 },
-      effects: [
-        { op: 'defectMult', pattern: 'void', mult: 0.75 },
-        { op: 'defectMult', pattern: 'particles', mult: 1.15 },
-      ],
-      tradeoff: 'Gas clears better with a longer, deeper-vacuum wet, but it takes more time and more handling in the wet cell.',
-      physicsNote: 'A DOE on vacuum level and wet time finds a better way to clear gas from narrow features, but a longer wet and more transfers add handling particles and time in the cell.' },
-    tradeoff: 'Wets narrow features so liquid reaches the bottom, but it takes minutes the plating room needs, so a long low-current start may no longer fit, and it adds an extra wet transfer.',
-    physicsNote: 'A dry seed surface and gas in narrow features keep the plating solution and its additives from reaching the bottom, so bottom-up fill starts late and the mouth can close first. Wetting under vacuum first lets liquid reach the bottom, so fill starts evenly.' },
-
-  { id: 'padBreakIn', draft: true, kind: 'practice', room: 'cmp', rarity: 'standard',
-    name: 'Condition the pad before the lot', unlockedBy: null,
-    cost: { time: 3, cash: 20 },
-    effects: [
-      { op: 'defectMult', pattern: 'rr_drift', mult: 0.8 },
-    ],
-    upgrade: { name: 'Condition the pad before the lot, DOE-tuned', cost: { time: 4, cash: 20 },
-      effects: [
-        { op: 'defectMult', pattern: 'rr_drift', mult: 0.7 },
-      ],
-      tradeoff: 'A steadier removal rate with a longer conditioning sweep and more dummy wafers, but it uses more pad life, dummy wafers and minutes.',
-      physicsNote: 'A DOE on the number of dummy wafers and the conditioning force finds a steadier surface; each extra pass also grinds more off the pad.' },
-    tradeoff: 'A steadier removal rate at the start, but it spends minutes, dummy wafers and pad life (the 20 cash).',
-    physicsNote: 'A fresh or glazed pad polishes at a different rate than a conditioned one (its Preston coefficient differs). A conditioning sweep, then a few dummy wafers, roughens the pad surface to a steady state before product, at the cost of pad life and dummy wafers.' },
 ];
 
 // ---------------------------------------------------------------------------

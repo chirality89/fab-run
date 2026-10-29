@@ -74,6 +74,13 @@ const resumedNote = page => page.locator('.resumed-note');
 const etchCard = page => page.locator('.card-button', { hasText: 'Timed over-etch' });
 const timeText = page => page.locator('.time-panel .meter-text');
 
+// Rooms with nothing to play (plating, CMP and metrology on a starter deck)
+// run by themselves and open on their result, so press Run only if it is there.
+async function runUnlessItRanByItself(page) {
+  await page.locator('.run-button, .skipped-text').first().waitFor();
+  if (await page.locator('.skipped-text').count() === 0) await pressAfterChange(page, runButton(page));
+}
+
 // From the door, into the etch room (step 4), running steps 1–3 doing nothing.
 async function walkToEtch(page) {
   await page.goto(PAGE);
@@ -145,7 +152,7 @@ test('reload at a quiet side stop shows that stop again, with its Continue', asy
   await page.goto(`/?seed=${seed}`);
   await press(page, goButton(page));                                     // Enter step 1
   for (let step = 1; step <= LAST_CORRIDOR + 1; step++) {
-    await pressAfterChange(page, runButton(page));
+    await runUnlessItRanByItself(page);
     await pressAfterChange(page, button(page, 'Continue to the corridor'));
     if (step <= LAST_CORRIDOR) await pressAfterChange(page, goButton(page)); // straight on
   }

@@ -58,7 +58,7 @@ test('room header: etch, step 4 of 9, seed shown equals the run seed', () => {
   assert.equal(view.budget, 8);
   assert.equal(view.toolHealth, 100);
   assert.equal(view.scrapLine, 40);
-  assert.equal(view.spec, 70);
+  assert.equal(view.spec, 68);
 });
 
 test('starter deck: hand is timed over-etch only, playable; etch slots empty', () => {
@@ -90,12 +90,12 @@ test('25 sites, each in 0..1 with a band', () => {
   }
 });
 
-test('site bands: 90% and up pass, 70% to under 90% warn, below 70% fail', () => {
+test('site bands: 90% and up pass, 68% to under 90% warn, below 68% fail', () => {
   assert.equal(siteBand(0.95), 'pass');
   assert.equal(siteBand(0.90), 'pass');
   assert.equal(siteBand(0.80), 'warn');
-  assert.equal(siteBand(0.70), 'warn');
-  assert.equal(siteBand(0.69), 'fail');
+  assert.equal(siteBand(0.68), 'warn');
+  assert.equal(siteBand(0.67), 'fail');
 });
 
 test('parseSeed: digits give that seed, anything else the fallback', () => {
@@ -113,8 +113,8 @@ test('whyIllegal says "its condition is not met" for endpoint etch without the d
 });
 
 test('yield band uses the raw fraction, not the rounded percent', () => {
-  assert.equal(yieldBand(0.70), 'ok');
-  assert.equal(yieldBand(0.6996), 'warn', 'shows as 70.0% but is below the spec');
+  assert.equal(yieldBand(0.68), 'ok');
+  assert.equal(yieldBand(0.6796), 'warn', 'shows as 68.0% but is below the spec');
   assert.equal(yieldBand(0.40), 'warn');
   assert.equal(yieldBand(0.3996), 'bad', 'shows as 40.0% but is below the scrap line');
   const view = roomView(idleToEtch());
@@ -127,14 +127,14 @@ test('site band agrees with the printed percent', () => {
   // 26 Oct 2026): the band follows the printed number either way.
   assert.equal(siteBand(0.8999), 'pass', 'prints 90');
   assert.equal(siteBand(0.8949), 'warn', 'prints 89');
-  assert.equal(siteBand(0.6999), 'warn', 'prints 70');
-  assert.equal(siteBand(0.6949), 'fail', 'prints 69');
+  assert.equal(siteBand(0.6799), 'warn', 'prints 68');
+  assert.equal(siteBand(0.6749), 'fail', 'prints 67');
   assert.equal(siteView(0.285).percent, 29, '28.5 rounds up, despite 0.285 × 100 = 28.4999…');
 });
 
 test('wafer map legend is built from the balance numbers', () => {
   assert.equal(roomView(idleToEtch()).mapKeyText,
-    'Each site: % of this die position expected good across the lot. Pass 90%+, warning 70–89%, fail under 70%.');
+    'Each site: % of this die position expected good across the lot. Pass 90%+, warning 68–89%, fail under 68%.');
 });
 
 // --- M2 item 2: playing a card and running the room ---------------------
@@ -148,11 +148,14 @@ test('playing timed over-etch: 4 of 8 min left, card leaves the hand', () => {
   assert.deepEqual(view.hand, []);
 });
 
-test('playing timed over-etch: expected loss drops from 11.9 to 11.1 points', () => {
+// Hand check (independent python model, 29 Oct 2026): with underlayer ×2
+// and a tool that is not drifting (drift off here), the over-etch costs a
+// little more than it saves: 11.8893 → 12.0068 points.
+test('playing timed over-etch on a steady tool: expected loss rises from 11.9 to 12.0 points', () => {
   const view = roomView(playCard(idleToEtch(), 'timedOveretch'));
-  assert.ok(Math.abs(view.expectedLossPoints - 11.1214) < 1e-4,
-    `expected loss: got ${view.expectedLossPoints}, expected 11.1214 (seed ${SEED})`);
-  assert.equal(view.expectedLossText, 'This room will cost about 11.1 points of yield if nothing changes.');
+  assert.ok(Math.abs(view.expectedLossPoints - 12.0068) < 1e-4,
+    `expected loss: got ${view.expectedLossPoints}, expected 12.0068 (seed ${SEED})`);
+  assert.equal(view.expectedLossText, 'This room will cost about 12.0 points of yield if nothing changes.');
 });
 
 test('run etch with nothing played: 95.9% -> 84.0%, 11.9 points lost', () => {
@@ -168,12 +171,12 @@ test('run etch with nothing played: 95.9% -> 84.0%, 11.9 points lost', () => {
   assert.equal(view.sites.length, 25);
 });
 
-test('run etch after timed over-etch: 95.9% -> 84.8%, 11.1 points lost', () => {
+test('run etch after timed over-etch: 95.9% -> 83.9%, 12.0 points lost', () => {
   const before = playCard(idleToEtch(), 'timedOveretch');
   const view = resultView(before, resolveStep(before));
-  assert.equal(view.yieldAfterPercent, 84.8, `seed ${SEED}`);
-  close(view.yieldAfterFraction, 0.847656, 'yield after etch, over-etch');
-  assert.equal(view.lossText, 'This room cost 11.1 points of yield.');
+  assert.equal(view.yieldAfterPercent, 83.9, `seed ${SEED}`);
+  close(view.yieldAfterFraction, 0.838802, 'yield after etch, over-etch');
+  assert.equal(view.lossText, 'This room cost 12.0 points of yield.');
 });
 
 test('resultView names the scrap when the lot dies', () => {
@@ -400,15 +403,15 @@ test('eventView: consequences in words, tool health said as a service, Q-time wa
 
 // --- M4.5 item 5: effects shown before you commit -------------------------
 // Hand check: on seed 123456 the etch forecast is 11.8893 points with
-// nothing played and 11.1214 after timed over-etch (tests above), so
-// playing it saves 11.8893 − 11.1214 = 0.7679 points.
+// nothing played and 12.0068 after timed over-etch (tests above), so on
+// this steady tool playing it costs 11.8893 − 12.0068 = −0.1175 points.
 
-test('a card in the hand shows its effects and how much it saves in this room', () => {
+test('a card in the hand shows its effects and how much it saves or costs in this room', () => {
   const [card] = roomView(idleToEtch()).hand;
   assert.equal(card.id, 'timedOveretch', `seed ${SEED}`);
-  assert.equal(card.effectsText, 'residue ×0.3 · underlayer attack ×1.5 · underlayer attack ×0.7 with etch stop');
-  assert.ok(Math.abs(card.pointsChange - 0.7679) < 1e-4, `points change: got ${card.pointsChange} (seed ${SEED})`);
-  assert.equal(card.pointsText, 'About 0.8 points less lost in this room.');
+  assert.equal(card.effectsText, 'residue ×0.3 · underlayer attack ×2 · underlayer attack ×0.525 with etch stop');
+  assert.ok(Math.abs(card.pointsChange - (-0.1175)) < 1e-4, `points change: got ${card.pointsChange} (seed ${SEED})`);
+  assert.equal(card.pointsText, 'About 0.1 points more lost in this room.');
 });
 
 test('an unplayable card shows its effects but no points line', () => {
@@ -556,10 +559,11 @@ test('result: the etch tool at health 60 cost 2.0380 of 13.7950 points, said in 
   assert.equal(view.driftText, "Of this, about 2.0 points came from the Etch tool's drift (see its SPC chart).");
 });
 
-test('result: over-etch cuts the drift share too (0.6189 points), a healthy tool has no drift line', () => {
+test('result: over-etch cuts the drift share too (0.6158 points), a healthy tool has no drift line', () => {
   const before = playCard(idleToEtch({ startingHealth: { etch: 60 } }), 'timedOveretch');
   const view = resultView(before, resolveStep(before));
-  assert.ok(Math.abs(view.driftPoints - 0.6189) < 1e-4, `drift: got ${view.driftPoints}, expected 0.6189 (seed ${SEED})`);
+  // 0.6158: independent python model, 29 Oct 2026 (0.6189 with underlayer ×1.5)
+  assert.ok(Math.abs(view.driftPoints - 0.6158) < 1e-4, `drift: got ${view.driftPoints}, expected 0.6158 (seed ${SEED})`);
   const healthy = idleToEtch();
   assert.equal(healthy.room.driftShare, null);
   assert.equal(resultView(healthy, resolveStep(healthy)).driftText, null);

@@ -46,7 +46,7 @@ Items are Lane F issue numbers (`docs/playtest/summary.md`) and physics-review c
 - [x] SPC flags that predict, and a flagged tool that costs more (issue 4; David, 27 Oct 2026: keep the numbers and show the drift cost after each room)
 - [x] Show card and shop item effects before you commit (issue 6); placeholder stops stop charging for nothing (issue 5)
 - [ ] Diagnosis explains itself and offers only failure modes that could have been there (issue 2)
-- [ ] A real decision in every room (issue 3; David: starter practices in most rooms (Lane C) and skip the hand screen when there is nothing to play (Lane A))
+- [x] A real decision in every room (issue 3; David: starter practices in most rooms (Lane C) and skip the hand screen when there is nothing to play (Lane A))
 - [ ] Phone layout and run-ending buttons (issues 8, 17); small fixes (issues 9, 10, 13, 14, 15, 16)
 - [ ] Words page: about 15 game and fab terms in plain sentences, data in `src/content/glossary.js` (`content-drafter`, `physics-reviewer`, then David), opened like the Notebook (issue 16; David, 26 Oct 2026: its own item)
 - [ ] Physics-review fixes (David's calls, 26 Oct 2026): SPC trend rule and verdicts by rule; Q-time as moisture uptake; T-top only with a CAR resist; slurry, audit and gauge rewording; etch forecast says what is carried in from the stack
