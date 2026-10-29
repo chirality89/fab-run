@@ -512,6 +512,19 @@ export const EQUIPMENT = [
     tradeoff: 'Expensive, and only helps when there is a clear film change to detect.',
     physicsNote: 'Endpoint works on a signal change; a small open area or no material change gives a weak signal.' },
 
+  // A cheap first-tier etch fix for a first run (David, 29 Oct 2026: etch was
+  // the wall, and every other etch remedy is unlocked by the notebook). Weaker
+  // than the endpoint detector (depth variation ×0.7 for 600) and with a real cost.
+  { id: 'gasFlowTrim', draft: true, kind: 'equipment', room: 'etch', rarity: 'standard',
+    name: 'Radial gas-flow trim', unlockedBy: null,
+    cost: { cash: 200 },
+    effects: [
+      { op: 'defectMult', pattern: 'depth_variation', mult: 0.75 },
+      { op: 'defectMult', pattern: 'edge_ring', mult: 1.25 },
+    ],
+    tradeoff: 'Sends more gas to the center to even the etch depth, but the rim then gets a different gas mix, so edge profiles shift and the outer ring of sites fails a little more. Cheap, but weaker than an endpoint detector.',
+    physicsNote: 'Etch rate often varies across the wafer: the reactive gas is used up on its way to the center, while the edge gets fresh gas from outside the wafer. Shifting more gas to the center evens the rate, and so the depth. Gas flow sets the chemistry, not the angle the ions arrive at, and at the rim the plasma and temperature already differ most, so matching the rate there shifts the sidewall profile at the edge.' },
+
   { id: 'inlineMetrology', draft: true, kind: 'equipment', room: 'metro', rarity: 'advanced',
     name: 'Inline metrology', unlockedBy: null,
     cost: { cash: 500 },

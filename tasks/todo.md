@@ -11,6 +11,37 @@ Finished plans (M0 to M4.5 item 4) are in `docs/archive/todo-done.md`. The curre
 **David's answer: a quarter, not a third.** Applied: residue 0.021, underlayer attack 0.016, edge ring 0.016, depth variation 0.042 (the quarter version, tested the same way: no target fails at spec 70%); spec back to 70%. Result, `exit-check` seeds 1–100, all 7 targets PASS: starter idle 5% ship (mean 52.8), random 4% (54.7), casual 29% (65.0), smart 50% (68.5), smart beats idle by 15.7 points; full-deck smart 98% (81.6), 28.8 points over idle. 27 tests moved; every new value came from `etchmodel.py`-style independent python model that first reproduced every old value (idle 0.701678, forecast 11.8893, stop 7.7630 / 0.881240, over-etch on a stop 6.0471 / 0.898399, detector 0.854045, route-only 0.690471, drift 13.7950 / 2.0380 / 0.6158). New values: idle run 0.723578 (ships at 70%); etch forecast 9.2677, over-etch 9.3802, after etch 0.866193 / 0.865068; stop 6.0742 / 0.898128, stop + over-etch 4.7660 / 0.911209; detector 0.877082; route-only 0.754274 / 0.734732 / 0.698025 / 0.712021; health-60 etch 11.2329 / 2.0689 / 0.6252; DOE ratio 1.002403. One value (drift share 0.522179) sits between the exact 0.522180 and the engine's erf approximation 0.5221785.
 **Tests that moved (was "Tests that move"):** the idle-run and etch values in `lot`, `lotTypes`, `run`, `events`, `tools`, `doe`, `resolve`, `view`; the 68% view tests go back to 70. Every new value would be computed by the independent python model first and listed here for David before any test is edited.
 
+### Next stage plan (proposal, 29 Oct 2026) — waiting for David's OK
+**Goal:** a build David can hand to 2–3 real people, who can ship a lot and say why they lost one. M4.5 is mostly done; what is left decides whether a stranger understands the game. NMOS and modifiers (M5) wait until that gate passes.
+
+**Order (one item per session, each planned in this file first):**
+1. **Diagnosis you can read off the screen** (M4.5 issue 2, part 2; also a diagnosable failure mode for depth variation). The engine part is done (decoys only from causes that could have happened; "which step lost the lot"). Left: failure-mode signatures that name evidence the screen shows (keyhole void, dishing, underlayer attack cite line widths and cross-sections nothing displays), a right answer that unlocks something the player does not already own, and a short "what to do instead". `content-drafter` then `physics-reviewer`, then David. Test: for each failure mode, the evidence its signature names is on a screen.
+2. **Phone layout and run-ending buttons** (issues 8, 17) and **small fixes** (9, 10, 13, 14, 15, 16 as still open). Scrap and Replay away from the main button, PM buttons that differ, the main button above the fold on a phone. Screens only, no engine. Playwright at 375 px, looked at by eye.
+3. **Words page** (`glossary.js`, about 15 terms: lot, PM, DOE, CMP, CD, SPC, Q-time, yield, spec, scrap line...), opened like the Notebook. `content-drafter`, `physics-reviewer`, then David.
+4. **Physics-review wording fixes** David already decided (26 Oct): Q-time as moisture uptake, T-top only with a CAR resist, slurry "signed engineering deviation", audit "wet bench past its bath-change interval", gauge text. Data and text only, reviewed by `physics-reviewer`.
+5. **Gate (P5 of `tasks/plan-winnable.md`).** `playtester`, then the five `persona-*` agents on seeds 123456, 42, 777 (they write only `docs/playtest/`), then 2–3 real people play one run each while David watches without helping. Pass: the exit test in `tasks/next-stages.md` (at least one persona ships by a path they can explain; best and worst strategy differ by over 10 points; do-nothing fails; nobody guesses the diagnosis by elimination). Fail: back to balance with the per-room table (see the 29 Oct lesson).
+6. **Then M5** (modifiers, random lot type, NMOS).
+
+**From the physics review of the gas-flow trim (29 Oct 2026), for David:**
+- The trim's edge cost is real but always smaller than its depth gain (median +0.35 yield points, never loses), so it is an honest cash-for-yield purchase (200 of 1,500 cash), not a decision that can go wrong. Accepted as the cheap first-tier fix; a lot modifier that raises edge ring (M5) would let the cost bite.
+- `oesEndpoint` (depth variation ×0.7) may teach that an endpoint signal fixes the center-to-edge spread; an endpoint corrects the whole-wafer mean depth from run to run. Reword or re-aim at David's call (physics, so yours).
+- No failure mode has `pattern: 'depth_variation'`, so that loss cannot be diagnosed into the notebook (rule 6). Added to item 1, the diagnosis work.
+
+**Housekeeping (small, before item 1):**
+- Open PR #26 (NMOS, data only): it edits `lotTypes.js` and `content.js`, which this work also changed. Merge `main` into it locally, run `npm test` and `npm run screens`, then merge. (It is not needed for the gate; it could wait for M5.)
+- PR #27 (setup tidy: hooks, agent models) and PR #21 (native-oxide label, probably already on `main` through PR #20): check and merge or close.
+
+**Left out on purpose:**
+- The round 21-site wafer map moves every yield test and is cosmetic: M6, or a view-only change. (Proposed 28 Oct; needs David's yes.)
+- Item art, inspect view, card motion: after M5.
+
+**Decisions for David:**
+1. Is this order right, or should the Words page or the phone layout come first (for example if the first playtesters use phones)?
+2. OK to defer the round wafer map to M6?
+3. Merge PR #26 (NMOS) now, or leave it until M5?
+4. Who are the 2–3 real playtesters, and when?
+
+
 ### Task: M4.5 "A real decision in every room" (issue 3), plan approved 28 Oct 2026
 Most of it was already built on `claude/winnable-p0-p1` (P1 bots, P2 starter practices and skipped rooms); this session brings that in and closes the gaps.
 - [x] 1. Fast-forward this branch to `claude/winnable-p0-p1`; plan copied here
