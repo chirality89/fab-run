@@ -7,7 +7,7 @@ import { TOOL_MONITORS } from '../content/toolMonitors.js';
 import { LOT_TYPES } from '../content/lotTypes.js';
 import { STARTING_CASH, SCRAP_LINE, CUSTOMER_SPEC, LOT_BASE_COST } from '../content/balance.js';
 import { lotYield } from '../engine/lot.js';
-import { diagnosisFor, findFailureMode, inNotebook, emptyNotebook } from '../engine/notebook.js';
+import { diagnosisFor, findFailureMode, inNotebook, emptyNotebook, stepsThatLost } from '../engine/notebook.js';
 import { spcView } from './spcView.js';
 import { modeName } from './notebookView.js';   // failure-mode names, shared with the Notebook page
 import { toPercent, siteView, mapKeyText } from './view.js';
@@ -101,6 +101,17 @@ function resultText(result) {
     + 'It is not written in your notebook: diagnose it on a later run to earn it.';
 }
 
+// After a guess: where the right answer cost yield, and how to spot it.
+// `mode` is the failure mode that did hurt the lot (the one named if right,
+// the revealed one if wrong).
+function evidenceText(state, mode) {
+  const steps = stepsThatLost(state, mode.pattern);
+  const lost = steps.reduce((sum, step) => sum + step.points, 0);
+  const where = steps.map(step => `${ROOMS[step.roomId].name}, step ${step.stepIndex + 1} (${step.points.toFixed(1)} points)`).join('; ');
+  const cost = steps.length > 0 ? `It cost ${lost.toFixed(1)} yield points: ${where}. ` : '';
+  return `${cost}How to spot it: ${mode.sig}`;
+}
+
 // The Diagnose panel. Before a guess: the choices. After: what happened.
 // `result` is null until the player names a failure mode; after that the
 // panel only shows what happened, so the notebook is not read again.
@@ -111,6 +122,7 @@ function diagnoseView(state, notebook, result) {
     return {
       state: 'done',
       text: resultText(result),
+      evidence: evidenceText(state, result.correct ? mode : findFailureMode(result.revealedId)),
       correct: result.correct,
       earned,
       unlocks: earned ? unlockNames(mode) : [],

@@ -7,10 +7,11 @@ import { test } from 'node:test';
 import { TOOL_MONITORS } from '../src/content/toolMonitors.js';
 import assert from 'node:assert/strict';
 import {
-  ROOMS, PATTERNS, PRACTICES, EQUIPMENT, MATERIALS, CONSUMABLES,
+  ROOMS, PATTERNS, PRACTICES, EQUIPMENT, MATERIALS, CONSUMABLES, FAILURE_MODES,
 } from '../src/content/content.js';
 import { LOT_TYPES } from '../src/content/lotTypes.js';
 import { createLot, addRisk, realizeRisks, lotYield } from '../src/engine/lot.js';
+import { playRun } from '../tools/bot.js';
 
 const TOLERANCE = 1e-6;
 const close = (actual, expected, label) =>
@@ -25,9 +26,13 @@ const ring = i => Math.max(Math.abs(Math.floor(i / 5) - 2), Math.abs((i % 5) - 2
 // referenced by when: { lot } too, but a lot type must not list them.
 const DYNAMIC_TRAITS = new Set(['delayBeforeBake', 'lastStepWasLitho', 'rightPartChosen']);
 
-// Every trait named by a when: { lot } in content, on an item or one of its effects.
+// Every trait named by a when: { lot } in content, on an item or one of its
+// effects, or on a failure mode (which limits a right diagnosis to that lot).
 function lotTraitsUsedInContent() {
   const traits = new Set();
+  for (const failureMode of FAILURE_MODES) {
+    if (failureMode.when?.lot) traits.add(failureMode.when.lot);
+  }
   for (const item of [...PRACTICES, ...EQUIPMENT, ...MATERIALS, ...CONSUMABLES]) {
     if (item.when?.lot) traits.add(item.when.lot);
     for (const effect of item.effects ?? []) {
@@ -122,11 +127,49 @@ test('traits are static traits that content checks with when: { lot }', () => {
   }
 });
 
-test('cuLine doing nothing: center 0.657047, inner 0.625002, outer 0.567295, yield 0.589352', () => {
+// Values from an independent python model of the route (29 Oct 2026, after
+// etch's own risks and its carried-in depth variation were cut by a quarter);
+// the same model first gave the previous 0.745276 / 0.719643 / 0.672460 / 0.690471.
+test('cuLine route risks alone (adds and realizes, no step effects): center 0.754274, inner 0.734732, outer 0.698025, yield 0.712021', () => {
   const lot = walkRouteDoingNothing(LOT_TYPES.cuLine);
-  const byRing = [0.657047, 0.625002, 0.567295];
+  const byRing = [0.754274, 0.734732, 0.698025];
   lot.sites.forEach((s, i) => close(s, byRing[ring(i)], `site ${i}`));
-  close(lotYield(lot), 0.589352, 'yield');
+  close(lotYield(lot), 0.712021, 'yield');
+});
+
+// NMOS has no center-to-edge pattern (no depth_variation), so center and
+// inner sites match; only the edge ring sets the outer sites apart.
+test('nmos doing nothing: center 0.565525, inner 0.565525, outer 0.514917, yield 0.533136', () => {
+  const lot = walkRouteDoingNothing(LOT_TYPES.nmos);
+  const byRing = [0.565525, 0.565525, 0.514917];
+  lot.sites.forEach((s, i) => close(s, byRing[ring(i)], `site ${i}`));
+  close(lotYield(lot), 0.533136, 'yield');
+});
+
+// The NMOS lot is not offered on screen yet, so the bot plays it through
+// the engine: every room, card, shop and event must work on its route.
+test('nmos runs to the end: seeds 1–20 x {idle, random} x {starter, full}, all numbers finite', () => {
+  const numbersIn = (value, path, found = []) => {
+    if (typeof value === 'number') found.push({ path, value });
+    else if (value && typeof value === 'object') {
+      for (const [key, child] of Object.entries(value)) numbersIn(child, `${path}.${key}`, found);
+    }
+    return found;
+  };
+  for (let seed = 1; seed <= 20; seed++) {
+    for (const policy of ['idle', 'random']) {
+      for (const deck of ['starter', 'full']) {
+        const label = `nmos seed ${seed}, ${policy}, ${deck} deck`;
+        const { state, summary } = playRun(seed, policy, { deck, lotTypeId: 'nmos' });
+        assert.equal(state.lotTypeId, 'nmos', label);
+        assert.notEqual(state.status, 'running', `${label}: run did not finish`);
+        for (const { path, value } of numbersIn(state, 'state')) {
+          assert.ok(Number.isFinite(value), `${label}: ${path} is ${value}`);
+        }
+        assert.ok(summary.yield >= 0 && summary.yield <= 1, `${label}: yield ${summary.yield}`);
+      }
+    }
+  }
 });
 
 test('a Q-time step names a known pattern that a later step realizes', () => {
@@ -141,6 +184,7 @@ test('a Q-time step names a known pattern that a later step realizes', () => {
     });
   }
   assert.equal(LOT_TYPES.cuLine.route[4].qtime, 'qtime_oxide', 'the Cu line Q-time window is after step 5');
+  assert.equal(LOT_TYPES.nmos.route[5].qtime, 'qtime_oxide', 'the NMOS Q-time window is after step 6 (pre-gate clean)');
 });
 
 // A route step's own effects (M4.5 item 3) use the same operations as

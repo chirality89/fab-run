@@ -6,9 +6,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { playRun } from '../tools/bot.js';
+import { checkTargets, runPolicy } from '../tools/exit-check.js';
+import { smartCorridor } from '../tools/smartBot.js';
+import { createRun, enterStep, resolveStep, walkCorridor } from '../src/engine/run.js';
 
 const SEEDS = Array.from({ length: 50 }, (_, i) => i + 1);
-const POLICIES = ['idle', 'random'];
+const POLICIES = ['idle', 'random', 'casual', 'smart'];
+const SLOW_POLICIES = ['casual', 'smart'];
 const DECKS = ['starter', 'full'];
 
 // Every number anywhere inside a value, with the path to it (e.g. "lot.sites.3").
@@ -20,9 +24,12 @@ function numbersIn(value, path = 'state', found = []) {
   return found;
 }
 
-test('seeds 1–50 × {idle, random} × {starter, full}: no exception, all numbers finite, yield 0..1, buying never below 0 cash', () => {
+test('seeds 1–50 × {idle, random} and 1–5 × {casual, smart}, × × {starter, full}: no exception, all numbers finite, yield 0..1, buying never below 0 cash', () => {
   for (const seed of SEEDS) {
     for (const policy of POLICIES) {
+      // The smart policies try every option on imagined copies of the run, so they
+      // are slow: fewer seeds (David, 28 Oct 2026). exit-check covers 100 seeds.
+      if (SLOW_POLICIES.includes(policy) && seed > 5) continue;
       for (const deck of DECKS) {
         const label = `seed ${seed}, ${policy}, ${deck} deck`;
         const { state, summary } = playRun(seed, policy, { deck });
@@ -63,4 +70,66 @@ test('the random bot actually plays cards, and the idle bot plays none', () => {
 
 test('an unknown policy throws', () => {
   assert.throws(() => playRun(1, 'greedy'), /greedy/);
+});
+
+test('the smart bot beats the idle bot on average (full deck, seeds 1–10)', () => {
+  const idle = runPolicy('idle', 10, 'full');
+  const smart = runPolicy('smart', 10, 'full');
+  assert.ok(smart.mean > idle.mean + 5, `smart ${smart.mean.toFixed(1)} vs idle ${idle.mean.toFixed(1)}`);
+});
+
+test('the casual bot lands between idle and smart (full deck, seeds 1–10)', () => {
+  const idle = runPolicy('idle', 10, 'full');
+  const casual = runPolicy('casual', 10, 'full');
+  const smart = runPolicy('smart', 10, 'full');
+  assert.ok(casual.mean > idle.mean && casual.mean < smart.mean,
+    `idle ${idle.mean.toFixed(1)}, casual ${casual.mean.toFixed(1)}, smart ${smart.mean.toFixed(1)}`);
+});
+
+// A player picks a side stop by its kind only: what is inside (shop stock,
+// event, DOE offers) comes from the run's seed, and a PM's restore roll from
+// the tools' generator. So two runs that differ only in those hidden dice
+// must get the same choice of stop from the smart bot. On these seeds the
+// old bot, which opened each stop to look inside, chose differently in at
+// least one corridor (18, 19, 20 and 28; checked 28 Oct 2026).
+test('the smart bot picks a side stop without seeing what is inside it (seeds 18, 19, 20, 28, every corridor)', () => {
+  let compared = 0;
+  for (const seed of [18, 19, 20, 28]) {
+    let state = createRun({ seed });
+    while (state.status === 'running') {
+      if (state.room !== null) state = resolveStep(state);
+      else if (state.corridor === null) state = enterStep(state);
+      else {
+        if (state.map[state.corridor].offers.length > 0) {
+          const choice = smartCorridor(state, 0, 1).stopKind;
+          for (const other of [5000, 7000, 9000]) {
+            const otherDice = { ...state, seed: seed + other, toolRngState: seed + other + 1 };
+            const choiceWithOtherDice = smartCorridor(otherDice, 0, 1).stopKind;
+            assert.equal(choiceWithOtherDice, choice,
+              `seed ${seed}, corridor ${state.corridor}: chose ${choice}, but ${choiceWithOtherDice} with other hidden dice`);
+          }
+          compared += 1;
+        }
+        state = walkCorridor(state, null);   // go straight on to the next room
+      }
+    }
+  }
+  assert.ok(compared > 0, 'no corridor offered a stop, so nothing was compared');
+});
+
+test('exit-check: targets pass on good numbers and fail on bad ones', () => {
+  const result = (shipRate, mean) => ({ shipRate, mean });
+  const good = checkTargets({
+    idle: result(0, 52), random: result(0.02, 55), casual: result(0.1, 62), smart: result(0.5, 70), smartFull: result(0.95, 85),
+  });
+  assert.ok(good.every(check => check.ok), good.map(check => check.text).join('; '));
+  const bad = checkTargets({
+    idle: result(0, 52), random: result(0.02, 55), casual: result(0.1, 62), smart: result(0, 63), smartFull: result(0.95, 85),
+  });
+  assert.equal(bad.filter(check => !check.ok).length, 1);   // only the smart starter-deck ship rate
+  const narrow = checkTargets({
+    idle: result(0, 61), random: result(0.02, 61), casual: result(0.2, 68), smart: result(0.5, 69.5), smartFull: result(1, 82),
+  });
+  assert.deepEqual(narrow.filter(check => !check.ok).map(check => check.text),
+    ['smart (starter deck) beats idle by 8.5 points (target over 10)']);   // only the first-run spread
 });

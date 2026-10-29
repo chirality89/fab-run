@@ -1,127 +1,116 @@
 # Fab Run — Task Tracker
 
-Open work only. Finished tasks (their plans, numbers and David's answers) are in `tasks/done.md`, newest first.
+Finished plans (M0 to M4.5 item 4) are in `docs/archive/todo-done.md`. The current plan is `tasks/plan-winnable.md`. Test comments that say "hand check in tasks/todo.md" point there.
 
-## Setup tidy (not a roadmap item; David OK'd the plan, 28 Oct 2026)
+## After the setup tidy (PR #27) merges
+- [ ] **Next session:** check that the transcript shows Sonnet turns after leaving plan mode (`opusplan` has an open report of staying on Opus), and that both hooks fire.
+- [ ] **Next playtest pass:** compare the Sonnet personas' reports with Lane F's Opus ones. Move a persona back to Opus if its report gets shallow.
 
-- [x] CLAUDE.md §0 status, §12 personas row, one place for agent models, hooks note
-- [x] Standing rules at the top of `lessons.md`; `PROJECT.md` step 1 reads those; finished tasks moved to `tasks/done.md`
-- [x] Hooks: commit blocked while `npm test` fails (`FABRUN_ALLOW_RED=1` to override when David says so); warning on `Math.random` or a hard-coded color in `src/`
-- [x] Permission allow list for routine commands
-- [x] `code-explainer` and four personas on Sonnet (`persona-fab-engineer` stays on Opus); shared persona rules in `docs/playtest/persona-rules.md`, printed by `drive.mjs <persona> rules`
-- [ ] **Next session:** check the transcript shows Sonnet turns after leaving plan mode (`opusplan` has an open report of staying on Opus), and that both hooks fire
-- [ ] **Next playtest pass:** compare the Sonnet personas' reports with Lane F's Opus ones; move a persona back to Opus if its report gets shallow
+## Current work
 
-**Decisions settled:** taken as the proposed defaults on David's go-ahead, 28 Oct 2026 (change any in review): hooks yes; fab engineer stays on Opus; finished tasks move to `tasks/done.md`.
+### Task: etch is too punishing on the first run (David's playtest, 29 Oct 2026) — DONE, David chose a quarter
+**Finding (seeds 1–100, idle, points lost per room):** clean 4.7, dep 3.7, litho 6.1, **etch 13.5**, clean 4.6, dep 5.4, plate 4.9, cmp 5.8. Etch by pattern: residue 5.3, depth variation 4.4, underlayer attack 1.7, edge ring 1.6, particles 0.6. The smart bot with the starter deck still loses 11.7 points in etch (of 33.0 total); every etch remedy (etch stop, endpoint detector, e-chuck) is unlocked by the notebook, so a first run has almost nothing to spend on it.
+**David's choice:** cut etch's base risks, balance only.
+**Proposal (scratch-tested, 60 seeds, nothing edited in the repo):** in `lotTypes.js`, etch step adds residue 0.028 → 0.019, underlayer attack 0.021 → 0.014, edge ring 0.021 → 0.014; start risk depth variation 0.056 → 0.038 (about a third each; particles and dishing unchanged). Then the spec goes back from 68% to 70% (the original), because lots end about 3 points higher. Exit-check: idle 5%, random 5%, casual 33%, smart 53% ship, full-deck smart 98%, every target passes. (Spec 68% with the cut makes idle 8%, random 12%, casual 45%: too easy. Spec 72% drops smart to 37%.)
+**David's answer: a quarter, not a third.** Applied: residue 0.021, underlayer attack 0.016, edge ring 0.016, depth variation 0.042 (the quarter version, tested the same way: no target fails at spec 70%); spec back to 70%. Result, `exit-check` seeds 1–100, all 7 targets PASS: starter idle 5% ship (mean 52.8), random 4% (54.7), casual 29% (65.0), smart 50% (68.5), smart beats idle by 15.7 points; full-deck smart 98% (81.6), 28.8 points over idle. 27 tests moved; every new value came from `etchmodel.py`-style independent python model that first reproduced every old value (idle 0.701678, forecast 11.8893, stop 7.7630 / 0.881240, over-etch on a stop 6.0471 / 0.898399, detector 0.854045, route-only 0.690471, drift 13.7950 / 2.0380 / 0.6158). New values: idle run 0.723578 (ships at 70%); etch forecast 9.2677, over-etch 9.3802, after etch 0.866193 / 0.865068; stop 6.0742 / 0.898128, stop + over-etch 4.7660 / 0.911209; detector 0.877082; route-only 0.754274 / 0.734732 / 0.698025 / 0.712021; health-60 etch 11.2329 / 2.0689 / 0.6252; DOE ratio 1.002403. One value (drift share 0.522179) sits between the exact 0.522180 and the engine's erf approximation 0.5221785.
+**Tests that moved (was "Tests that move"):** the idle-run and etch values in `lot`, `lotTypes`, `run`, `events`, `tools`, `doe`, `resolve`, `view`; the 68% view tests go back to 70. Every new value would be computed by the independent python model first and listed here for David before any test is edited.
 
-**Result:** PR `claude/setup-tidy`. `npm test` 264/264; no game code changed.
+### Next stage plan (proposal, 29 Oct 2026) — waiting for David's OK
+**Goal:** a build David can hand to 2–3 real people, who can ship a lot and say why they lost one. M4.5 is mostly done; what is left decides whether a stranger understands the game. NMOS and modifiers (M5) wait until that gate passes.
 
-## M4.5 items 1 and 2 — land the pending lane work (item 1, waits for PR #23 to merge); remove the fixed etch and litho yield tax (item 2, DONE 26 Oct 2026)
+**Order (one item per session, each planned in this file first):**
+1. **Diagnosis you can read off the screen** (M4.5 issue 2, part 2; also a diagnosable failure mode for depth variation). The engine part is done (decoys only from causes that could have happened; "which step lost the lot"). Left: failure-mode signatures that name evidence the screen shows (keyhole void, dishing, underlayer attack cite line widths and cross-sections nothing displays), a right answer that unlocks something the player does not already own, and a short "what to do instead". `content-drafter` then `physics-reviewer`, then David. Test: for each failure mode, the evidence its signature names is on a screen.
+2. **Phone layout and run-ending buttons** (issues 8, 17) and **small fixes** (9, 10, 13, 14, 15, 16 as still open). Scrap and Replay away from the main button, PM buttons that differ, the main button above the fold on a phone. Screens only, no engine. Playwright at 375 px, looked at by eye.
+3. **Words page** (`glossary.js`, about 15 terms: lot, PM, DOE, CMP, CD, SPC, Q-time, yield, spec, scrap line...), opened like the Notebook. `content-drafter`, `physics-reviewer`, then David.
+4. **Physics-review wording fixes** David already decided (26 Oct): Q-time as moisture uptake, T-top only with a CAR resist, slurry "signed engineering deviation", audit "wet bench past its bath-change interval", gauge text. Data and text only, reviewed by `physics-reviewer`.
+5. **Gate (P5 of `tasks/plan-winnable.md`).** `playtester`, then the five `persona-*` agents on seeds 123456, 42, 777 (they write only `docs/playtest/`), then 2–3 real people play one run each while David watches without helping. Pass: the exit test in `tasks/next-stages.md` (at least one persona ships by a path they can explain; best and worst strategy differ by over 10 points; do-nothing fails; nobody guesses the diagnosis by elimination). Fail: back to balance with the per-room table (see the 29 Oct lesson).
+6. **Then M5** (modifiers, random lot type, NMOS).
 
-**Status: David OK'd the plan and the test-value changes. Item 2 is built and verified: `npm test` 233/233, `npm run screens` 74/74, bot clean on 200 runs, `physics-reviewer` passed all four numbers. Item 1 is still to do.**
+**From the physics review of the gas-flow trim (29 Oct 2026), for David:**
+- The trim's edge cost is real but always smaller than its depth gain (median +0.35 yield points, never loses), so it is an honest cash-for-yield purchase (200 of 1,500 cash), not a decision that can go wrong. Accepted as the cheap first-tier fix; a lot modifier that raises edge ring (M5) would let the cost bite.
+- `oesEndpoint` (depth variation ×0.7) may teach that an endpoint signal fixes the center-to-edge spread; an endpoint corrects the whole-wafer mean depth from run to run. Reword or re-aim at David's call (physics, so yours).
+- No failure mode has `pattern: 'depth_variation'`, so that loss cannot be diagnosed into the notebook (rule 6). Added to item 1, the diagnosis work.
 
-**Item 2 done:** the five numbers are in `lotTypes.js`, the 15 test values were updated to the hand-computed ones in the table below, and `SAVE_VERSION` is 3 (`fabrun.run.v3`). One value not in the table: `view.test.js` run-etch yield band went from `warn` to `ok`, because the lot is now at 78.0% after etch, above the 70% spec. The reviewer's comment fix is in.
+**Housekeeping (small, before item 1):**
+- Open PR #26 (NMOS, data only): it edits `lotTypes.js` and `content.js`, which this work also changed. Merge `main` into it locally, run `npm test` and `npm run screens`, then merge. (It is not needed for the gate; it could wait for M5.)
+- PR #27 (setup tidy: hooks, agent models) and PR #21 (native-oxide label, probably already on `main` through PR #20): check and merge or close.
 
-**Open from the physics review (for David):** etch still shows about 0.19 landing (0.11 of its own + the latent depth variation 0.08 from the stack), against 0.04 at litho. That can teach "etch is the dirty step" when the cause is upstream. Either the etch screen labels it as carried in from the stack, or 0.08 gets a smaller size. Goes with the etch-stop item.
+**Left out on purpose:**
+- The round 21-site wafer map moves every yield test and is cosmetic: M6, or a view-only change. (Proposed 28 Oct; needs David's yes.)
+- Item art, inspect view, card motion: after M5.
 
-### M4.5 item 1 — bring Lane F's reports and Lane D's commit onto `main`
+**Decisions for David:**
+1. Is this order right, or should the Words page or the phone layout come first (for example if the first playtesters use phones)?
+2. OK to defer the round wafer map to M6?
+3. Merge PR #26 (NMOS) now, or leave it until M5?
+4. Who are the 2–3 real playtesters, and when?
 
-**What it is today**
-- `main` has neither. Lane F's playtest work is on `claude/lane-f-playtesting-tsdjsm` (7 commits, 223 files, docs only plus five persona agent files). Lane D's one commit (the "about 1 nm" native-oxide label on the pre-clean art plus its tracker) is on `claude/lane-d-look-feel-64k6zr`.
-- I test-merged both onto `main`: **no conflicts**. Neither touches `src/engine/` or the tests.
-- `origin/lane-f` is an older, smaller copy of Lane F (3 commits, an earlier `drive.mjs`). The newer branch contains the same work, so it is stale.
-- `lane-b`, `lane-c` and `model-routing` and `trim-project-md` have nothing that `main` lacks.
 
-**What you'll see after this item**
-- `docs/playtest/` on `main`: the five persona reports, the 15 run logs, `summary.md` (the ranked issues) and `physics-review.md`.
-- The five `persona-*` agents in `.claude/agents/`, so Lane F can rerun them after M4.5.
-- The native-oxide label in the pre-clean art.
+### Task: M4.5 "A real decision in every room" (issue 3), plan approved 28 Oct 2026
+Most of it was already built on `claude/winnable-p0-p1` (P1 bots, P2 starter practices and skipped rooms); this session brings that in and closes the gaps.
+- [x] 1. Fast-forward this branch to `claude/winnable-p0-p1`; plan copied here
+- [x] 2. Check: `npm test` 278 pass, `npm run screens` 78 pass (plating and etch phone shots look right), `exit-check` 100 seeds all PASS, no `Math.random`
+- [x] 3. Fair smart bot: side-stop kinds and PM choices are scored on 4 imagined runs with made-up dice (`tools/smartBot.js` `IMAGINED_SEEDS`), so it no longer sees a stop's contents or a PM's roll before choosing. (Correction to the plan: drift was not a leak; wear is a fixed amount per lot and scatter is off in the make-believe runs.)
+- [x] 4. exit-check target added (`minStarterSpreadPoints: 10`). **It fails: 8.5 points** (seeds 1–100). Waiting for David's choice of lever; nothing tuned.
+- [x] 5. Test in `tests/skip.test.js`: with the starter deck, every Cu-line room deals a playable practice except metrology (`ROOMS_THAT_RUN_THEMSELVES`). Checked it fails if CMP's card is taken out.
+- [x] 6. David's calls: `doseTrimSpc` stays a placeholder; `chamberPurge` ×1.1 fair; over-etch ×2 with the physics review's fixes; pre-wet and pad conditioning become route steps; balance option A (spec 0.68, `STARTING_HEALTH_MIN` 38, loosened idle/random/casual targets)
+- [x] 7. Checks done by hand (npm test 280 pass, npm run screens 78 pass, screenshots looked at, exit-check 100 seeds all PASS); lessons added; ROADMAP ticked. PR: ask David (check together with PR #26 first)
 
-**Steps**
-- [ ] Wait for PR #23 to merge. Then restart my branch from the new `main` (the same branch name, as the session rules say for a merged PR).
-- [ ] Merge the two lane branches into it as two merge commits, so each lane's history stays visible. No file edits.
-- [ ] Run `npm test` and `npm run screens` on the result (Lane D's change is an SVG, so the screen tests prove the art still loads).
-- [ ] Open one PR for David: "Land Lane F reports and Lane D label".
-- [ ] Do **not** delete any branch. I list the stale ones (`lane-f`, `lane-b`, `lane-c`, `model-routing`, `trim-project-md`, `ccr-*`) and David decides.
+**Decisions settled:** none open for this item (Q2 "both", 26 Oct).
+**David, 28 Oct 2026:** (1) first-run gap: try A first (starter cards with a visible downside). (2) `doseTrimSpc` stays as a placeholder. (3) `chamberPurge` particles ×1.1 is fair. (5) exit-check targets approved. (6) slow bots on fewer seeds (done: casual and smart 1–5 per deck, the beats-idle checks on 10 seeds; `npm test` about 40 s). (4) `waferPrewet` bubble-void cause: not answered, left for later.
 
-**Why this order:** the lane branches only add files, so they cannot break PR #23 either way. But merging them into PR #23 would put 223 files in a PR meant to be read in ten minutes.
+**Acceptance criteria:**
+- `npm test`, `npm run screens` pass; bots have no NaN/Infinity
+- `exit-check --seeds 100` all PASS, or David has options
+- Smart (no peeking, starter deck) beats idle by over 10 points, or David has decided what to change
+- A test proves every process room has a decision or runs itself
 
-**Q1 (size).** `docs/playtest/` is about 13 MB, mostly 70 screenshots. The repo is public and GitHub Pages serves the whole repo. Options: A) keep them all (the evidence stays with the repo; Pages gets heavier); B) keep the reports and logs and leave the screenshots out of `main` (the reports still link them by name, so the links would break). I recommend **A**: 13 MB is small, and the summary's evidence lines point at those files.
+**Progress notes:**
+- 29 Oct 2026, David: apply over-etch ×2 with the physics review's fixes (stop-case tradeoff wording, physicsNote line, DOE version ×1.85/×0.568 plus a "pays only when drifted" line); pre-wet and pad conditioning become route steps (plating: void ×0.8, particles ×1.1; CMP: rr_drift ×0.8), not cards. Built, then kept as `tasks/m45-overetch-and-route-steps.patch` (not applied) because of the balance below. The skip test's rooms that run by themselves become plating, CMP and metrology.
+- **Exit-check with that patch (100 seeds):** starter idle 62.0 (2 ship), random 60.6 (0), casual 66.9 (12), smart 68.9 (26); full smart 82.6 (100). Fails: idle ships 2%, smart starter 26%, gap 6.8 points. The idle run on seed 123456 (scatter off) rises 0.690471 → 0.701678, above the 70% spec; 13 tests move (the 7 over-etch ones plus idle-run values in `run.test.js`, `events.test.js`, `tools.test.js`, `doe.test.js` and the skip test).
+- **Balance experiments on top of the patch (40 seeds, scratch copies, nothing committed):** stronger drift (`HEALTH_PER_SIGMA` 20 → 15 or 12, or `STARTING_HEALTH_MIN` 50 → 35) widens the gap to 16–20 points and stops idle shipping, but smart starter ships only 5–13%. With a spec cut too (`HEALTH_PER_SIGMA` 17 + spec 0.68): idle 5%, random 8%, casual 33%, smart 60%, gap about 13 points. Every mix leaves idle shipping on a few seeds: when the tools start healthy there is nothing to fix, so doing nothing is nearly as good as good play (best idle about 69%, best smart about 71.6%).
+- 29 Oct 2026, option A (card numbers only, David's choice): rinse (second clean) and purge already lose on a quiet chart and win on a flagged one. Over-etch at underlayer ×2.0 (×0.525 on a stop, still ×1.05) does the same: quiet median −0.03 (loses in 24 of 41), flagged +0.67. Pre-wet and pad conditioning have no honest yield downside big enough (their side effect acts on a 0.007 particle risk), so they stay "always play". **Exit-check, 100 seeds, with over-etch ×2:** starter idle 61.1 (0 ship), random 60.9 (0), casual 67.2 (10), smart 68.9 (26); full smart 82.4 (100). Two targets now fail: smart starter ships 26% (target 40–75%) and beats idle by 7.8 (target over 10). Not applied: the change is in `tasks/a-overetch-x2.patch`, `content.js` restored. If applied, 7 tests move (old → new, checked by an independent Python model that first reproduced every old value): underlayer 0.15 → 0.2 and 0.105 unchanged (`resolve.test.js`); 0.0315 → 0.042 (`run.test.js`); etch forecast after over-etch 11.1214 → 12.0068 points (`view.test.js`; the test name "drops from 11.9 to 11.1" becomes "rises from 11.9 to 12.0"); yield after etch 0.847656 / 84.8% → 0.838802 / 83.9%, 11.1 → 12.0 points; card line 0.7679 → −0.1175, "About 0.8 points less lost" → "About 0.1 points more lost"; drift share 0.6189 → 0.6158; two effect texts ×1.5/×0.7 → ×2/×0.525. Physics review: ×2 PASS; fix the tradeoff for the stop case; the DOE version (×1.75) always pays, so try ×1.85/×0.568; ASK DAVID whether attack should grow faster than linearly with over-etch time.
+- 28 Oct 2026, card values (seeds 1–60, starter deck, walking straight on, yield points gained by playing the card, by whether the room's SPC chart flags a rule): chamberPurge flagged median +0.47 / quiet −0.01; extraDiRinse +0.56 / +0.11; doseTrimSpc +0.65 / +0.28; padBreakIn +0.63 / +0.38; timedOveretch +1.30 / +0.63; waferPrewet +0.96 / +0.70. A flagged chart roughly doubles a card's worth, but only chamberPurge and extraDiRinse can lose. The others never do, because one card per room means their minutes are free.
+- 28 Oct 2026, step 4 finding (seeds 1–30, starter deck): the smart bot plays `extraDiRinse`, `doseTrimSpc`, `timedOveretch`, `waferPrewet` and `padBreakIn` in **30 of 30** lots, and `chamberPurge` in 1 of 30. It never buys from the shop and takes a PM at almost every corridor. So with the starter deck, 5 of the 6 cards are "always play" (no real decision), and `chamberPurge` is almost never worth it. Points still lost with smart play: particles 6.0, depth variation 5.0, dishing 4.0, void 3.6, underlayer attack 2.9, Q-time 2.3, CD error 2.0.
+- 28 Oct 2026, step 3: the old bot changed its stop choice in 17 of 240 corridors (seeds 1–30) when only the hidden dice changed; the fair bot in 0 of 240. The new test fails on the old bot and passes on the new one. Peeking was worth almost nothing: exit-check 100 seeds, smart/starter 69.6 → 69.5 (49 ship both), casual 68.2 → 67.7 (20 → 19), smart/full 82.4 (100). Cost: `npm test` went from about 15 s to about 78 s.
+- 28 Oct 2026, step 2: exit-check 100 seeds (before step 3): starter idle 61.1 (0 ship), random 61.5 (3), casual 68.2 (20), smart 69.6 (49); full smart 82.4 (100).
+- 28 Oct 2026: before this session, exit-check on seeds 1–40: starter idle 61.1, random 60.2, casual 67.9, smart 69.6 (22/40 ship); full smart 82.6 (40/40).
 
-### M4.5 item 2 — remove the fixed etch and litho yield tax
+**Result:** 29 Oct 2026. `npm run exit-check -- --seeds 100`, all 7 targets PASS: starter idle 5% ship (mean 51.3), random 3% (53.0), casual 26% (63.3), smart 48% (66.4), smart beats idle by 15.2 points; full deck smart 99% (80.5), 29.2 points over idle. Moved test values were checked by an independent python model of the route and the etch room (each first reproduced the old values): idle run 0.690471 → 0.701678 (shipped at spec 0.68, drift off); over-etch values as in the progress note above; DOE ratio 1.005264 → 1.003155 (by hand, e^0.00315); spec 70 → 68 in the view tests.
 
-**What it is today** (from `src/content/lotTypes.js` and Lane F's `physics-review.md` claim 8)
-- Every lot pays a fixed risk at etch, whatever the player does: residue 0.10 + underlayer attack 0.05 + edge ring 0.05 + particles 0.01 = **0.21 now, plus the latent depth variation 0.08 = 0.29**. Yield is `e^−risk`, so that is about **25% of the lot** lost on a healthy etch.
-- Litho adds a fixed `cd_error` 0.06 (about 6%), though the CD is centred.
-- A do-nothing run on seed 123456: litho −7 points, **etch −22 points**. The best cards bring etch's exponent only to about 0.15, so every strategy lands within half a point of each other (Lane F issue 1).
-- It also teaches something false: a well-centred timed etch already includes its over-etch, so large residue on a healthy tool is not physical (claim 8).
-- The whole route's fixed risk adds to 0.67, i.e. **51% with no choices at all**. The spec is 70%, which is an exponent of 0.357 or less. So shrinking etch and litho alone is not enough to make the spec reachable, but it is the part that is unphysical, and it is the biggest single piece.
+P0 and P1 of `tasks/plan-winnable.md` (branch `claude/winnable-p0-p1`):
 
-**The rule I will keep (CLAUDE.md §5 and §7):** only the placeholder risk sizes in `lotTypes.js` change. No physics rule, no effect operation and no content text changes. Tool health still adds drift risk exactly as today, so a worn etch tool costs more than a fresh one, which is what should decide the loss.
+- [x] P0: check the lane work is on `main`, tick the roadmap box, archive the finished sections of this file
+- [x] P1: `smart` and `casual` bot policies (`tools/smartBot.js`, wired into `tools/bot.js`), and `npm run exit-check` (`tools/exit-check.js`), with tests in `tests/bot.test.js`
 
-**Proposed new sizes (placeholders; I measure before settling)**
+### P4 diagnosis explains itself (28 Oct 2026)
 
-| Pattern at etch/litho | Now | Proposed | Reason |
-|---|---|---|---|
-| etch `residue` | 0.10 | 0.04 | A centred timed recipe clears the film; some residue remains in slow spots |
-| etch `underlayer_attack` | 0.05 | 0.03 | Real, but small without over-etch (the etch-stop logic is item 3 of M4.5, not this item) |
-| etch `edge_ring` | 0.05 | 0.03 | The starter set has no counter for it, so it should stay small |
-| etch `particles`, latent `depth_variation` | 0.01, 0.08 | unchanged | Not part of claim 8's list; depth variation is shared with the etch-stop item |
-| litho `cd_error` | 0.06 | 0.03 | The CD is centred; scatter, not a tax |
+- [x] Wrong choices now come only from causes that could have been there: the pattern is on the route and the mode's `when` holds (`notebook.js`). The old fallback to off-route modes is gone.
+- [x] Each step now records `lostAfter` (yield lost per pattern so far). `stepsThatLost()` turns that into "which step cost how many points". Saves replay actions, so no save bump.
+- [x] After a guess, right or wrong, the Diagnose panel adds a line: where the yield went, and how to spot that failure mode (its signature).
+- [ ] Still open: signatures that can be read from the screen (keyhole void, dishing, underlayer attack) need `content-drafter` and `physics-reviewer`; the wafer map and cross-section may need hints. Not started.
 
-- Etch's fixed risk goes from 0.21 to 0.11, and litho's from 0.06 to 0.03. A do-nothing run's total fixed exponent goes from 0.67 to about 0.54, i.e. about **58%** instead of 51%, before drift.
-- That is still below the 70% spec on purpose: after this item **do-nothing must fail** (exit test), and the cards must be what gets a lot over the line.
+### P1 result (28 Oct 2026, seeds 1 to 30)
 
-**Steps**
-- [ ] First, measure, with a scratch script outside the repo: the per-step loss for the idle bot and for a "good play" script (the cards that already exist, a PM on a worn etch tool) on seeds 123456, 42 and 777, **before** the change. Write the numbers into this file.
-- [ ] Change the five numbers in `lotTypes.js`. Update the comment above them.
-- [ ] Measure again. If the best play ships below about 65% or above about 80%, or the best and worst strategies are less than 10 points apart, I adjust and tell you the numbers before settling. A strategy that is only 10 points apart because of the *other* rooms' fixed risks is reported, not hidden, and goes to the next items.
-- [ ] Tests: `tests/run.test.js` lines 95–96 (residue 0.10, underlayer 0.05) and the `timedOveretch` test (line 115, residue 0.03) hold hand-computed values for these exact numbers. **CLAUDE.md §11 says never edit an expected value to make a test pass, so I will ask you before editing any of them.** I recompute each by hand from the new numbers and show you the old and new value side by side.
-- [ ] `SAVE_VERSION` goes 2 → 3 (and the key to `fabrun.run.v3`), because an old save would replay to a different yield. The notebook is untouched (own key).
-- [ ] The shop test seed (`tests/shopSeed.js`) and the screen tests that look at yield may move; their expected *items* stay the same, as before.
-- [ ] `npm test`, `npm run screens` (phone tests with `--repeat-each=5`), and the bot on all three seeds.
-- [ ] Update this tracker, the `ROADMAP.md` box, and a rule in `tasks/lessons.md` if anything surprises me.
-- [ ] `physics-reviewer` checks the new sizes (a read-only pass), because the sizes are physical claims.
+| Deck | idle | random | casual | smart |
+|---|---|---|---|---|
+| starter (what a new player has) | 0 ship, mean 52.2 | 0 ship, 51.6 | 0 ship, 57.2 | 0 ship, 58.1 (best 60.5) |
+| full (every card) | 0 ship, 52.3 | 5 ship, 62.8 | 16 ship, 70.5 | 30 ship, 75.9 |
 
-**What you'll see:** in the same run on seed 123456, etch costs about 10 points instead of 22, and litho about 3 instead of 7. The ship report's step breakdown shows it. A worn etch tool (red SPC flag) now visibly costs more than a fresh one.
+- **The starter deck is the blocker.** With every card, good play ships every lot and a casual player about half. With the starter deck even perfect play tops out near 60%. This confirms P2 (starter practices in every room) is the next job, before any balance pass.
+- The smart bot knows the whole route (see the top of `tools/smartBot.js`), so it is an upper bound, not a first-time player.
+- Decision for David: `exit-check` targets (idle 0%, random under 15%, smart 60-80% ship, smart beats idle by over 10 points) are in `tools/exit-check.js` `TARGETS`. Change them there.
+- `npm test` now takes about 10 seconds instead of 1, because the smart bots try every option on copies of the run.
 
-**Answers (David, 26 Oct 2026):** Q1 keep all the screenshots; Q2 the numbers are fine (0.04 / 0.03 / 0.03 / 0.03); Q3 other rooms stay for now.
+### P2 status (28 Oct 2026)
 
-**Measured (scratch script, 200 seeds 1000–1199 plus seeds 123456 / 42 / 777). "Greedy" plays every legal card in every room, no side stops.**
-
-| Play | Before | After |
-|---|---|---|
-| Do nothing (200 seeds, mean / best) | 46.4% / 54.1% | 52.7% / 61.0% |
-| Do nothing, seeds 123456 / 42 / 777 | 51.8 / 47.9 / 50.6 | 58.5 / 54.8 / 57.3 |
-| Greedy, starter deck (mean) | 48.9% | 53.8% |
-| Greedy, full pool (mean, lots at or over 70%) | 62.0%, 2 of 200 | 67.0%, 53 of 200 |
-| Random play, full pool (mean, lots at or over 70%) | 58.9%, 1 of 200 | 63.7%, 27 of 200 |
-
-- Do-nothing still fails (best of 200 is 61%). The best and worst strategies are now about 14 points apart (52.7 vs 67.0), up from 0.7 to 3 points on the starter deck. **With the starter deck alone nothing reaches 70%** (best 62%), because the starter pool has almost no cards outside etch and litho. That is the "decision in every room" item, not this one.
-- **Correction to the plan:** I wrote that etch would cost "about 10 points instead of 22". By hand it is **16.2 points** (from 22.9). Depth variation (0.08, latent, shared with the etch-stop item) and handling particles are still there. Litho goes from 7 to 3 points.
-
-**Test values that change (hand-computed first, then checked against the engine).** I rebuilt the model by hand in a separate script. It gives the *old* numbers exactly (0.517954, 0.685321, 0.716865, 0.701607, 22.8610, 19.7066), so I trust it for the new ones.
-
-| Test | Old expected | New expected | Hand working |
-|---|---|---|---|
-| lotTypes: idle route, centre / inner / outer sites | 0.588605 / 0.559898 / 0.492567 | 0.657047 / 0.625002 / 0.567295 | even exponent 0.42 (was 0.53); inner adds depth 0.08 × 0.625; outer adds depth 0.08 × 1.25 + edge ring 0.03 × 1.5625 |
-| lotTypes, run, events, tools, run Q-time: whole idle yield | 0.517954 | 0.589352 | (1 × centre + 8 × inner + 16 × outer) / 25 |
-| run: residue / underlayer attack on entering etch | 0.10 / 0.05 | 0.04 / 0.03 | the new sizes |
-| run: after timed over-etch | residue 0.03, underlayer 0.075 | residue 0.012, underlayer 0.045 | ×0.3 and ×1.5 of the new sizes |
-| doe: underlayer attack before playing | 0.05 | 0.03 | the new size |
-| doe: DOE-centred over-etch yield ratio | × 1.012578 | × 1.007528 | e^(0.03 × (1.5 − 1.25)) |
-| shop: yield after etch, with / without the detector | 0.701607 / 0.685321 | 0.798418 / 0.779789 | detector: depth 0.056 instead of 0.08 |
-| view: yield on entering etch | 0.913931, shown 91.4 | 0.941765, shown 94.2 | e^(−0.06) |
-| view: loss at etch, idle / after over-etch | 22.8610 / 19.7066 points (22.9 / 19.7) | 16.1976 / 15.1772 (16.2 / 15.2) | before minus after |
-| view: yield after etch, idle / over-etch | 68.5% / 71.7% | 78.0% / 79.0% | 0.779789 / 0.789992 |
-| events, tools: slurry / worn-CMP ratio | × 0.977312 | unchanged | only the idle yield beside it changes |
-| run Q-time: ratio e^(−0.04) | 0.960789 | unchanged | unchanged |
-
-**Q2 (the numbers).** Are 0.04 / 0.03 / 0.03 / 0.03 right, or do you want smaller (0.02 each) so that the tool state decides almost everything? This is your fab call.
-
-**Q3 (other rooms).** Plating, CMP, barrier and strip also carry fixed risk (about 0.28 together). Lane F measured +11–15 points after etch with no decision. Do they stay for now (my proposal; the cards for those rooms come with the "decision in every room" item), or shrink in this same change?
-
----
+- [x] 2b (committed): a room with nothing to play runs on its own; the greyed-out Strip and re-expose says what it needs. Tests in `tests/skip.test.js`.
+- [x] 2a (committed 28 Oct 2026; David approved the 7 unit-test edits; `npm test` 273 pass. The `doe.test.js` checks now use a fixed 2-card deck so their hand-computed values are unchanged, plus one new test for the real starter deck's offers): five starter practices `extraDiRinse`, `chamberPurge` (now "Pump-purge cycles before the run"), `doseTrimSpc`, `waferPrewet`, `padBreakIn` (now "Condition the pad before the lot"), with art in `src/art/sections/`. The physics review's wording and art fixes are applied. Open items:
+  1. **7 old tests** hold the old 2-card starter deck: `run.test.js` "createRun defaults" (deck becomes the 7 starter cards) and "strip and re-expose is never legal yet" (hand `['reworkLitho','doseTrimSpc']`, legal `['doseTrimSpc']`); `doe.test.js` offers become `['reworkLitho','chamberPurge']`, and the 4 DOE tests that upgrade `timedOveretch` need `upgraded: ['timedOveretch']` set in the test state. No hand-computed yield value changes.
+  2. **`doseTrimSpc`**: its flat cd_error ×0.8 also cuts the base scatter, which teaches the opposite of its own note (physics review). Keep out of the starter deck until an effect that acts only on drift exists (NEEDS NEW LOGIC), or accept it as a placeholder? Also: ×0.8 stacks with `sendAheadWafer` ×0.5 to ×0.4.
+  3. **`chamberPurge`**: is particles ×1.1 a fair side effect?
+  4. **`waferPrewet`**: reworded to the mechanism the model has (late bottom-up fill). Add a separate bubble-void cause later?
+  5. **Balance**: with the 5 starter cards the smart bot's best starter-deck run is 63.4% (spec 70%); mean 60.2% (was 58.1%). Options for P3: first run is a hard learning run; or move the balance levers; or both (recommended).
 
 ## NEEDS NEW LOGIC
 
@@ -129,7 +118,8 @@ Content in `src/content/content.js` that needs engine behavior beyond the eight 
 
 - `when: { lot: 'tightCD' | 'deepEtch' | 'narrowFeatures' }`: lot-type properties, set in `lotTypes.js` (M1)
 - `when: { lot: 'delayBeforeBake' }`: needs a timer between the litho expose and bake practices
-- `when: { lot: 'lastStepWasLitho' }`: needs route history in the lot state
+- `when: { lot: 'lastStepWasLitho' }`: needs route history in the lot state. Until then the condition never holds, so `reworkLitho` can never be played (needs a greyed-out reason message)
+- A drift-only `defectMult` (or `when: { toolShifted: room }`): so `doseTrimSpc` can act only on the part of cd_error that comes from a shifted tool, not on base scatter (physics review, 28 Oct 2026)
 - `when: { lot: 'rightPartChosen' }` and `needsTarget: 'faultType'`: the spare part asks the player to pick a fault
 - `resets: { slot, field, fraction }`: fresh resist and bath analysis reset a material's shelf life or decay
 - `limit: { perLayer: 1 }`: strip and re-expose once per layer
@@ -137,3 +127,34 @@ Content in `src/content/content.js` that needs engine behavior beyond the eight 
 - Dead cards: a practice whose target pattern was already realized earlier on the route (e.g. `etchStopLayer` at the second dep visit) should be greyed out or hidden
 - Tool wear: tool health stays at 100 in run.js; no rule yet for how much a room wears its tool
 - Consumables: no engine code plays them yet (the starter qual wafer and spare part, and the unlocked bath analysis, fresh resist, implant monitor and oxide monitor). They are left off the Notebook page's "Unlocks" until they can be used (David, 26 Oct 2026)
+
+### Screen tests after P2 (28 Oct 2026): fixed, all pass
+
+David approved the edits. The last room (metrology) now runs by itself, so specs no longer press Run there; `map.spec` checks the skipped note. The plating spec expects the starter practice `Wafer pre-wet`. The DOE spec uses seed 5, whose DOE stop offers the over-etch (seed 123456 now offers other cards). The skipped-room result screen was checked on a phone screenshot.
+
+### P3 balance pass (David chose option 3, 28 Oct 2026: first run winnable but tight, unlocks give margin)
+
+`tools/exit-check.js` now has these targets (numbers proposed by Claude, David to confirm): starter deck: idle 0%, random under 5%, casual under 25%, smart 40-75%; full deck: smart at least 90% and over 15 points above idle.
+
+Measured on seeds 1 to 100 (mean yield %, share shipped at spec 70% / 62% / 60%):
+
+| Policy / deck | mean | 70% | 62% | 60% |
+|---|---|---|---|---|
+| idle / starter | 52.1 | 0 | 0 | 0 |
+| random / starter | 53.2 | 0 | 0 | 6 |
+| casual / starter | 58.9 | 0 | 4 | 30 |
+| smart / starter | 60.2 | 0 | 8 | 62 |
+| casual / full | 72.3 | 71 | 97 | 100 |
+| smart / full | 76.9 | 100 | 100 | 100 |
+
+- Yield barely varies from seed to seed (about 2 points), so the ship rate flips from near 0 to near 100 across a 4-point change of spec: the outcome is decided by the build, not by luck.
+- Where smart/starter still loses yield (points): particles 7.7, depth variation 6.8, dishing 5.1, void 4.6, underlayer attack 3.9. Starter cards act on one room each, so each can recover only about 1 point.
+- Levers: (a) spec 70 down to about 61; (b) scale down the base risks in `lotTypes.js` by about 15% (particles 0.01, stack risks 0.08); (c) more scatter between seeds. (a) and (b) both move hand-computed tests in `view.test.js`, `run.test.js` and others; each would be recomputed by hand and shown to David first.
+
+### P3 applied (28 Oct 2026)
+
+David approved the recomputed test values. Applied: all base risks in `lotTypes.js` × 0.7 (`tasks/p3-test-changes.md`, `tasks/p3-risk70.patch`); 27 hand-computed tests recomputed from an independent Python model (it reproduced every old value first). Extra values checked the same way while editing: shop endpoint-detector yield 0.798418 → 0.854045 and 0.779789 → 0.839977 (the same 0.779789 → 0.839977 and 0.789992 → 0.847656 in the etch result test). The T-top test now adds 0.02 CD-error risk at the start so CD error still costs 3 points.
+
+`npm run exit-check -- --seeds 100`: all six targets pass (idle 0%, random 3%, casual 20%, smart with starter deck 49%, smart with every card 100%, 21.4 points over idle).
+
+Open for David: the exit-check targets are proposals (see `tools/exit-check.js`); P4 (diagnosis explains itself) and P5 (simulated and real playtests) are next.
