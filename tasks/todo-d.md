@@ -168,10 +168,10 @@ Lane A reported that after PR #12 and PR #16 merged, `main` failed in Lane D's a
 - [x] Tests made stricter, not looser: every card name must show at least one line; every effect line must be plain words (no bare ".", no raw ids).
 - [x] physics-reviewer pass. Fixed: send-ahead lines narrow by a little, same pitch as the lot; megasonic broken line left a stub; HF-last shows the H-terminated surface and labels the oxide "~1 nm"; the CMP pad now rests on the wafer and bends a little into the line; soft-landing residue has a polymer cap and the title says "in the open area"; tilted-implant rays at about 20° so the 16 px shadow matches h × tan(tilt), labelled "half 1 of 2".
 
-**Open questions for David (drawn with a default; say if it's wrong)**
-- **Chamber seasoning coat:** drawn as oxide-like (SiOx coat, as in a poly/gate etch chamber). In an oxide etcher it would be fluorocarbon polymer. Which chamber is the etch room?
-- **Tilt angle:** "larger tilt" is drawn at about 20° (standard about 7°). OK?
-- **HF-last scale:** the ~1 nm chemical oxide is drawn 8 px thick next to a 200 nm bar; I labelled it "oxide ~1 nm". preclean.svg has the same issue and is unlabelled. Label both, or drop the scale bar on these two?
+**Answered 26 Oct (were open questions)**
+- **Chamber seasoning coat:** David: oxide-like is right. No change.
+- **Tilt angle:** David: about 20° is fine. No change.
+- **Thin-oxide scale:** David: label both thin-oxide cards "~1 nm" and keep the scale bar. `hfLastClean` already had it; `preclean` now says "native oxide ~1 nm".
 
 **For David to copy over:** `docs/card-art-plan.md` still says 260 × 380; change it to 260 × 420. Lesson, **A long text squeezed the card name away**: the overflow test only checked that the body didn't scroll, and flex let the name shrink to zero height instead. Root cause: flex items shrink by default, and the test measured the container, not the parts. Rule: ✅ fixed parts of a card get `flex: none`. ✅ Test that each part is visible, not only that the container doesn't overflow.
 

@@ -9,7 +9,7 @@
   <!-- A divider between before and after. -->
   <path class="mat-measure" d="M130 30v104"/>
   <text class="art-label-on-dark" x="6"   y="50">before</text>
-  <text class="art-label-on-dark" x="6"   y="66">native oxide</text>
+  <text class="art-label-on-dark" x="6"   y="66">native oxide ~1 nm</text>
   <text class="art-label-on-dark" x="138" y="50">after clean</text>
   <text class="art-label" x="6" y="120">Si</text>
   <!-- Scale bar. Thin films are drawn at least 6 px thick, so it is a guide, not a ruler. -->
