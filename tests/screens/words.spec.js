@@ -84,7 +84,7 @@ test('Words opens from the floor plan, lists every term, and Back returns there'
   expect(errors, `console errors (seed ${SEED})`).toEqual([]);
 });
 
-test('Words opens from a room, and Back returns with the played card still played', async ({ page }) => {
+test('Words opens from a room and its result, and Back returns with the played card still played', async ({ page }) => {
   const errors = watchForErrors(page);
   await page.goto(PAGE);
   await press(page, goButton(page));
@@ -97,6 +97,12 @@ test('Words opens from a room, and Back returns with the played card still playe
   await expect(title(page)).toHaveText(roomName);
   await expect(page.locator('.time-panel .meter-text')).toHaveText(timeAfterPlay);
   await screenshot(page, '41-room-words-button');
+  // The room's result screen has the Words button too, and Back returns to it.
+  await pressAfterChange(page, runButton(page));
+  await expect(button(page, 'Continue to the corridor')).toBeVisible();
+  await openWords(page);
+  await pressAfterChange(page, topBackButton(page));
+  await expect(button(page, 'Continue to the corridor')).toBeVisible();
   expect(errors, `console errors (seed ${SEED})`).toEqual([]);
 });
 

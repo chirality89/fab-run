@@ -181,7 +181,8 @@ function showRoom() {
 // The result of a room, right after Run. `before` is the state at Run.
 function showResult(before) {
   const onShip = () => safely(showShipReport);
-  renderResult(app, resultView(before, state), { onContinue: () => safely(showMap), onShip, onReplay, onNewSeed });
+  renderResult(app, resultView(before, state),
+    { onContinue: () => safely(showMap), onShip, onReplay, onNewSeed, words: wordsOpener(() => showResult(before)) });
 }
 
 // The screen of the side stop just taken: the shop, PM/DOE or event, or

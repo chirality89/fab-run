@@ -227,7 +227,8 @@ export function headerButtons(notebook, words) {
 // The screen after a room is run: what it cost, the new wafer map, what
 // happens next, and two ways to play again.
 // `actions` holds onContinue() (shown only while the run goes on),
-// onShip() (shown once it is over), onReplay() and onNewSeed().
+// onShip() (shown once it is over), onReplay(), onNewSeed() and words
+// ({ onOpen }, for the Words button in the header).
 export function renderResult(container, view, actions) {
   const outcome = panel('Result', 'result-panel');
   outcome.setAttribute('role', 'status');
@@ -247,7 +248,7 @@ export function renderResult(container, view, actions) {
   );
   outcome.append(buttons);
   container.replaceChildren(
-    drawHeader(view), drawResultYield(view), outcome, ...(view.spc ? [drawSpc(view.spc)] : []), drawWaferMap(view),
+    drawHeader(view, actions.words), drawResultYield(view), outcome, ...(view.spc ? [drawSpc(view.spc)] : []), drawWaferMap(view),
   );
   showFromTop(container);
 }
