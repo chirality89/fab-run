@@ -11,7 +11,7 @@ Finished plans (M0 to M4.5 item 4) are in `docs/archive/todo-done.md`. The curre
 **David's answer: a quarter, not a third.** Applied: residue 0.021, underlayer attack 0.016, edge ring 0.016, depth variation 0.042 (the quarter version, tested the same way: no target fails at spec 70%); spec back to 70%. Result, `exit-check` seeds 1–100, all 7 targets PASS: starter idle 5% ship (mean 52.8), random 4% (54.7), casual 29% (65.0), smart 50% (68.5), smart beats idle by 15.7 points; full-deck smart 98% (81.6), 28.8 points over idle. 27 tests moved; every new value came from `etchmodel.py`-style independent python model that first reproduced every old value (idle 0.701678, forecast 11.8893, stop 7.7630 / 0.881240, over-etch on a stop 6.0471 / 0.898399, detector 0.854045, route-only 0.690471, drift 13.7950 / 2.0380 / 0.6158). New values: idle run 0.723578 (ships at 70%); etch forecast 9.2677, over-etch 9.3802, after etch 0.866193 / 0.865068; stop 6.0742 / 0.898128, stop + over-etch 4.7660 / 0.911209; detector 0.877082; route-only 0.754274 / 0.734732 / 0.698025 / 0.712021; health-60 etch 11.2329 / 2.0689 / 0.6252; DOE ratio 1.002403. One value (drift share 0.522179) sits between the exact 0.522180 and the engine's erf approximation 0.5221785.
 **Tests that moved (was "Tests that move"):** the idle-run and etch values in `lot`, `lotTypes`, `run`, `events`, `tools`, `doe`, `resolve`, `view`; the 68% view tests go back to 70. Every new value would be computed by the independent python model first and listed here for David before any test is edited.
 
-### Next stage plan (rev. 2, 29 Oct 2026): waiting for David's OK
+### Next stage plan (rev. 3, 29 Oct 2026): David OK'd ("go ahead")
 **Goal:** a build David can hand to 2–3 real people. They should be able to ship a lot and say why they lost one. NMOS is now on `main` but can't be played on screen yet. Modifiers and choosing a lot type wait for M5.
 
 **Already done (29 Oct 2026):**
@@ -80,10 +80,40 @@ Finished plans (M0 to M4.5 item 4) are in `docs/archive/todo-done.md`. The curre
 - Round 21-site wafer map: M6.
 - Item art, the inspect view and card motion: after M5.
 
-**Still open for David:**
-1. Who are the 2–3 real playtesters, and when? This sets when item 5 can happen.
-2. `oesEndpoint`: keep ×0.7 on depth variation with new words, or move its effect to residue and underlayer attack (my proposal in item 2)?
-3. Diffusion room: Cu line, NMOS, or both? M5 or M6?
+**David's answers, round 2 (29 Oct 2026):**
+- Go ahead.
+- Move the endpoint detector's effect to residue and underlayer attack (item 2).
+- The diffusion room goes in M5.
+- David wants an NMOS build soon. David is playtesting with friends now, and wants another bot test soon.
+
+**Order, revised for these answers:**
+0. Housekeeping:
+   - PR #21: merged.
+   - PR #27: brought up to date with `main`. Its duplicate `tasks/done.md` is dropped, since `main` already has `docs/archive/todo-done.md`. `npm test` 282 pass. Waiting on David's OK to merge, because it turns on hooks and changes agent models.
+1. Words page (below).
+2. **NMOS you can play.** Choose the lot type when a new run starts (Cu line or NMOS), and accept `?lot=nmos` in the address.
+   - Check that every NMOS room has a starter practice or runs by itself (the `skip.test.js` rule).
+   - Run `exit-check` on NMOS.
+   - If NMOS can't be won, or is won by doing nothing, bring David options. No tuning without his OK.
+   - This item gets its own plan here first.
+3. **Bot test:** `playtester`, then the five personas, on both lot types (seeds 123456, 42, 777). They write only `docs/playtest/`. I compare the results with Lane F's earlier reports.
+4. Diagnosis you can read off the screen. This includes the depth-variation failure mode and the endpoint move.
+5. Phone layout and run-ending buttons.
+6. Physics wording fixes.
+7. M5: modifiers, a random lot type, the diffusion room, and the open NMOS questions.
+
+### Task: Words page (item 1), started 29 Oct 2026
+- [ ] `src/content/glossary.js`: about 18 terms the screens use.
+  - Each term has a `plain` sentence (what it is in a fab) and an `inGame` sentence (where you meet it here), plus `draft: true`.
+  - Terms are not items, so they get no `tradeoff`.
+  - Listed A to Z.
+- [ ] `src/ui/wordsPage.js`: the page, drawn like the Notebook, with Back returning to where the player was.
+  - A **Words** button sits next to the Notebook button on the floor plan and the ship report, and in the room header. The room redraws from the run state, so the cards already played stay played.
+- [ ] Tests:
+  - Every term has both sentences, no brand names, and the list is in A–Z order.
+  - Screen: Words opens from the map, the room and the ship report; Back returns; the button is 44 px; phone 375 px.
+- [ ] `physics-reviewer` checks the sentences. David reviews them (`draft: true` until then).
+- **Left out for now:** tapping an underlined word in room text to open its term. The Words button gives the same help from every screen. Linking words inside card text needs the text split into pieces, which is a bigger UI change. Do it if playtesters still get stuck.
 
 ### Task: M4.5 "A real decision in every room" (issue 3), plan approved 28 Oct 2026
 Most of it was already built on `claude/winnable-p0-p1` (P1 bots, P2 starter practices and skipped rooms); this session brings that in and closes the gaps.
