@@ -133,7 +133,7 @@ test('addRisk refuses a negative amount; toolHealth with a room works between ro
 test('hand check: switching slurry costs the lot × 0.977312 and pays 150', () => {
   const idle = playIdle(handCheckRun());
   const switched = playIdle(chooseEventOption(openEvent(handCheckRun()), SWITCH_NOW));
-  close(lotYield(idle.lot), 0.701678, `the idle run (seed ${SEED})`);
+  close(lotYield(idle.lot), 0.723578, `the idle run (seed ${SEED})`);
   close(lotYield(switched.lot) / lotYield(idle.lot), 0.977312, `yield ratio (seed ${SEED})`);
   assert.equal(switched.cash, idle.cash + 150, `cash (seed ${SEED})`);
 });

@@ -32,6 +32,8 @@
 // All base risks were cut to 70% on 28 Oct 2026 (P3 of tasks/plan-winnable.md, David chose
 // "cut base risks"): with the old sizes even a perfect starter-deck run could not
 // reach the 70% spec. Measured with tools/exit-check.js, see tasks/todo.md.
+// Etch's own risks and the depth variation carried in were cut by about a quarter
+// on 29 Oct 2026 (David, after a playtest: etch was ending most first runs).
 
 export const LOT_TYPES = {
   cuLine: {
@@ -41,7 +43,7 @@ export const LOT_TYPES = {
     // Latent from the start: etch depth and wide-line dishing are set by the
     // stack and the layout. Etch stop (dep) and dummy fill (litho) scale
     // them before the rooms where they bite (etch and CMP).
-    startRisks: { depth_variation: 0.056, dishing: 0.056 },
+    startRisks: { depth_variation: 0.042, dishing: 0.056 },
     startRiskNotes: {
       depth_variation: 'The film stack set how big this is before the lot got here: without an etch stop, trench depth follows the etch rate across the wafer.',
       dishing: 'The layout set how big this is: wide lines dish in any polish. Dummy fill at litho or a gentler polish here reduces it.',
@@ -60,7 +62,7 @@ export const LOT_TYPES = {
         adds: { particles: 0.007, cd_error: 0.021 },
         realizes: ['particles', 'cd_error'] },
       { room: 'etch', label: 'Etch (trench)',
-        adds: { particles: 0.007, residue: 0.028, underlayer_attack: 0.021, edge_ring: 0.021 },
+        adds: { particles: 0.007, residue: 0.021, underlayer_attack: 0.016, edge_ring: 0.016 },
         // An etch stop under the oxide (the "Deposit SiN etch stop" card):
         // the etch reaches the nitride and almost stops, so it attacks far
         // less of the film below (David, 26 Oct 2026: ×0.3).

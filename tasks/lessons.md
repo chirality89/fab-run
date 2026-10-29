@@ -390,3 +390,8 @@ The expected names were written from the items' ids, not read from `content.js`.
 - **What happened:** five starter cards were "real tradeoffs" on paper, but the smart bot played them in 30 of 30 lots. In a room with one card, the card's minutes are free, and the side effects were too small to outweigh the gain.
 - **Root cause:** the tradeoff was checked as text, not measured. A cost only counts if it can ever be bigger than the gain.
 - **Rule:** before calling a card a decision, measure its worth per lot (gain with and without it, split by what the screen shows, e.g. SPC flagged or quiet). It should lose in some lots and win in others, and the screen should tell them apart. If it never loses, it is routine: make it a route step (game rule 8).
+
+## 29 Oct 2026 — One room ate a third of every first run, and the player could not act on it
+- **What happened:** a playtest said etch "ends most runs". Measured on 100 seeds, etch lost 13.5 of about 48 points when idle, and the smart bot with the starter deck still lost 11.7 there. Every etch remedy (etch stop, endpoint detector, e-chuck) was locked behind the notebook, so a first run had only the over-etch card and a PM. The exit-check passed because it only measures totals.
+- **Root cause:** balance was judged on total yield, not per room, and not on how much of each room's loss a new player could recover.
+- **Rule:** when balancing the first run, tabulate points lost per room and what the starter deck can recover in each (idle vs smart). A room that loses much more than its neighbours and offers no starter lever is a wall; fix it with base risks (balance), not by bending physics.
