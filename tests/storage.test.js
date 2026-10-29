@@ -222,7 +222,7 @@ function playFullPoolRun(seed) {
 test('every practice the Cu line can play, and DOE versions, replay from a save', () => {
   const played = new Set();
   const upgraded = new Set();
-  for (let seed = SEED; seed < SEED + 40; seed++) {
+  for (let seed = SEED; seed < SEED + 80; seed++) {
     const player = playFullPoolRun(seed);
     assert.deepEqual(saveAndResume(player), player.state, `full deck, end of run (seed ${seed})`);
     for (const [name, value] of player.actions) {
@@ -240,7 +240,7 @@ test('every practice the Cu line can play, and DOE versions, replay from a save'
   const canPlayOnCuLine = (card) =>
     routeRooms.has(card.room) && (!card.when?.lot || cuLine.traits.includes(card.when.lot));
   const neverPlayed = PRACTICES.filter(canPlayOnCuLine).map(card => card.id).filter(id => !played.has(id));
-  assert.deepEqual(neverPlayed, [], `never played in seeds ${SEED}–${SEED + 39}`);
+  assert.deepEqual(neverPlayed, [], `never played in seeds ${SEED}–${SEED + 79}`);
   assert.ok(upgraded.size > 0, 'no DOE in these seeds');
   console.log(`full-deck replay: ${played.size} practices played, DOE on ${[...upgraded].join(', ')}`);
 });

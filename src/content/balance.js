@@ -15,7 +15,9 @@ export const HAND_SIZE = 5;
 export const SCRAP_LINE = 0.40;
 
 // Line yield (0..1) the customer needs at ship. At or above: shipped.
-// Below: rejected (decision O4).
+// Below: rejected (decision O4). 0.70 originally; 0.68 on 29 Oct 2026 with
+// the more worn starting tools below (David's option A, M4.5); back to 0.70
+// the same day once etch's risks were cut (lots end about 2 points higher).
 export const CUSTOMER_SPEC = 0.70;
 
 // Wafer map bands for one site (the fraction of the 25 wafers still good at
@@ -93,7 +95,9 @@ export const WEAR_PER_RUN = 5;
 
 // Each tool starts a run with health from this to STARTING_TOOL_HEALTH,
 // drawn from the seed: some runs begin with a tool overdue for PM.
-export const STARTING_HEALTH_MIN = 50;
+// 50 until 29 Oct 2026: lower means more drift to read on SPC and fix, so
+// good play pulls further ahead of doing nothing (M4.5, David's option A).
+export const STARTING_HEALTH_MIN = 38;
 
 // Points on an SPC chart: earlier lots, then this lot once it has run.
 export const SPC_HISTORY = 12;

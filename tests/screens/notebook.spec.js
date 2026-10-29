@@ -54,6 +54,13 @@ async function expectTouchSize(locator) {
 const title = page => page.locator('.room-name');
 const goButton = page => page.locator('.go-button');
 const runButton = page => page.locator('.run-button');
+
+// Rooms with nothing to play (plating, CMP and metrology on a starter deck)
+// run by themselves and open on their result, so press Run only if it is there.
+async function runUnlessItRanByItself(page) {
+  await page.locator('.run-button, .skipped-text').first().waitFor();
+  if (await page.locator('.skipped-text').count() === 0) await pressAfterChange(page, runButton(page));
+}
 const notebookButton = page => page.locator('.notebook-button');
 const backButton = page => page.locator('.back-button');
 const button = (page, name) => page.getByRole('button', { name });
@@ -74,12 +81,12 @@ async function walkToShipReport(page) {
   await page.goto(PAGE);
   await press(page, goButton(page));
   for (let step = 1; step < STEP_COUNT; step++) {
-    await pressAfterChange(page, runButton(page));
+    await runUnlessItRanByItself(page);
     await pressAfterChange(page, button(page, 'Continue to the corridor'));
     await expect(title(page)).toHaveText('Floor plan');
     await pressAfterChange(page, goButton(page));
   }
-  await pressAfterChange(page, runButton(page));
+  // The last room has nothing to play, so it has already run by itself.
   await pressAfterChange(page, button(page, 'See the ship report'));
   await expect(title(page)).toHaveText('Ship report');
 }
@@ -171,10 +178,13 @@ test('with keyhole void in the notebook, the plating room deals Low-current star
   expect(errors, `console errors (seed ${SEED})`).toEqual([]);
 });
 
-test('with an empty notebook, the plating room deals nothing', async ({ page }) => {
+// Pre-wet is a step of the route, not a card (David, 29 Oct 2026), so with
+// an empty notebook nothing can be played in plating and it runs by itself.
+test('with an empty notebook, the plating room runs by itself', async ({ page }) => {
   test.slow();
   const errors = watchForErrors(page);
   await walkIntoStep(page, PLATING_STEP);
-  await expect(page.locator('.hand-empty')).toBeVisible();
+  await expect(page.locator('.skipped-text')).toHaveText('Nothing could be played here, so the lot went straight through.');
+  await expect(page.locator('.hand .card-name')).toHaveCount(0);
   expect(errors, `console errors (seed ${SEED})`).toEqual([]);
 });

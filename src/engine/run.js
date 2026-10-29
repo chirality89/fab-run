@@ -149,7 +149,7 @@ export function createRun({
     hand: [],
     minutesUsed: 0,
     cycleTime: 0,
-    stepYields: [],         // after each room: { stepIndex, roomId, yieldAfter } (the ship report)
+    stepYields: [],         // after each room: { stepIndex, roomId, yieldAfter, lostAfter } (the ship report)
     status: 'running',      // 'running' | 'scrapped' | 'shipped' | 'rejected'
     scrappedBy: null,       // 'scrapLine' | 'player' once scrapped
     diagnosed: null,        // the failure mode named on the ship report (notebook.js), once
@@ -252,6 +252,14 @@ export function legalCards(state) {
   return state.hand.filter(id => whyIllegal(state, id) === null);
 }
 
+// True when the lot is in a room and no card in the hand can be played, so
+// the room holds no decision. The screen then runs the room for the player
+// (P2 of tasks/plan-winnable.md; David, 26 Oct 2026: skip the hand screen
+// when there is nothing to play).
+export function nothingToPlay(state) {
+  return state.status === 'running' && state.room !== null && legalCards(state).length === 0;
+}
+
 // Plays one card: pays its base time and cash, applies its effects, and
 // takes it out of the hand.
 export function playCard(state, cardId) {
@@ -286,7 +294,8 @@ export function resolveStep(state) {
   next = useTool(next, step.room);   // this lot's SPC point, then wear
 
   const yieldNow = lotYield(lot);
-  const stepYield = { stepIndex: state.stepIndex, roomId: step.room, yieldAfter: yieldNow };
+  // lostAfter: yield lost so far per pattern, so the ship report can say which step cost what.
+  const stepYield = { stepIndex: state.stepIndex, roomId: step.room, yieldAfter: yieldNow, lostAfter: lot.lost };
   next = { ...next, stepYields: [...state.stepYields, stepYield] };
   const percent = `${(yieldNow * 100).toFixed(1)}%`;
   const isLastStep = next.stepIndex >= LOT_TYPES[state.lotTypeId].route.length;

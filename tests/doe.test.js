@@ -17,12 +17,15 @@ const TOLERANCE = 1e-6;
 const close = (actual, expected, label) =>
   assert.ok(Math.abs(actual - expected) < TOLERANCE, `${label}: got ${actual}, expected ${expected}`);
 
-// Seed 123456: the corridor after step 2 (index 1) offers PM/DOE, and its
-// DOE offers timed over-etch and strip and re-expose (measure all is not
-// dealt since M4.5 item 5, so it is in no deck).
+// These checks use a fixed two-card deck, the starter deck as it was before
+// the five room starters of P2 (28 Oct 2026), so the hand checks below keep
+// their hand-computed values whatever the starter deck grows into.
+// Seed 123456: the corridor after step 2 (index 1) offers PM/DOE, and with
+// this deck its DOE offers timed over-etch and strip and re-expose.
+const TWO_CARD_DECK = ['timedOveretch', 'reworkLitho'];
 const DOE_CORRIDOR = 1;
 const ETCH = 3;
-const handCheckRun = () => createRun({ seed: SEED, scatterStrength: 0, toolDrift: false });
+const handCheckRun = () => createRun({ seed: SEED, scatterStrength: 0, toolDrift: false, deck: TWO_CARD_DECK });
 
 // Runs rooms doing nothing, straight on, until the lot stands in the DOE
 // corridor; then takes the PM/DOE stop.
@@ -48,6 +51,12 @@ test('a DOE stop offers 2–3 practices from the deck whose rooms are still ahea
   // After step 8 (CMP) only metrology is left, and no card in the deck is
   // for it, so there is nothing to offer.
   assert.deepEqual(doeOffers(atStop, 7), []);
+});
+
+// With the real starter deck (7 cards) the same corridor offers other cards.
+test('with the starter deck, seed 123456\'s DOE stop offers strip and re-expose and the pump-purge cycles', () => {
+  const atStop = openStop(createRun({ seed: SEED, scatterStrength: 0, toolDrift: false }));
+  assert.deepEqual(atStop.pm.doeOffers, ['reworkLitho', 'chamberPurge'], `seed ${SEED}`);
 });
 
 test('a DOE costs 100 cash and the card then plays as its DOE version', () => {
@@ -90,16 +99,16 @@ test('the tuned measure-all costs 12 minutes', () => {
 
 // Hand check (tasks/todo.md, M3 item 2d): scatter off, drift off. DOE the
 // timed over-etch after step 2, then play it at etch. Underlayer attack is
-// 0.03 × 1.25 = 0.0375 instead of 0.03 × 1.5 = 0.045. It is an even
-// pattern, so yield after etch = the plain card's result × e^(0.0075)
-// = × 1.007528. Residue ×0.3 is the same in both.
-test('hand check: the DOE-centred over-etch gives × 1.007528 after etch', () => {
+// 0.016 × 1.85 = 0.0296 instead of 0.016 × 2 = 0.032 (29 Oct 2026). It is
+// an even pattern, so yield after etch = the plain card's result × e^(0.0024)
+// = × 1.002403. Residue ×0.3 is the same in both.
+test('hand check: the DOE-centred over-etch gives × 1.002403 after etch', () => {
   const atStop = openStop(handCheckRun());
   const plain = onToEtch(atStop);   // the same stop, left without a choice
   const tuned = onToEtch(doeCard(atStop, 'timedOveretch'));
   assert.ok(legalCards(tuned).includes('timedOveretch'), `seed ${SEED}`);
-  close(tuned.lot.risks.underlayer_attack, 0.03, 'underlayer attack before playing');
+  close(tuned.lot.risks.underlayer_attack, 0.016, 'underlayer attack before playing');
   const plainAfter = resolveStep(playCard(plain, 'timedOveretch'));
   const tunedAfter = resolveStep(playCard(tuned, 'timedOveretch'));
-  close(lotYield(tunedAfter.lot) / lotYield(plainAfter.lot), 1.007528, `yield ratio (seed ${SEED})`);
+  close(lotYield(tunedAfter.lot) / lotYield(plainAfter.lot), 1.002403, `yield ratio (seed ${SEED})`);
 });

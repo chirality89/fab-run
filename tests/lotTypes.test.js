@@ -127,11 +127,14 @@ test('traits are static traits that content checks with when: { lot }', () => {
   }
 });
 
-test('cuLine doing nothing: center 0.657047, inner 0.625002, outer 0.567295, yield 0.589352', () => {
+// Values from an independent python model of the route (29 Oct 2026, after
+// etch's own risks and its carried-in depth variation were cut by a quarter);
+// the same model first gave the previous 0.745276 / 0.719643 / 0.672460 / 0.690471.
+test('cuLine route risks alone (adds and realizes, no step effects): center 0.754274, inner 0.734732, outer 0.698025, yield 0.712021', () => {
   const lot = walkRouteDoingNothing(LOT_TYPES.cuLine);
-  const byRing = [0.657047, 0.625002, 0.567295];
+  const byRing = [0.754274, 0.734732, 0.698025];
   lot.sites.forEach((s, i) => close(s, byRing[ring(i)], `site ${i}`));
-  close(lotYield(lot), 0.589352, 'yield');
+  close(lotYield(lot), 0.712021, 'yield');
 });
 
 // NMOS has no center-to-edge pattern (no depth_variation), so center and

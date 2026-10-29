@@ -29,6 +29,11 @@
 // recipe prints on target CD. What is left is small: residue in slow-etching
 // spots, rare punch-through, a faint edge ring, and dose/focus scatter. Tool
 // wear (drift) and the cards decide the rest.
+// All base risks were cut to 70% on 28 Oct 2026 (P3 of tasks/plan-winnable.md, David chose
+// "cut base risks"): with the old sizes even a perfect starter-deck run could not
+// reach the 70% spec. Measured with tools/exit-check.js, see tasks/todo.md.
+// Etch's own risks and the depth variation carried in were cut by about a quarter
+// on 29 Oct 2026 (David, after a playtest: etch was ending most first runs).
 
 export const LOT_TYPES = {
   cuLine: {
@@ -38,7 +43,7 @@ export const LOT_TYPES = {
     // Latent from the start: etch depth and wide-line dishing are set by the
     // stack and the layout. Etch stop (dep) and dummy fill (litho) scale
     // them before the rooms where they bite (etch and CMP).
-    startRisks: { depth_variation: 0.08, dishing: 0.08 },
+    startRisks: { depth_variation: 0.042, dishing: 0.056 },
     startRiskNotes: {
       depth_variation: 'The film stack set how big this is before the lot got here: without an etch stop, trench depth follows the etch rate across the wafer.',
       dishing: 'The layout set how big this is: wide lines dish in any polish. Dummy fill at litho or a gentler polish here reduces it.',
@@ -48,16 +53,16 @@ export const LOT_TYPES = {
     // them at once (metrology adds none).
     route: [
       { room: 'clean', label: 'Wet clean',
-        adds: { particles: 0.01 },
+        adds: { particles: 0.007 },
         realizes: ['particles'] },
       { room: 'dep', label: 'Deposition (oxide)',
-        adds: { particles: 0.01 },
+        adds: { particles: 0.007 },
         realizes: ['particles', 'flakes'] },
       { room: 'litho', label: 'Litho (trench)',
-        adds: { particles: 0.01, cd_error: 0.03 },
+        adds: { particles: 0.007, cd_error: 0.021 },
         realizes: ['particles', 'cd_error'] },
       { room: 'etch', label: 'Etch (trench)',
-        adds: { particles: 0.01, residue: 0.04, underlayer_attack: 0.03, edge_ring: 0.03 },
+        adds: { particles: 0.007, residue: 0.021, underlayer_attack: 0.016, edge_ring: 0.016 },
         // An etch stop under the oxide (the "Deposit SiN etch stop" card):
         // the etch reaches the nitride and almost stops, so it attacks far
         // less of the film below (David, 26 Oct 2026: ×0.3).
@@ -70,19 +75,37 @@ export const LOT_TYPES = {
       // after this step as a Q-time window: a side stop there grows the
       // oxide further (QTIME_RISK_PER_MINUTE in balance.js, run.js).
       { room: 'clean', label: 'Resist strip + wet clean',
-        adds: { particles: 0.01, qtime_oxide: 0.04 },
+        adds: { particles: 0.007, qtime_oxide: 0.028 },
         realizes: ['particles'],
         qtime: 'qtime_oxide' },
       // Void risk enters here: the seed's coverage down the trench sets how
       // hard the fill will be (ionizedSeed scales it), and plating realizes it.
       { room: 'dep', label: 'Deposition (barrier + seed)',
-        adds: { particles: 0.01, void: 0.08 },
+        adds: { particles: 0.007, void: 0.056 },
         realizes: ['particles', 'qtime_oxide', 'flakes'] },
+      // Every lot is pre-wet before plating: routine, not a card (game rule 8;
+      // David, 29 Oct 2026). A dry seed surface and gas in narrow features keep
+      // the solution and its additives from the bottom, so bottom-up fill
+      // starts late and the mouth can close first; wetting under vacuum lets
+      // the liquid reach the bottom (void ×0.8). The extra wet transfer adds
+      // a few handling particles (×1.1).
       { room: 'plate', label: 'Plating (Cu fill)',
-        adds: { particles: 0.01 },
+        adds: { particles: 0.007 },
+        effects: [
+          { op: 'defectMult', pattern: 'void', mult: 0.8 },
+          { op: 'defectMult', pattern: 'particles', mult: 1.1 },
+        ],
         realizes: ['particles', 'void'] },
+      // The pad is conditioned before every lot: routine, not a card (game
+      // rule 8; David, 29 Oct 2026). A fresh or glazed pad polishes at a
+      // different rate than a conditioned one (its Preston coefficient
+      // differs); a conditioning sweep and a few dummy wafers bring it to a
+      // steady state first (rr_drift ×0.8).
       { room: 'cmp', label: 'CMP',
-        adds: { particles: 0.01, rr_drift: 0.04 },
+        adds: { particles: 0.007, rr_drift: 0.028 },
+        effects: [
+          { op: 'defectMult', pattern: 'rr_drift', mult: 0.8 },
+        ],
         realizes: ['particles', 'dishing', 'rr_drift'] },
       // Measure, then ship against the customer spec. Nothing added here.
       { room: 'metro', label: 'Metrology',

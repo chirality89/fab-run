@@ -17,7 +17,7 @@
 // save, so the last tab to act is the one a reload picks up.
 
 import { normalizeSeed } from '../engine/rng.js';
-import { createRun, runDeck, defaultLoadout } from '../engine/run.js';
+import { createRun, runDeck, defaultLoadout, nothingToPlay } from '../engine/run.js';
 import { applyAction, saveRun, loadRun, clearRun, replayRun, loadNotebook, saveNotebook } from './storage.js';
 import { roomView, resultView, mapView, stopView, shopView, parseSeed, badSeedText } from './view.js';
 import {
@@ -254,9 +254,16 @@ function showEvent() {
   renderEvent(app, eventView(state), { onChoose, onContinue: () => safely(enterRoom) });
 }
 
+// Into the next room. A room with nothing to play is run straight away and
+// the result screen follows (it says so and shows the tool's SPC chart).
 function enterRoom() {
   act(['enter']);
-  showRoom();
+  if (nothingToPlay(state)) {
+    const before = act(['run']);
+    showResult(before);
+  } else {
+    showRoom();
+  }
   showFromTop(app);
 }
 

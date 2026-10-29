@@ -14,7 +14,7 @@ import {
 import { normalizeSeed } from '../engine/rng.js';
 import { SIDE_STOP_KINDS } from '../engine/map.js';
 import { lotYield, realizeRisks } from '../engine/lot.js';
-import { whyIllegal, playCard } from '../engine/run.js';
+import { whyIllegal, playCard, nothingToPlay } from '../engine/run.js';
 import { whyCannotBuy, findShopItem } from '../engine/shop.js';
 import { cardInRun } from '../engine/doe.js';
 import { spcView } from './spcView.js';
@@ -87,12 +87,22 @@ function slotsView(state, roomId) {
   return [...equipment, ...materials].filter(item => item.room === roomId);
 }
 
+// What a lot condition (`when: { lot: … }`) means, in words, for a card that
+// is greyed out because the lot does not meet it (Lane F issue 3: the old
+// "its condition is not met" never said which condition).
+const LOT_CONDITION_WORDS = {
+  lastStepWasLitho: 'Needs a litho step just before this one. No step on this route does that.',
+};
+
 // Turns the engine's short reason into words for the card. When the card
 // waits on a piece of equipment, it names that equipment.
 function friendlyReason(card, reason) {
   if (reason === 'its condition is not met' && card.when?.equipment) {
     const tool = EQUIPMENT.find(item => item.id === card.when.equipment);
     return `Needs the ${tool ? tool.name : card.when.equipment}`;
+  }
+  if (reason === 'its condition is not met' && card.when?.lot in LOT_CONDITION_WORDS) {
+    return LOT_CONDITION_WORDS[card.when.lot];
   }
   return reason.charAt(0).toUpperCase() + reason.slice(1);
 }
@@ -297,7 +307,18 @@ export function resultView(before, after) {
     mapKeyText: mapKeyText(),
     status: after.status,
     outcomeText: outcomeText(after, route),
+    // A room that ran with nothing played and nothing playable: say so, and
+    // show the tool's SPC chart here, since the room screen was skipped.
+    skippedText: ranWithNothingToPlay(before)
+      ? 'Nothing could be played here, so the lot went straight through.' : null,
+    spc: ranWithNothingToPlay(before) ? spcView(after, before.room.id) : null,
   };
+}
+
+// True if the lot was run through this room without a card played, and none
+// could have been (no time spent, no legal card).
+function ranWithNothingToPlay(before) {
+  return before.room.timeLeft === before.room.budget && nothingToPlay(before);
 }
 
 // --- the floor-plan map (M3 item 1) ----------------------------------------

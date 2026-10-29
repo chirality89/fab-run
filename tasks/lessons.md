@@ -370,3 +370,28 @@ The expected names were written from the items' ids, not read from `content.js`.
 - **What happened:** the new verdicts said "A shifted tool costs yield" for any shift, including a run below the centre line on a one-sided chart (particle adders, seam rate), where fewer is never out of spec. The physics review caught it.
 - **Root cause:** I wrote the verdict from the rule alone and forgot the chart's spec shape, the same miss as the earlier lower-spec-line lesson.
 - **Rule:** any text that says a chart signal costs yield must check `oneSided` and the drift `direction` first. Test every new SPC sentence on a one-sided chart as well as a two-sided one.
+
+## 28 Oct 2026 — A flow change broke 16 screen specs I had not run
+- **What happened:** letting a room with nothing to play run itself, and adding starter practices to most rooms, passed `npm test` but broke 16 Playwright specs (they press Run in every room, expect an empty plating hand, and expect certain DOE offers). I found out only because I ran `npm run screens` before committing; the first commit went out with the unit tests green and the screens not yet run.
+- **Root cause:** `npm test` does not cover the screens, and I treated it as the whole check for a change that touches what the player does on a screen.
+- **Rule:** a change to the room flow, the starter deck or any text a spec reads needs `npm run screens` before the commit, and the commit message says if any spec is still red. Check specs for flows that "press the same button in every room".
+
+## 28 Oct 2026 — The starter cards were too small to change the outcome, and I found out late
+- **What happened:** five starter practices raised the smart bot's starter-deck result by only 2 points. Each card acts on one room's pattern, and those patterns hold about 1% of risk, so no single card could move the lot.
+- **Root cause:** I drafted cards before measuring how much yield each room can give back. The bot (`npm run exit-check`) shows it in seconds.
+- **Rule:** before drafting cards for a balance goal, run the smart bot with the full deck and note where the points are lost (`pointsLostByPattern`). Draft for the patterns that hold the points, or change the base risks.
+
+## 28 Oct 2026 — The smart bot chose side stops after looking inside them
+- **What happened:** to pick a side stop, the smart bot opened each one on a copy of the run, saw its shop stock, event or PM restore roll, then chose. A player sees only the stop's kind. The bot changed its choice in 17 of 240 corridors when only those hidden dice changed.
+- **Root cause:** "try every option on a copy" also tries options whose outcome a player cannot know yet. The copy carried the run's own seed, which decides what is inside each stop.
+- **Rule:** a bot that measures good play scores a choice only on what a player could see. Where the outcome is hidden, score it on imagined dice and average (`IMAGINED_SEEDS` in `tools/smartBot.js`). Test it by changing only the hidden dice and checking the choice stays the same, and check that test fails on the old bot.
+
+## 29 Oct 2026 — A card that costs only minutes nobody else wants is always worth playing
+- **What happened:** five starter cards were "real tradeoffs" on paper, but the smart bot played them in 30 of 30 lots. In a room with one card, the card's minutes are free, and the side effects were too small to outweigh the gain.
+- **Root cause:** the tradeoff was checked as text, not measured. A cost only counts if it can ever be bigger than the gain.
+- **Rule:** before calling a card a decision, measure its worth per lot (gain with and without it, split by what the screen shows, e.g. SPC flagged or quiet). It should lose in some lots and win in others, and the screen should tell them apart. If it never loses, it is routine: make it a route step (game rule 8).
+
+## 29 Oct 2026 — One room ate a third of every first run, and the player could not act on it
+- **What happened:** a playtest said etch "ends most runs". Measured on 100 seeds, etch lost 13.5 of about 48 points when idle, and the smart bot with the starter deck still lost 11.7 there. Every etch remedy (etch stop, endpoint detector, e-chuck) was locked behind the notebook, so a first run had only the over-etch card and a PM. The exit-check passed because it only measures totals.
+- **Root cause:** balance was judged on total yield, not per room, and not on how much of each room's loss a new player could recover.
+- **Rule:** when balancing the first run, tabulate points lost per room and what the starter deck can recover in each (idle vs smart). A room that loses much more than its neighbours and offers no starter lever is a wall; fix it with base risks (balance), not by bending physics.
