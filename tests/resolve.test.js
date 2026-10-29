@@ -116,11 +116,11 @@ test('when: each of the four kinds, true and false', () => {
   assert.equal(conditionMet(state, { flag: 'etch_stop', lot: 'deepEtch' }), false);
 });
 
-test('timed over-etch: underlayer 0.1 → 0.15 without etch stop, 0.105 with it (×1.5 × 0.7)', () => {
+test('timed over-etch: underlayer 0.1 → 0.2 without etch stop, 0.105 with it (×2 × 0.525)', () => {
   const card = findItem(PRACTICES, 'timedOveretch');
   const risks = { underlayer_attack: 0.1, residue: 0.1 };
   const plain = applyEffects(withRisks(risks), card);
-  close(plain.lot.risks.underlayer_attack, 0.15, 'no etch stop');
+  close(plain.lot.risks.underlayer_attack, 0.2, 'no etch stop');
   close(plain.lot.risks.residue, 0.03, 'residue, no etch stop');
   const stopped = applyEffects(makeState({ lot: { ...createLot(), risks, flags: ['etch_stop'] } }), card);
   close(stopped.lot.risks.underlayer_attack, 0.105, 'with etch stop');

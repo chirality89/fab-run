@@ -101,7 +101,7 @@ test('the hot lot takes 30 minutes off; cycle time never goes below 0', () => {
 
 test('the audit in the Q-time corridor: +30 min, Q-time oxide +0.001 × 30, the wet bench +15', () => {
   // The Q-time corridor is the one after step 5 (index 4). Its oxide is
-  // 0.04 there (step 5 adds it; step 6 realizes it).
+  // 0.028 there (step 5 adds it; step 6 realizes it).
   let state = resolveStep(enterStep(createRun({
     seed: SEED, scatterStrength: 0, toolDrift: false, startingHealth: { clean: 70 },
   })));
@@ -109,12 +109,12 @@ test('the audit in the Q-time corridor: +30 min, Q-time oxide +0.001 × 30, the 
   const atAudit = { ...state, corridor: null, event: { corridor: 4, eventId: 'audit', chosen: null } };
   const walked = chooseEventOption(atAudit, 0);
   assert.equal(walked.cycleTime, atAudit.cycleTime + 30);
-  close(walked.lot.risks.qtime_oxide, 0.07, 'qtime_oxide 0.04 + 0.03');
+  close(walked.lot.risks.qtime_oxide, 0.058, 'qtime_oxide 0.028 + 0.03');
   assert.equal(walked.tools.clean.health, 85, 'wet bench serviced');
   assert.deepEqual(walked.tools.clean.pmAt, [walked.tools.clean.spc.length], 'the service marks its chart, so old flags stop counting (M4.5 item 4)');
   const later = chooseEventOption(atAudit, 1);
   assert.equal(later.cash, atAudit.cash - 100);
-  close(later.lot.risks.qtime_oxide, 0.04, 'no wait, no extra oxide');
+  close(later.lot.risks.qtime_oxide, 0.028, 'no wait, no extra oxide');
 });
 
 test('addRisk refuses a negative amount; toolHealth with a room works between rooms', () => {
@@ -133,7 +133,7 @@ test('addRisk refuses a negative amount; toolHealth with a room works between ro
 test('hand check: switching slurry costs the lot × 0.977312 and pays 150', () => {
   const idle = playIdle(handCheckRun());
   const switched = playIdle(chooseEventOption(openEvent(handCheckRun()), SWITCH_NOW));
-  close(lotYield(idle.lot), 0.589352, `the idle run (seed ${SEED})`);
+  close(lotYield(idle.lot), 0.701678, `the idle run (seed ${SEED})`);
   close(lotYield(switched.lot) / lotYield(idle.lot), 0.977312, `yield ratio (seed ${SEED})`);
   assert.equal(switched.cash, idle.cash + 150, `cash (seed ${SEED})`);
 });

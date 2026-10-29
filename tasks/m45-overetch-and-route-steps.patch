@@ -1,0 +1,196 @@
+diff --git a/src/art/sections/padBreakIn.svg b/src/art/sections/padBreakIn.svg
+deleted file mode 100644
+index 9f158d0..0000000
+--- a/src/art/sections/padBreakIn.svg
++++ /dev/null
+@@ -1,14 +0,0 @@
+-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 140" role="img">
+-  <title>Condition the pad before the lot: a polishing pad presses on a blank dummy wafer with an oxide film. The pad surface is rough where it has been conditioned. The film thins evenly, so the removal rate settles before a product wafer is polished. Each sweep uses up a little pad life.</title>
+-  <rect class="mat-si"      x="0"   y="124" width="260" height="16"/>
+-  <rect class="mat-oxide"   x="0"   y="104" width="260" height="20"/>
+-  <!-- Pad above the wafer, rough on its working face. -->
+-  <rect class="mat-polymer" x="0"   y="40"  width="260" height="48"/>
+-  <path class="mat-polymer" d="M0 88l8 6 8-6l8 6 8-6l8 6 8-6l8 6 8-6l8 6 8-6l8 6 8-6l8 6 8-6l8 6 8-6l8 6 8-6l8 6 8-6l8 6 8-6l8 6 8-6l8 6 8-6l8 6 8-6l8 6 8-6l8 6 8-6v-6H0z"/>
+-  <!-- Rotation and down-force arrows. -->
+-  <path class="mat-measure" d="M30 30h60M84 24l6 6-6 6"/>
+-  <path class="mat-measure" d="M200 20v14M194 28l6 6 6-6"/>
+-  <text class="art-label-on-dark" x="6"   y="62">pad</text>
+-  <text class="art-label" x="6"   y="118">dummy wafer film</text>
+-  <text class="art-label-on-dark" x="252" y="136" text-anchor="end">not to scale</text>
+-</svg>
+diff --git a/src/art/sections/waferPrewet.svg b/src/art/sections/waferPrewet.svg
+deleted file mode 100644
+index e166ab8..0000000
+--- a/src/art/sections/waferPrewet.svg
++++ /dev/null
+@@ -1,23 +0,0 @@
+-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 140" role="img">
+-  <title>Wafer pre-wet: two narrow vias in oxide, lined with barrier and seed. In the left via a gas bubble sits trapped at the bottom, where the plating bath cannot reach. In the right via the pre-wet liquid has filled to the bottom and no bubble remains, so the copper can fill it.</title>
+-  <rect class="mat-si"      x="0"   y="128" width="260" height="12"/>
+-  <rect class="mat-oxide"   x="0"   y="42"  width="260" height="86"/>
+-  <rect class="mat-barrier" x="0"   y="36"  width="260" height="6"/>
+-  <rect class="mat-seed"    x="0"   y="30"  width="260" height="6"/>
+-  <!-- Left via, with a trapped bubble at the bottom. -->
+-  <rect class="mat-barrier" x="40"  y="36"  width="44"  height="84"/>
+-  <rect class="mat-seed"    x="45"  y="30"  width="34"  height="84"/>
+-  <rect class="art-hole"    x="51"  y="30"  width="22"  height="78"/>
+-  <ellipse class="mat-void" cx="62" cy="98" rx="9" ry="10"/>
+-  <!-- Right via, filled with liquid, no bubble. -->
+-  <rect class="mat-barrier" x="170" y="36"  width="44"  height="84"/>
+-  <rect class="mat-seed"    x="175" y="30"  width="34"  height="84"/>
+-  <rect class="art-hole"    x="181" y="30"  width="22"  height="78"/>
+-  <path class="mat-measure" d="M183 44q4-4 8 0t8 0M183 64q4-4 8 0t8 0M183 84q4-4 8 0t8 0"/>
+-  <text class="art-label-on-dark" x="6"   y="16">bubble</text>
+-  <text class="art-label-on-dark" x="136" y="16">wetted</text>
+-  <text class="art-label" x="6"   y="88">oxide</text>
+-  <!-- Scale bar. Thin films are drawn at least 6 px thick, so it is a guide, not a ruler. -->
+-  <path class="mat-measure" d="M208 16h44M208 12v8M252 12v8"/>
+-  <text class="art-label-on-dark" x="252" y="9" text-anchor="end">200 nm</text>
+-</svg>
+diff --git a/src/content/content.js b/src/content/content.js
+index 0ea6807..edb0c52 100644
+--- a/src/content/content.js
++++ b/src/content/content.js
+@@ -135,23 +135,28 @@ export const PRACTICES = [
+     cost: { time: 4 },
+     effects: [
+       { op: 'defectMult', pattern: 'residue', mult: 0.3 },
+-      { op: 'defectMult', pattern: 'underlayer_attack', mult: 1.5 },
+-      // On a stop the extra time barely reaches the film below: ×1.5 × 0.7 = ×1.05.
+-      { op: 'defectMult', pattern: 'underlayer_attack', mult: 0.7, when: { flag: 'etch_stop' } },
++      // ×2 (was ×1.5, 29 Oct 2026): on a tool whose etch-rate chart is quiet
++      // the attack about cancels the residue cleared, so the card pays off
++      // only when the chart shows the rate falling (M4.5, a real decision).
++      { op: 'defectMult', pattern: 'underlayer_attack', mult: 2.0 },
++      // On a stop the extra time barely reaches the film below: ×2.0 × 0.525 = ×1.05.
++      { op: 'defectMult', pattern: 'underlayer_attack', mult: 0.525, when: { flag: 'etch_stop' } },
+     ],
+     upgrade: {
+       name: 'Timed over-etch, DOE-centred',
+       effects: [
+         { op: 'defectMult', pattern: 'residue', mult: 0.3 },
+-        { op: 'defectMult', pattern: 'underlayer_attack', mult: 1.25 },
+-        // ×1.25 × 0.84 = ×1.05 on a stop, the same as the plain card.
+-        { op: 'defectMult', pattern: 'underlayer_attack', mult: 0.84, when: { flag: 'etch_stop' } },
++        // ×1.85, not lower: the DOE-centred card still needs a drifting tool
++        // to pay off without a stop (physics review, 29 Oct 2026).
++        { op: 'defectMult', pattern: 'underlayer_attack', mult: 1.85 },
++        // ×1.85 × 0.568 ≈ ×1.05 on a stop, the same as the plain card.
++        { op: 'defectMult', pattern: 'underlayer_attack', mult: 0.568, when: { flag: 'etch_stop' } },
+       ],
+-      tradeoff: 'Still attacks the film below, but less: the DOE found the shortest over-etch that still clears. On an etch stop, the same as the plain card.',
++      tradeoff: 'Still attacks the film below, but less: the DOE found the shortest over-etch that still clears. Without a stop it still pays only when the etch rate has drifted down. On an etch stop, the same as the plain card.',
+       physicsNote: 'A designed experiment across over-etch times finds where residue is gone but punch-through has barely started, so less extra time is needed for the same clearing.',
+     },
+-    tradeoff: 'Clears residue but attacks the film below, much less if an etch stop is there.',
+-    physicsNote: 'Extra etch time removes what is left in slow spots and keeps etching wherever the film has already cleared. Selectivity to the underlayer sets how much damage that does.' },
++    tradeoff: 'Clears residue but attacks the film below, much less if an etch stop is there. Without a stop, it pays when the etch-rate chart shows the rate falling; on a steady tool the attack costs about what it saves.',
++    physicsNote: 'Extra etch time removes what is left in slow spots and keeps etching wherever the film has already cleared. Selectivity to the underlayer sets how much damage that does. A centred recipe already has its over-etch; extra time pays when the rate has drifted down and a timed etch leaves film behind.' },
+ 
+   { id: 'measureAll', draft: true, kind: 'practice', room: 'metro', rarity: 'standard',
+     name: 'Measure all 25 sites', unlockedBy: null,
+@@ -491,38 +496,6 @@ export const PRACTICES = [
+       physicsNote: 'A DOE on how many past lots to average and how hard to correct finds a steadier correction. Averaging more lots separates a real shift from noise, but takes more time to gather and check.' },
+     tradeoff: 'Moves the dose toward target using the line widths of recent lots, but it does not measure this lot, so it only fixes a steady shift, not scatter, and it costs minutes and money.',
+     physicsNote: 'Printed size follows dose: in a positive resist, resist lines get narrower and exposed trenches get wider as dose rises. A steady shift seen on the SPC chart can be undone with a small dose change, but adjusting for random scatter makes the spread larger, not smaller. Measuring a send-ahead wafer is the better check.' },
+-
+-  { id: 'waferPrewet', draft: true, kind: 'practice', room: 'plate', rarity: 'standard',
+-    name: 'Wafer pre-wet', unlockedBy: null,
+-    cost: { time: 4 },
+-    effects: [
+-      { op: 'defectMult', pattern: 'void', mult: 0.8 },
+-      { op: 'defectMult', pattern: 'particles', mult: 1.1 },
+-    ],
+-    upgrade: { name: 'Wafer pre-wet, DOE-tuned', cost: { time: 5 },
+-      effects: [
+-        { op: 'defectMult', pattern: 'void', mult: 0.75 },
+-        { op: 'defectMult', pattern: 'particles', mult: 1.15 },
+-      ],
+-      tradeoff: 'Gas clears better with a longer, deeper-vacuum wet, but it takes more time and more handling in the wet cell.',
+-      physicsNote: 'A DOE on vacuum level and wet time finds a better way to clear gas from narrow features, but a longer wet and more transfers add handling particles and time in the cell.' },
+-    tradeoff: 'Wets narrow features so liquid reaches the bottom, but it takes minutes the plating room needs, so a long low-current start may no longer fit, and it adds an extra wet transfer.',
+-    physicsNote: 'A dry seed surface and gas in narrow features keep the plating solution and its additives from reaching the bottom, so bottom-up fill starts late and the mouth can close first. Wetting under vacuum first lets liquid reach the bottom, so fill starts evenly.' },
+-
+-  { id: 'padBreakIn', draft: true, kind: 'practice', room: 'cmp', rarity: 'standard',
+-    name: 'Condition the pad before the lot', unlockedBy: null,
+-    cost: { time: 3, cash: 20 },
+-    effects: [
+-      { op: 'defectMult', pattern: 'rr_drift', mult: 0.8 },
+-    ],
+-    upgrade: { name: 'Condition the pad before the lot, DOE-tuned', cost: { time: 4, cash: 20 },
+-      effects: [
+-        { op: 'defectMult', pattern: 'rr_drift', mult: 0.7 },
+-      ],
+-      tradeoff: 'A steadier removal rate with a longer conditioning sweep and more dummy wafers, but it uses more pad life, dummy wafers and minutes.',
+-      physicsNote: 'A DOE on the number of dummy wafers and the conditioning force finds a steadier surface; each extra pass also grinds more off the pad.' },
+-    tradeoff: 'A steadier removal rate at the start, but it spends minutes, dummy wafers and pad life (the 20 cash).',
+-    physicsNote: 'A fresh or glazed pad polishes at a different rate than a conditioned one (its Preston coefficient differs). A conditioning sweep, then a few dummy wafers, roughens the pad surface to a steady state before product, at the cost of pad life and dummy wafers.' },
+ ];
+ 
+ // ---------------------------------------------------------------------------
+diff --git a/src/content/lotTypes.js b/src/content/lotTypes.js
+index 905f202..4cb365c 100644
+--- a/src/content/lotTypes.js
++++ b/src/content/lotTypes.js
+@@ -81,11 +81,29 @@ export const LOT_TYPES = {
+       { room: 'dep', label: 'Deposition (barrier + seed)',
+         adds: { particles: 0.007, void: 0.056 },
+         realizes: ['particles', 'qtime_oxide', 'flakes'] },
++      // Every lot is pre-wet before plating: routine, not a card (game rule 8;
++      // David, 29 Oct 2026). A dry seed surface and gas in narrow features keep
++      // the solution and its additives from the bottom, so bottom-up fill
++      // starts late and the mouth can close first; wetting under vacuum lets
++      // the liquid reach the bottom (void ×0.8). The extra wet transfer adds
++      // a few handling particles (×1.1).
+       { room: 'plate', label: 'Plating (Cu fill)',
+         adds: { particles: 0.007 },
++        effects: [
++          { op: 'defectMult', pattern: 'void', mult: 0.8 },
++          { op: 'defectMult', pattern: 'particles', mult: 1.1 },
++        ],
+         realizes: ['particles', 'void'] },
++      // The pad is conditioned before every lot: routine, not a card (game
++      // rule 8; David, 29 Oct 2026). A fresh or glazed pad polishes at a
++      // different rate than a conditioned one (its Preston coefficient
++      // differs); a conditioning sweep and a few dummy wafers bring it to a
++      // steady state first (rr_drift ×0.8).
+       { room: 'cmp', label: 'CMP',
+         adds: { particles: 0.007, rr_drift: 0.028 },
++        effects: [
++          { op: 'defectMult', pattern: 'rr_drift', mult: 0.8 },
++        ],
+         realizes: ['particles', 'dishing', 'rr_drift'] },
+       // Measure, then ship against the customer spec. Nothing added here.
+       { room: 'metro', label: 'Metrology',
+diff --git a/tests/run.test.js b/tests/run.test.js
+index 64f094d..a01489b 100644
+--- a/tests/run.test.js
++++ b/tests/run.test.js
+@@ -57,7 +57,7 @@ test('createRun: defaults are the cuLine, the starter deck, i-line resist loaded
+   assert.equal(state.lotTypeId, 'cuLine');
+   // measureAll is a starter card but is not dealt yet (run.js NOT_DEALT_YET).
+   assert.deepEqual(state.deck, [
+-    'timedOveretch', 'reworkLitho', 'extraDiRinse', 'chamberPurge', 'doseTrimSpc', 'waferPrewet', 'padBreakIn',
++    'timedOveretch', 'reworkLitho', 'extraDiRinse', 'chamberPurge', 'doseTrimSpc',
+   ]);
+   assert.deepEqual(state.deck, starterDeck());
+   assert.deepEqual(state.slots, { resist: { id: 'resistIline', shelfLife: 8, decay: 1 } });
+diff --git a/tests/skip.test.js b/tests/skip.test.js
+index 676ca7b..8f4f5b9 100644
+--- a/tests/skip.test.js
++++ b/tests/skip.test.js
+@@ -64,9 +64,12 @@ test('a greyed-out Strip and re-expose says what it needs, not just "condition n
+ // deck, every room on the Cu line deals at least one playable practice,
+ // except the rooms listed here, which run by themselves. If a content
+ // change empties a room, this test names it.
+-const ROOMS_THAT_RUN_THEMSELVES = ['metro'];   // metrology: measuring, no process choice
++// Metrology: measuring, no process choice. Plating and CMP: their routine
++// steps (pre-wet, pad conditioning) are part of the route, not cards (game
++// rule 8; David, 29 Oct 2026); unlocked cards can still be dealt there.
++const ROOMS_THAT_RUN_THEMSELVES = ['plate', 'cmp', 'metro'];
+ 
+-test('starter deck: every Cu-line room has a playable practice, except metrology, which runs by itself', () => {
++test('starter deck: every Cu-line room has a playable practice, except plating, CMP and metrology, which run by themselves', () => {
+   let state = createRun({ seed: SEED });
+   let roomsChecked = 0;
+   while (state.status === 'running') {

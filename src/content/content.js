@@ -135,23 +135,28 @@ export const PRACTICES = [
     cost: { time: 4 },
     effects: [
       { op: 'defectMult', pattern: 'residue', mult: 0.3 },
-      { op: 'defectMult', pattern: 'underlayer_attack', mult: 1.5 },
-      // On a stop the extra time barely reaches the film below: ×1.5 × 0.7 = ×1.05.
-      { op: 'defectMult', pattern: 'underlayer_attack', mult: 0.7, when: { flag: 'etch_stop' } },
+      // ×2 (was ×1.5, 29 Oct 2026): on a tool whose etch-rate chart is quiet
+      // the attack about cancels the residue cleared, so the card pays off
+      // only when the chart shows the rate falling (M4.5, a real decision).
+      { op: 'defectMult', pattern: 'underlayer_attack', mult: 2.0 },
+      // On a stop the extra time barely reaches the film below: ×2.0 × 0.525 = ×1.05.
+      { op: 'defectMult', pattern: 'underlayer_attack', mult: 0.525, when: { flag: 'etch_stop' } },
     ],
     upgrade: {
       name: 'Timed over-etch, DOE-centred',
       effects: [
         { op: 'defectMult', pattern: 'residue', mult: 0.3 },
-        { op: 'defectMult', pattern: 'underlayer_attack', mult: 1.25 },
-        // ×1.25 × 0.84 = ×1.05 on a stop, the same as the plain card.
-        { op: 'defectMult', pattern: 'underlayer_attack', mult: 0.84, when: { flag: 'etch_stop' } },
+        // ×1.85, not lower: the DOE-centred card still needs a drifting tool
+        // to pay off without a stop (physics review, 29 Oct 2026).
+        { op: 'defectMult', pattern: 'underlayer_attack', mult: 1.85 },
+        // ×1.85 × 0.568 ≈ ×1.05 on a stop, the same as the plain card.
+        { op: 'defectMult', pattern: 'underlayer_attack', mult: 0.568, when: { flag: 'etch_stop' } },
       ],
-      tradeoff: 'Still attacks the film below, but less: the DOE found the shortest over-etch that still clears. On an etch stop, the same as the plain card.',
+      tradeoff: 'Still attacks the film below, but less: the DOE found the shortest over-etch that still clears. Without a stop it still pays only when the etch rate has drifted down. On an etch stop, the same as the plain card.',
       physicsNote: 'A designed experiment across over-etch times finds where residue is gone but punch-through has barely started, so less extra time is needed for the same clearing.',
     },
-    tradeoff: 'Clears residue but attacks the film below, much less if an etch stop is there.',
-    physicsNote: 'Extra etch time removes what is left in slow spots and keeps etching wherever the film has already cleared. Selectivity to the underlayer sets how much damage that does.' },
+    tradeoff: 'Clears residue but attacks the film below, much less if an etch stop is there. Without a stop, it pays when the etch-rate chart shows the rate falling; on a steady tool the attack costs about what it saves.',
+    physicsNote: 'Extra etch time removes what is left in slow spots and keeps etching wherever the film has already cleared. Selectivity to the underlayer sets how much damage that does. A centred recipe already has its over-etch; extra time pays when the rate has drifted down and a timed etch leaves film behind.' },
 
   { id: 'measureAll', draft: true, kind: 'practice', room: 'metro', rarity: 'standard',
     name: 'Measure all 25 sites', unlockedBy: null,
@@ -445,6 +450,52 @@ export const PRACTICES = [
       physicsNote: 'A DOE on dip time finds a shorter etch. At the same HF concentration, oxide is removed at a finite rate, so less time leaves a little more chemical oxide and contamination, while the hydrogen-terminated surface still regrows native oxide when the lot waits.' },
     tradeoff: 'A final dip in dilute HF strips the thin chemical oxide left by the earlier cleans and the contamination in it, but the bare silicon regrows native oxide as soon as the lot waits, so the Q-time window gets tighter.',
     physicsNote: 'Dilute HF removes silicon dioxide and the metals trapped in it, leaving a hydrogen-terminated silicon surface that makes a cleaner, more uniform gate oxide. That surface is only stable for a short time; it regrows native oxide in air and moisture.' },
+
+  // --- Starter practices for the Cu line rooms (26 Oct 2026). Plainer and weaker than the unlockable remedies. ---
+  { id: 'extraDiRinse', draft: true, kind: 'practice', room: 'clean', rarity: 'standard',
+    name: 'Extra DI-water rinse', unlockedBy: null,
+    cost: { time: 3, cash: 10 },
+    effects: [
+      { op: 'defectMult', pattern: 'particles', mult: 0.75 },
+      { op: 'defectMult', pattern: 'qtime_oxide', mult: 1.1 },
+    ],
+    upgrade: { name: 'Extra DI-water rinse, DOE-tuned', cost: { time: 2, cash: 10 },
+      effects: [
+        { op: 'defectMult', pattern: 'particles', mult: 0.8 },
+        { op: 'defectMult', pattern: 'qtime_oxide', mult: 1.05 },
+      ],
+      tradeoff: 'Shorter and less water time, so less oxide regrowth, but it also carries off fewer particles.',
+      physicsNote: 'A DOE on rinse time and flow finds the point where most loose particles are gone; the rest are held by surface forces that more flow barely changes, while a shorter soak in water with dissolved oxygen grows less oxide.' },
+    tradeoff: 'Fewer loose particles, but it costs minutes of a short budget, and wafers wet longer in oxygen-bearing water grow a little more oxide. That only matters after the strip clean, where the barrier goes on next.',
+    physicsNote: 'Rinsing with more DI water carries away loose particles, but it does not break the bond of small ones stuck by surface forces (that takes megasonic energy). Water holds dissolved oxygen, which grows native oxide on a bare surface.' },
+
+  { id: 'chamberPurge', draft: true, kind: 'practice', room: 'dep', rarity: 'standard',
+    name: 'Pump-purge cycles before the run', unlockedBy: null,
+    cost: { time: 5, cash: 20 },
+    effects: [
+      { op: 'defectMult', pattern: 'flakes', mult: 0.75 },
+      { op: 'defectMult', pattern: 'particles', mult: 1.1 },
+    ],
+    upgrade: { name: 'Pump-purge cycles before the run, DOE-tuned', cost: { time: 7, cash: 20 },
+      effects: [
+        { op: 'defectMult', pattern: 'flakes', mult: 0.7 },
+        { op: 'defectMult', pattern: 'particles', mult: 1.15 },
+      ],
+      tradeoff: 'Carries away more loose flakes, but the longer, harder purge cycles shake more particles loose and take more minutes.',
+      physicsNote: 'A DOE on the number of purge cycles and the pump-down rate finds that more cycles lift more loose wall film, but each pump and vent stirs up deposits and settling particles.' },
+    tradeoff: 'Less loose film on the chamber walls to flake off, but it takes minutes and money, and the vent and pump cycle stirs up particles. With a healthy chamber it buys almost nothing.',
+    physicsNote: 'Film on chamber walls cracks and flakes as stress grows. Repeated pump-down and gas purge cycles before the wafers go in carry away loose flakes, but the pressure swings also shake particles off the walls, and the stressed film still stuck on stays.' },
+
+  { id: 'doseTrimSpc', draft: true, kind: 'practice', room: 'litho', rarity: 'standard',
+    name: 'Trim dose from the SPC trend', unlockedBy: null,
+    cost: { time: 5, cash: 30 },
+    effects: [ { op: 'defectMult', pattern: 'cd_error', mult: 0.8 } ],
+    upgrade: { name: 'Trim dose from the SPC trend, DOE-tuned', cost: { time: 8, cash: 30 },
+      effects: [ { op: 'defectMult', pattern: 'cd_error', mult: 0.75 } ],
+      tradeoff: 'Averages more past lots, so noise moves the dose less, but the correction lags a tool that is still drifting.',
+      physicsNote: 'A DOE on how many past lots to average and how hard to correct finds a steadier correction. Averaging more lots separates a real shift from noise, but takes more time to gather and check.' },
+    tradeoff: 'Moves the dose toward target using the line widths of recent lots, but it does not measure this lot, so it only fixes a steady shift, not scatter, and it costs minutes and money.',
+    physicsNote: 'Printed size follows dose: in a positive resist, resist lines get narrower and exposed trenches get wider as dose rises. A steady shift seen on the SPC chart can be undone with a small dose change, but adjusting for random scatter makes the spread larger, not smaller. Measuring a send-ahead wafer is the better check.' },
 ];
 
 // ---------------------------------------------------------------------------

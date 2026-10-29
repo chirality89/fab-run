@@ -44,9 +44,12 @@ const continueButton = page => page.getByRole('button', { name: 'Continue to the
 // Runs the room the lot is in doing nothing, then continues to the corridor.
 // Each tap after a screen change waits out the double-click window first
 // (tasks/lessons.md), or a phone tap at the same spot is ignored.
+// Rooms with nothing to play (plating, CMP and metrology on a starter deck)
+// run by themselves and open on their result, so it presses Run only if it is there.
 async function runRoomAndContinue(page) {
   await page.waitForTimeout(DOUBLE_CLICK_WINDOW_MS);
-  await press(page, runButton(page));
+  await page.locator('.run-button, .skipped-text').first().waitFor();
+  if (await page.locator('.skipped-text').count() === 0) await press(page, runButton(page));
   await page.waitForTimeout(DOUBLE_CLICK_WINDOW_MS);
   await press(page, continueButton(page));
   await expect(title(page)).toHaveText('Floor plan');
@@ -129,8 +132,10 @@ test('going straight on through every room ends the run shipped or rejected', as
     await runRoomAndContinue(page);
     await press(page, goButton(page));
   }
+  // The last room (metrology) has nothing to play, so it runs by itself and
+  // the result screen follows (P2 of tasks/plan-winnable.md).
   await expect(page.locator('.room-step')).toContainText(`Step ${STEP_COUNT} of ${STEP_COUNT}`);
-  await press(page, runButton(page));
+  await expect(page.locator('.skipped-text')).toHaveText('Nothing could be played here, so the lot went straight through.');
   await expect(page.locator('.outcome-text')).toHaveText(/^Lot (shipped|rejected)/);
   await expect(continueButton(page)).toHaveCount(0);
   await screenshot(page, '8-run-end');

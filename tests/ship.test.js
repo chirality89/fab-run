@@ -9,6 +9,7 @@ import { addRisk, lotYield } from '../src/engine/lot.js';
 import { createRun, enterStep, resolveStep, walkCorridor, scrapLot } from '../src/engine/run.js';
 import { LOT_TYPES } from '../src/content/lotTypes.js';
 import { lotMoney, shipView, DIE_PER_LOT } from '../src/ui/shipView.js';
+import { emptyNotebook, diagnosisFor, diagnoseLot } from '../src/engine/notebook.js';
 
 const SEED = 123456;
 const ROUTE = LOT_TYPES.cuLine.route;
@@ -123,4 +124,16 @@ test('falling below the scrap line is scrapped by the scrap line, at that step',
 
 test('shipView refuses a run that is still going', () => {
   assert.throws(() => shipView(handCheckRun()), /not over yet/);
+});
+
+test('after a guess the diagnose panel says where the yield went and how to spot it (right or wrong)', () => {
+  const end = playIdle(createRun({ seed: 123456 }));
+  assert.equal(shipView(end, emptyNotebook()).diagnose.evidence, undefined, 'nothing before the guess');
+  const { rightIds, candidates } = diagnosisFor(end, emptyNotebook());
+  for (const id of [candidates.find(c => rightIds.includes(c)), candidates.find(c => !rightIds.includes(c))]) {
+    const done = diagnoseLot(end, emptyNotebook(), id);
+    const text = shipView(done.state, done.notebook, done.result).diagnose.evidence;
+    assert.match(text, /^It cost [\d.]+ yield points: .+ step \d+ \([\d.]+ points\)/, id);
+    assert.match(text, /How to spot it: /, id);
+  }
 });

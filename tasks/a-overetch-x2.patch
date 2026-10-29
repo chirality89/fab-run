@@ -1,0 +1,37 @@
+diff --git a/src/content/content.js b/src/content/content.js
+index 0ea6807..bae7d4b 100644
+--- a/src/content/content.js
++++ b/src/content/content.js
+@@ -135,22 +135,25 @@ export const PRACTICES = [
+     cost: { time: 4 },
+     effects: [
+       { op: 'defectMult', pattern: 'residue', mult: 0.3 },
+-      { op: 'defectMult', pattern: 'underlayer_attack', mult: 1.5 },
+-      // On a stop the extra time barely reaches the film below: ×1.5 × 0.7 = ×1.05.
+-      { op: 'defectMult', pattern: 'underlayer_attack', mult: 0.7, when: { flag: 'etch_stop' } },
++      // ×2 (was ×1.5, 29 Oct 2026): on a tool whose etch-rate chart is quiet
++      // the attack about cancels the residue cleared, so the card pays off
++      // only when the chart shows the rate falling (M4.5, a real decision).
++      { op: 'defectMult', pattern: 'underlayer_attack', mult: 2.0 },
++      // On a stop the extra time barely reaches the film below: ×2.0 × 0.525 = ×1.05.
++      { op: 'defectMult', pattern: 'underlayer_attack', mult: 0.525, when: { flag: 'etch_stop' } },
+     ],
+     upgrade: {
+       name: 'Timed over-etch, DOE-centred',
+       effects: [
+         { op: 'defectMult', pattern: 'residue', mult: 0.3 },
+-        { op: 'defectMult', pattern: 'underlayer_attack', mult: 1.25 },
+-        // ×1.25 × 0.84 = ×1.05 on a stop, the same as the plain card.
+-        { op: 'defectMult', pattern: 'underlayer_attack', mult: 0.84, when: { flag: 'etch_stop' } },
++        { op: 'defectMult', pattern: 'underlayer_attack', mult: 1.75 },
++        // ×1.75 × 0.6 = ×1.05 on a stop, the same as the plain card.
++        { op: 'defectMult', pattern: 'underlayer_attack', mult: 0.6, when: { flag: 'etch_stop' } },
+       ],
+       tradeoff: 'Still attacks the film below, but less: the DOE found the shortest over-etch that still clears. On an etch stop, the same as the plain card.',
+       physicsNote: 'A designed experiment across over-etch times finds where residue is gone but punch-through has barely started, so less extra time is needed for the same clearing.',
+     },
+-    tradeoff: 'Clears residue but attacks the film below, much less if an etch stop is there.',
++    tradeoff: 'Clears residue but attacks the film below, much less if an etch stop is there. Worth it when the etch-rate chart shows the rate falling; on a steady tool the attack costs about what it saves.',
+     physicsNote: 'Extra etch time removes what is left in slow spots and keeps etching wherever the film has already cleared. Selectivity to the underlayer sets how much damage that does.' },
+ 
+   { id: 'measureAll', draft: true, kind: 'practice', room: 'metro', rarity: 'standard',

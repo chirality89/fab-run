@@ -49,8 +49,8 @@ export function findFailureMode(failureModeId) {
 // What can be diagnosed on this finished run:
 //   rightIds    every failure mode whose pattern cost ≥ DIAGNOSE_MIN_POINTS
 //   candidates  the ones offered: one right answer (one not yet in the
-//               notebook if there is one), filled up with wrong ones, in a
-//               seeded order. Empty when the lot lost too little to tell.
+//               notebook if there is one), filled up with wrong ones that
+//               could have happened on this run, in a seeded order. Empty when the lot lost too little to tell.
 export function diagnosisFor(state, notebook) {
   if (state.status === 'running') throw new Error('diagnosisFor: the run is not over yet');
   const points = pointsLostByPattern(state.lot);
@@ -68,19 +68,34 @@ export function diagnosisFor(state, notebook) {
   };
   const rights = draw(rightIds);
   const newRight = rights.find(id => !inNotebook(notebook, id)) ?? rights[0];
-  // Wrong choices come first from patterns this lot's route can make, so a
-  // choice from another lot type (implant damage on a Cu line) is not a
-  // giveaway; others fill in only if those run out.
+  // Wrong choices are only causes that could have been there: the lot's route
+  // makes the pattern, and the mode's own `when` holds (T-top needs a wait
+  // before bake). So no wrong choice can be ruled out without evidence, and
+  // none is a giveaway (plan P4, 28 Oct 2026).
   const route = LOT_TYPES[state.lotTypeId].route;
-  const onRoute = mode => route.some(step => step.realizes.includes(mode.pattern));
-  const wrongModes = FAILURE_MODES.filter(mode => !isRight(mode));
-  const wrongs = [
-    ...draw(wrongModes.filter(onRoute).map(mode => mode.id)),
-    ...draw(wrongModes.filter(mode => !onRoute(mode)).map(mode => mode.id)),
-  ];
+  const couldHaveHappened = mode => conditionMet(state, mode.when)
+    && route.some(step => step.realizes.includes(mode.pattern));
+  const wrongs = draw(FAILURE_MODES.filter(mode => !isRight(mode) && couldHaveHappened(mode)).map(mode => mode.id));
   const otherRights = rights.filter(id => id !== newRight);   // only if wrong ones run out
   const fill = [...wrongs, ...otherRights].slice(0, DIAGNOSE_CANDIDATES - 1);
   return { rightIds, candidates: draw([newRight, ...fill]) };
+}
+
+// Where a pattern cost the lot its yield: one entry per step that lost at
+// least `minPoints` of it, { stepIndex, roomId, points }, in route order.
+// Each step's loss is the change in the lot's running total (`lostAfter`)
+// across that step. Steps from an old save without `lostAfter` are skipped.
+export function stepsThatLost(state, pattern, minPoints = 0.1) {
+  let before = 0;
+  const steps = [];
+  for (const entry of state.stepYields) {
+    if (!entry.lostAfter) continue;
+    const total = entry.lostAfter[pattern] ?? 0;
+    const points = (total - before) * 100;
+    before = total;
+    if (points >= minPoints) steps.push({ stepIndex: entry.stepIndex, roomId: entry.roomId, points });
+  }
+  return steps;
 }
 
 // The player names one of the offered failure modes, once per run.
