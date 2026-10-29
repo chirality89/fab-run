@@ -102,17 +102,23 @@ Finished plans (M0 to M4.5 item 4) are in `docs/archive/todo-done.md`. The curre
 6. Physics wording fixes.
 7. M5: modifiers, a random lot type, the diffusion room, and the open NMOS questions.
 
-### Task: Words page (item 1), started 29 Oct 2026
-- [ ] `src/content/glossary.js`: about 18 terms the screens use.
+### Task: Words page (item 1), 29 Oct 2026: DONE on the branch
+- [x] `src/content/glossary.js`: about 18 terms the screens use.
   - Each term has a `plain` sentence (what it is in a fab) and an `inGame` sentence (where you meet it here), plus `draft: true`.
   - Terms are not items, so they get no `tradeoff`.
   - Listed A to Z.
-- [ ] `src/ui/wordsPage.js`: the page, drawn like the Notebook, with Back returning to where the player was.
+- [x] `src/ui/wordsPage.js`: the page, drawn like the Notebook, with Back returning to where the player was.
   - A **Words** button sits next to the Notebook button on the floor plan and the ship report, and in the room header. The room redraws from the run state, so the cards already played stay played.
-- [ ] Tests:
+- [x] Tests:
   - Every term has both sentences, no brand names, and the list is in A–Z order.
   - Screen: Words opens from the map, the room and the ship report; Back returns; the button is 44 px; phone 375 px.
-- [ ] `physics-reviewer` checks the sentences. David reviews them (`draft: true` until then).
+- [x] `physics-reviewer` checks the sentences. David reviews them (`draft: true` until then).
+- **Result:**
+  - 20 terms (the reviewer added Die and Excursion).
+  - The Words button is on the floor plan, every room, the room result and the ship report.
+  - `npm test` 285 pass; `npm run screens` 84 pass. Phone shots checked.
+  - Reviewer fixes applied: tool health is hidden and wears every visit; control limits mean an excursion; the map stacks all 25 wafers; spec also means the SPC spec lines.
+- **For David (reviewer):** real customers rarely put a lot-yield number in their spec. They specify parametrics and reliability, and yield is mostly the fab's cost. Is "the customer's requirement the lot must meet" acceptable shorthand?
 - **Left out for now:** tapping an underlined word in room text to open its term. The Words button gives the same help from every screen. Linking words inside card text needs the text split into pieces, which is a bigger UI change. Do it if playtesters still get stuck.
 
 ### Task: NMOS you can play (item 2): plan, waiting for David's OK
