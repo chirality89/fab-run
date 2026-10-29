@@ -62,7 +62,7 @@ test('createRun: defaults are the cuLine, the starter deck, i-line resist loaded
   assert.deepEqual(state.deck, starterDeck());
   assert.deepEqual(state.slots, { resist: { id: 'resistIline', shelfLife: 8, decay: 1 } });
   assert.equal(state.cash, 1500);
-  assert.deepEqual(state.lotTraits, ['narrowFeatures']);
+  assert.deepEqual(state.lotTraits, ['narrowFeatures', 'copperLine']);
   assert.deepEqual(state.lot.risks, { depth_variation: 0.042, dishing: 0.056 });
   assert.equal(createRun({ seed: SEED, toolDrift: false }).tools.etch.health, 100, 'with drift off, tools start at 100');
   assert.equal(state.status, 'running');
