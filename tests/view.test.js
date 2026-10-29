@@ -40,11 +40,13 @@ test('yield at etch: 0.95887 raw, shown as 95.9', () => {
   assert.equal(roomView(inEtch).yieldPercent, 95.9, `seed ${SEED}`);
 });
 
-test('expected loss at etch: 11.8893 points, text says 11.9', () => {
+// Values from an independent python model (29 Oct 2026, etch's own risks and
+// its carried-in depth variation cut by a quarter). It first gave the previous 11.8893.
+test('expected loss at etch: 9.2677 points, text says 9.3', () => {
   const view = roomView(idleToEtch());
-  assert.ok(Math.abs(view.expectedLossPoints - 11.8893) < 1e-4,
-    `expected loss: got ${view.expectedLossPoints}, expected 11.8893 (seed ${SEED})`);
-  assert.equal(view.expectedLossText, 'This room will cost about 11.9 points of yield if nothing changes.');
+  assert.ok(Math.abs(view.expectedLossPoints - 9.2677) < 1e-4,
+    `expected loss: got ${view.expectedLossPoints}, expected 9.2677 (seed ${SEED})`);
+  assert.equal(view.expectedLossText, 'This room will cost about 9.3 points of yield if nothing changes.');
 });
 
 test('room header: etch, step 4 of 9, seed shown equals the run seed', () => {
@@ -58,7 +60,7 @@ test('room header: etch, step 4 of 9, seed shown equals the run seed', () => {
   assert.equal(view.budget, 8);
   assert.equal(view.toolHealth, 100);
   assert.equal(view.scrapLine, 40);
-  assert.equal(view.spec, 68);
+  assert.equal(view.spec, 70);
 });
 
 test('starter deck: hand is timed over-etch only, playable; etch slots empty', () => {
@@ -90,12 +92,12 @@ test('25 sites, each in 0..1 with a band', () => {
   }
 });
 
-test('site bands: 90% and up pass, 68% to under 90% warn, below 68% fail', () => {
+test('site bands: 90% and up pass, 70% to under 90% warn, below 70% fail', () => {
   assert.equal(siteBand(0.95), 'pass');
   assert.equal(siteBand(0.90), 'pass');
   assert.equal(siteBand(0.80), 'warn');
-  assert.equal(siteBand(0.68), 'warn');
-  assert.equal(siteBand(0.67), 'fail');
+  assert.equal(siteBand(0.70), 'warn');
+  assert.equal(siteBand(0.69), 'fail');
 });
 
 test('parseSeed: digits give that seed, anything else the fallback', () => {
@@ -113,8 +115,8 @@ test('whyIllegal says "its condition is not met" for endpoint etch without the d
 });
 
 test('yield band uses the raw fraction, not the rounded percent', () => {
-  assert.equal(yieldBand(0.68), 'ok');
-  assert.equal(yieldBand(0.6796), 'warn', 'shows as 68.0% but is below the spec');
+  assert.equal(yieldBand(0.70), 'ok');
+  assert.equal(yieldBand(0.6996), 'warn', 'shows as 70.0% but is below the spec');
   assert.equal(yieldBand(0.40), 'warn');
   assert.equal(yieldBand(0.3996), 'bad', 'shows as 40.0% but is below the scrap line');
   const view = roomView(idleToEtch());
@@ -127,14 +129,14 @@ test('site band agrees with the printed percent', () => {
   // 26 Oct 2026): the band follows the printed number either way.
   assert.equal(siteBand(0.8999), 'pass', 'prints 90');
   assert.equal(siteBand(0.8949), 'warn', 'prints 89');
-  assert.equal(siteBand(0.6799), 'warn', 'prints 68');
-  assert.equal(siteBand(0.6749), 'fail', 'prints 67');
+  assert.equal(siteBand(0.6999), 'warn', 'prints 70');
+  assert.equal(siteBand(0.6949), 'fail', 'prints 69');
   assert.equal(siteView(0.285).percent, 29, '28.5 rounds up, despite 0.285 × 100 = 28.4999…');
 });
 
 test('wafer map legend is built from the balance numbers', () => {
   assert.equal(roomView(idleToEtch()).mapKeyText,
-    'Each site: % of this die position expected good across the lot. Pass 90%+, warning 68–89%, fail under 68%.');
+    'Each site: % of this die position expected good across the lot. Pass 90%+, warning 70–89%, fail under 70%.');
 });
 
 // --- M2 item 2: playing a card and running the room ---------------------
@@ -150,33 +152,33 @@ test('playing timed over-etch: 4 of 8 min left, card leaves the hand', () => {
 
 // Hand check (independent python model, 29 Oct 2026): with underlayer ×2
 // and a tool that is not drifting (drift off here), the over-etch costs a
-// little more than it saves: 11.8893 → 12.0068 points.
-test('playing timed over-etch on a steady tool: expected loss rises from 11.9 to 12.0 points', () => {
+// little more than it saves: 9.2677 → 9.3802 points.
+test('playing timed over-etch on a steady tool: expected loss rises from 9.3 to 9.4 points', () => {
   const view = roomView(playCard(idleToEtch(), 'timedOveretch'));
-  assert.ok(Math.abs(view.expectedLossPoints - 12.0068) < 1e-4,
-    `expected loss: got ${view.expectedLossPoints}, expected 12.0068 (seed ${SEED})`);
-  assert.equal(view.expectedLossText, 'This room will cost about 12.0 points of yield if nothing changes.');
+  assert.ok(Math.abs(view.expectedLossPoints - 9.3802) < 1e-4,
+    `expected loss: got ${view.expectedLossPoints}, expected 9.3802 (seed ${SEED})`);
+  assert.equal(view.expectedLossText, 'This room will cost about 9.4 points of yield if nothing changes.');
 });
 
-test('run etch with nothing played: 95.9% -> 84.0%, 11.9 points lost', () => {
+test('run etch with nothing played: 95.9% -> 86.6%, 9.3 points lost', () => {
   const before = idleToEtch();
   const view = resultView(before, resolveStep(before));
   assert.equal(view.yieldBeforePercent, 95.9, `seed ${SEED}`);
-  assert.equal(view.yieldAfterPercent, 84.0);
-  close(view.yieldAfterFraction, 0.839977, 'yield after etch, idle');
-  assert.equal(view.lossText, 'This room cost 11.9 points of yield.');
-  assert.equal(view.yieldBand, 'ok', 'at 84.0% the lot is now above the 70% spec after etch (was warn at 68.5%)');
+  assert.equal(view.yieldAfterPercent, 86.6);
+  close(view.yieldAfterFraction, 0.866193, 'yield after etch, idle');
+  assert.equal(view.lossText, 'This room cost 9.3 points of yield.');
+  assert.equal(view.yieldBand, 'ok', 'at 86.6% the lot is above the 70% spec after etch');
   assert.equal(view.status, 'running');
   assert.equal(view.outcomeText, 'The lot moves on to step 5: Resist strip + wet clean.');
   assert.equal(view.sites.length, 25);
 });
 
-test('run etch after timed over-etch: 95.9% -> 83.9%, 12.0 points lost', () => {
+test('run etch after timed over-etch: 95.9% -> 86.5%, 9.4 points lost', () => {
   const before = playCard(idleToEtch(), 'timedOveretch');
   const view = resultView(before, resolveStep(before));
-  assert.equal(view.yieldAfterPercent, 83.9, `seed ${SEED}`);
-  close(view.yieldAfterFraction, 0.838802, 'yield after etch, over-etch');
-  assert.equal(view.lossText, 'This room cost 12.0 points of yield.');
+  assert.equal(view.yieldAfterPercent, 86.5, `seed ${SEED}`);
+  close(view.yieldAfterFraction, 0.865068, 'yield after etch, over-etch');
+  assert.equal(view.lossText, 'This room cost 9.4 points of yield.');
 });
 
 test('resultView names the scrap when the lot dies', () => {
@@ -402,15 +404,15 @@ test('eventView: consequences in words, tool health said as a service, Q-time wa
 });
 
 // --- M4.5 item 5: effects shown before you commit -------------------------
-// Hand check: on seed 123456 the etch forecast is 11.8893 points with
-// nothing played and 12.0068 after timed over-etch (tests above), so on
-// this steady tool playing it costs 11.8893 − 12.0068 = −0.1175 points.
+// Hand check: on seed 123456 the etch forecast is 9.2677 points with
+// nothing played and 9.3802 after timed over-etch (tests above), so on
+// this steady tool playing it costs 9.2677 − 9.3802 = −0.1125 points.
 
 test('a card in the hand shows its effects and how much it saves or costs in this room', () => {
   const [card] = roomView(idleToEtch()).hand;
   assert.equal(card.id, 'timedOveretch', `seed ${SEED}`);
   assert.equal(card.effectsText, 'residue ×0.3 · underlayer attack ×2 · underlayer attack ×0.525 with etch stop');
-  assert.ok(Math.abs(card.pointsChange - (-0.1175)) < 1e-4, `points change: got ${card.pointsChange} (seed ${SEED})`);
+  assert.ok(Math.abs(card.pointsChange - (-0.1125)) < 1e-4, `points change: got ${card.pointsChange} (seed ${SEED})`);
   assert.equal(card.pointsText, 'About 0.1 points more lost in this room.');
 });
 
@@ -497,9 +499,10 @@ test('a PM/DOE stop: "Leave without a PM or DOE" until something is chosen, then
 
 // --- M4.5 item 3: etch-stop logic, and what the etch forecast carries in --
 // Hand check in tasks/todo.md (M4.5 item 3), from an independent model of
-// the 5 × 5 rings: with the stop, depth variation is 0.056 × 0.4 = 0.0224 and
-// etch's underlayer attack 0.021 × 0.3 = 0.0063 (the route step's effect).
-// Values recomputed 28 Oct 2026 for base risks cut to 70%, with the same model.
+// the 5 × 5 rings: with the stop, depth variation is 0.042 × 0.4 = 0.0168 and
+// etch's underlayer attack 0.016 × 0.3 = 0.0048 (the route step's effect).
+// Values recomputed 29 Oct 2026 for etch's risks cut by a quarter, with the
+// same independent python model (it first reproduced every previous value).
 
 // Seed 123456, scatter and drift off: lay down the etch stop in the first
 // deposition room (the only card played), then idle into etch.
@@ -512,32 +515,32 @@ function stopToEtch() {
   return enterStep(state);
 }
 
-test('etch stop: etch adds 0.0063 underlayer attack with it, 0.021 without', () => {
-  close(stopToEtch().lot.risks.underlayer_attack, 0.0063, 'with the stop');
-  close(idleToEtch().lot.risks.underlayer_attack, 0.021, 'without the stop');
+test('etch stop: etch adds 0.0048 underlayer attack with it, 0.016 without', () => {
+  close(stopToEtch().lot.risks.underlayer_attack, 0.0048, 'with the stop');
+  close(idleToEtch().lot.risks.underlayer_attack, 0.016, 'without the stop');
 });
 
-test('etch stop, nothing played at etch: 7.7630 points, yield after 0.881240', () => {
+test('etch stop, nothing played at etch: 6.0742 points, yield after 0.898128', () => {
   const before = stopToEtch();
-  assert.ok(Math.abs(roomView(before).expectedLossPoints - 7.7630) < 1e-4,
-    `expected loss: got ${roomView(before).expectedLossPoints}, expected 7.7630 (seed ${SEED})`);
-  close(lotYield(resolveStep(before).lot), 0.881240, 'yield after etch, stop');
+  assert.ok(Math.abs(roomView(before).expectedLossPoints - 6.0742) < 1e-4,
+    `expected loss: got ${roomView(before).expectedLossPoints}, expected 6.0742 (seed ${SEED})`);
+  close(lotYield(resolveStep(before).lot), 0.898128, 'yield after etch, stop');
 });
 
-test('etch stop, timed over-etch: 6.0471 points, yield after 0.898399 (attack ×1.05)', () => {
+test('etch stop, timed over-etch: 4.7660 points, yield after 0.911209 (attack ×1.05)', () => {
   const before = playCard(stopToEtch(), 'timedOveretch');
-  close(before.lot.risks.underlayer_attack, 0.006615, 'attack 0.0063 × 1.5 × 0.7');
-  assert.ok(Math.abs(roomView(before).expectedLossPoints - 6.0471) < 1e-4,
-    `expected loss: got ${roomView(before).expectedLossPoints}, expected 6.0471 (seed ${SEED})`);
-  close(lotYield(resolveStep(before).lot), 0.898399, 'yield after etch, stop and over-etch');
+  close(before.lot.risks.underlayer_attack, 0.00504, 'attack 0.0048 × 2 × 0.525');
+  assert.ok(Math.abs(roomView(before).expectedLossPoints - 4.7660) < 1e-4,
+    `expected loss: got ${roomView(before).expectedLossPoints}, expected 4.7660 (seed ${SEED})`);
+  close(lotYield(resolveStep(before).lot), 0.911209, 'yield after etch, stop and over-etch');
 });
 
-test('etch forecast says how much is carried in: 5.0 of 11.9 points, 2.1 with the stop', () => {
+test('etch forecast says how much is carried in: 3.8 of 9.3 points, 1.6 with the stop', () => {
   const carried = 'The film stack set how big this is before the lot got here: without an etch stop, trench depth follows the etch rate across the wafer.';
   assert.equal(roomView(idleToEtch()).carriedInText,
-    `About 5.0 of these points come from depth variation (etch depth differs center to edge). ${carried}`);
+    `About 3.8 of these points come from depth variation (etch depth differs center to edge). ${carried}`);
   assert.equal(roomView(stopToEtch()).carriedInText,
-    `About 2.1 of these points come from depth variation (etch depth differs center to edge). ${carried}`);
+    `About 1.6 of these points come from depth variation (etch depth differs center to edge). ${carried}`);
 });
 
 test('a room that realizes nothing carried in has no carried-in sentence', () => {
@@ -550,20 +553,22 @@ test('a room that realizes nothing carried in has no carried-in sentence', () =>
 // tool at health 60 = 2σ shift, drift risk −ln((1 − Φ(−2) − Φ(−6)) ÷
 // (1 − 2Φ(−4))) = 0.022950 on residue, beside etch's own 0.028 (base risks cut to 70%, 28 Oct 2026).
 
-test('result: the etch tool at health 60 cost 2.0380 of 13.7950 points, said in words', () => {
+test('result: the etch tool at health 60 cost 2.0689 of 11.2329 points, said in words', () => {
   const before = idleToEtch({ startingHealth: { etch: 60 } });
-  close(before.room.driftShare.fraction, 0.450436, 'drift share of residue: 0.0229496 ÷ 0.0509496');
+  // 0.0229496 ÷ 0.0439496 = 0.522180 exactly; the engine's normal-curve
+  // approximation gives 0.5221785, so 0.522179 sits inside the tolerance of both.
+  close(before.room.driftShare.fraction, 0.522179, 'drift share of residue: 0.0229496 ÷ 0.0439496');
   const view = resultView(before, resolveStep(before));
-  assert.ok(Math.abs(view.lossPoints - 13.7950) < 1e-4, `loss: got ${view.lossPoints}, expected 13.7950 (seed ${SEED})`);
-  assert.ok(Math.abs(view.driftPoints - 2.0380) < 1e-4, `drift: got ${view.driftPoints}, expected 2.0380 (seed ${SEED})`);
-  assert.equal(view.driftText, "Of this, about 2.0 points came from the Etch tool's drift (see its SPC chart).");
+  assert.ok(Math.abs(view.lossPoints - 11.2329) < 1e-4, `loss: got ${view.lossPoints}, expected 11.2329 (seed ${SEED})`);
+  assert.ok(Math.abs(view.driftPoints - 2.0689) < 1e-4, `drift: got ${view.driftPoints}, expected 2.0689 (seed ${SEED})`);
+  assert.equal(view.driftText, "Of this, about 2.1 points came from the Etch tool's drift (see its SPC chart).");
 });
 
-test('result: over-etch cuts the drift share too (0.6158 points), a healthy tool has no drift line', () => {
+test('result: over-etch cuts the drift share too (0.6252 points), a healthy tool has no drift line', () => {
   const before = playCard(idleToEtch({ startingHealth: { etch: 60 } }), 'timedOveretch');
   const view = resultView(before, resolveStep(before));
-  // 0.6158: independent python model, 29 Oct 2026 (0.6189 with underlayer ×1.5)
-  assert.ok(Math.abs(view.driftPoints - 0.6158) < 1e-4, `drift: got ${view.driftPoints}, expected 0.6158 (seed ${SEED})`);
+  // 0.6252: independent python model, 29 Oct 2026 (0.6158 before etch's risks were cut by a quarter)
+  assert.ok(Math.abs(view.driftPoints - 0.6252) < 1e-4, `drift: got ${view.driftPoints}, expected 0.6252 (seed ${SEED})`);
   const healthy = idleToEtch();
   assert.equal(healthy.room.driftShare, null);
   assert.equal(resultView(healthy, resolveStep(healthy)).driftText, null);

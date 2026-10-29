@@ -15,10 +15,10 @@ export const HAND_SIZE = 5;
 export const SCRAP_LINE = 0.40;
 
 // Line yield (0..1) the customer needs at ship. At or above: shipped.
-// Below: rejected (decision O4). 0.70 until 29 Oct 2026; 0.68 with the
-// more worn starting tools below, so good play wins about half of first
-// runs (David chose option A, M4.5; measured with npm run exit-check).
-export const CUSTOMER_SPEC = 0.68;
+// Below: rejected (decision O4). 0.70 originally; 0.68 on 29 Oct 2026 with
+// the more worn starting tools below (David's option A, M4.5); back to 0.70
+// the same day once etch's risks were cut (lots end about 2 points higher).
+export const CUSTOMER_SPEC = 0.70;
 
 // Wafer map bands for one site (the fraction of the 25 wafers still good at
 // that die position). At or above this line the site shows as pass; below it
