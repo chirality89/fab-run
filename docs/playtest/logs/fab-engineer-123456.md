@@ -85,3 +85,74 @@ I think: Physics of "no etch stop → depth follows rate" is right. But "the fil
 Still "0.1 points from drift" on a tool PM'd one step ago. That line seems to always be there.
 I try: Continue.
 Mood: curious
+
+### Step 13 — Corridor 4, PM CMP
+Screenshot: docs/playtest/shots/fab-engineer/123456-22-s123456-16-pm2.png
+I see: PM list now shows Wet clean, Deposition (next used at step 6: barrier + seed), Plating, CMP. CMP removal rate has been sliding down and the last point is just above the lower control limit, 222 vs 220. Plating seam rate creeping up the last four lots. All "in control".
+I think: The same "Deposition" tool with the same particle chart is used for the oxide at step 2 and the barrier + seed at step 6. Those are two completely different tools — a CVD oxide chamber and a PVD Ta/TaN/Cu cluster. Treating them as one tool is the kind of thing a new hire would repeat in a meeting. CMP sliding removal rate looks like a pad glazing/wearing out. Low rate on a timed polish = copper residue = shorts. I'd pull the pad before it trips. PM CMP.
+I try: PM the CMP tool, continue.
+Mood: curious
+
+### Step 14 — Room 5: Resist strip + wet clean
+Screenshot: docs/playtest/shots/fab-engineer/123456-24-s123456-17-strip.png
+I see: Same wet clean room, same particle chart, same DI rinse card. Forecast 0.8.
+I think: "Resist strip" with nothing about ashing or post-etch polymer, just a particle chart. It's a simplification I'll allow. The rinse adds q-time oxide ×1.1 here — this is the step it matters. The card shows me the 0.2 points I'd save in this room but not what the extra oxide costs me later. That's the comparison I actually need. Skipped it.
+I try: Run wet clean. 87.1 → 86.3, "0.2 points from drift".
+Mood: curious
+
+### Step 15 — Q-time corridor
+Screenshot: docs/playtest/shots/fab-engineer/123456-26-s123456-18-qtime-corridor.png
+I see: "Q-time window: native oxide keeps growing until the barrier goes on." Each side stop shows "Waits in Q-time: +0.040 oxide risk" (PM) or +0.010 (others).
+I think: Good: they put the Q-time where it belongs and show the cost of waiting before I wait. Bad: "native oxide". The trench was just etched into oxide. What's at the bottom of an oxide trench that grows native oxide? Native oxide is a silicon thing. The real worry here is the copper at the bottom of a via oxidising, or a low-k film soaking up moisture. For a fab person this line is plain wrong chemistry. And "+0.040 oxide risk" — risk of what, in what unit? I can't weigh 0.04 against anything.
+I try: Go straight to step 6.
+Mood: confused
+
+### Step 16 — Room 6: Deposition (barrier + seed)
+Screenshot: docs/playtest/shots/fab-engineer/123456-27-s123456-19-barrier.png, docs/playtest/shots/fab-engineer/123456-28-s123456-20-barrier-result.png
+I see: Same particle chart, same pump-purge card. Forecast 3.1 points (step 2 was 0.8). Ran it: 86.3 → 83.0, 3.3 points.
+I think: Why is this four times worse than the oxide dep? Probably step coverage of the barrier in the trench, plus the q-time oxide. The screen does not tell me what the 3.1 is made of. In the etch room it told me "2.9 of these come from depth variation" — here, nothing. I can't learn from a number with no breakdown. And again: a particle chart for a barrier/seed tool. What I'd watch on a barrier/seed tool is sheet resistance / thickness, not just adders.
+I try: Run, continue.
+Mood: bored
+
+### Step 17 — Event: Hot lot request
+Screenshot: docs/playtest/shots/fab-engineer/123456-30-s123456-21-event.png
+I see: Customer wants the lot early. "Run it hot: −30 min cycle time · +150 cash · +0.02 risk (about 2.0 points of yield): random dots across the wafer. Hand-carrying and manual loading add particles." Or keep its place.
+I think: Finally "risk" is translated into points of yield — 0.02 = 2 points. Why wasn't the q-time oxide risk translated the same way? Hot lot adding particles from hand-carry is a fair point, though in most fabs a hot lot goes through the same automated handling and just jumps the queue. The real cost of hot lots is to every other lot in the line, which a one-lot game can't show. Fine. 150 cash vs 2 points: not worth it.
+I try: Keep its place.
+Mood: curious
+
+### Step 18 — Room 7: Plating (Cu fill)
+Screenshot: docs/playtest/shots/fab-engineer/123456-32-s123456-22-plating.png, docs/playtest/shots/fab-engineer/123456-32-s123456-23-plating-chart.png
+I see: I tapped continue and the room had already run: "Nothing could be played here, so the lot went straight through." 83.0 → 78.6, 4.4 points, 0.4 from drift. SPC "Seam rate on fill monitor (%)" drawn huge, full page width, giant numbers. Last lot 2.57%. Map now 71–86, amber everywhere.
+I think: The one room where I have the most real-world opinions (bath additives, accelerator/suppressor balance, anneal, waveform) and I get zero say. No card, no bath in the slot, nothing. 4.4 points vanish and I watched. And the chart that was creeping up — the one I chose not to PM — cost me 0.4. OK, that's fair, I could have read it. The big stretched chart on this result page looks broken compared to the neat one in the other rooms. "Seam rate %" — percent of what, lines? structures?
+I try: Continue.
+Mood: annoyed
+
+### Step 19 — Event: Supplier change
+Screenshot: docs/playtest/shots/fab-engineer/123456-34-s123456-24-event2.png
+I see: Purchasing offers a cheaper CMP slurry from a second supplier. Switch now (+150 cash, CMP steps off target) or keep the qualified slurry.
+I think: This is real life, and the consequence (rate steps off until re-tuned) is right. But "switch now", mid-lot, on an unqualified slurry, is not a choice anyone is allowed to make — that's a change-control violation, not a tradeoff. The game frames it as a fair option. A new hire learns "you can swap a consumable if the money's good". I'd want it worded as "run it as a split / qual lot" or something.
+I try: Keep the qualified slurry.
+Mood: curious
+
+### Step 20 — Room 8: CMP
+Screenshot: docs/playtest/shots/fab-engineer/123456-36-s123456-25-cmp.png
+I see: Again already run, "Nothing could be played here". 78.6 → 72.3, 6.3 points. Chart has a PM marker; first lot after PM measured 234.8 (centre 250). Map 62–84, a lone 84 in the centre.
+I think: Two rooms in a row with no decision at all — plating and CMP — and they cost me 10.7 points between them, more than everything else except etch. I'm watching a progress bar. Also no Cu anneal between plating and CMP; you'd never polish unannealed Cu, the grain growth afterwards wrecks you. I'd flag that in a training flow. The PM'd CMP tool came back at 234.8, way low of 250 — fair, "75–95% health", but it means my PM barely bought anything visible. Now at 72.3 against a 70 spec. Tight.
+I try: Continue to the corridor.
+Mood: annoyed
+
+### Step 21 — Room 9: Metrology
+Screenshot: docs/playtest/shots/fab-engineer/123456-38-s123456-26-metrology.png
+I see: 72.3 → 72.3, "Nothing could be played here", "Lot shipped: it meets the customer spec."
+I think: Metrology as a room that does nothing, at the very end, after every decision is made. Measuring at the end is post-mortem, not control. Also "ships to customer" after one metal level — a lot doesn't ship after M1. Fine as a game convention, but say "passes the gate" or something.
+I try: See the ship report.
+Mood: bored
+
+### Step 22 — Ship report + Diagnose
+Screenshot: docs/playtest/shots/fab-engineer/123456-39-s123456-27-ship-report.png, docs/playtest/shots/fab-engineer/123456-39-s123456-28-ship-charts.png, docs/playtest/shots/fab-engineer/123456-40-s123456-29-diagnosis.png
+I see: Shipped, 72.3% vs 70% spec. Cost per good die 4.89 = lot cost 2210 ÷ 451.8 good die. Cycle time 283 min. Yield-by-step table. Final map with four red striped "fail" sites (62, 67, 67, 68) scattered. Post-run SPC: wet clean "Trend", deposition "Shift and trend". Diagnose: pick one of Underlayer attack / Keyhole void / Removal-rate drift / Etch residue.
+I think: Maths checks out: 625 die × 72.3% = 451.9 good, 2210/451.8 = 4.89. The 2210 is 2000 + the 210 I spent, but nobody told me the lot starts at 2000. Step yields chain correctly to 72.3. 
+Diagnosis: the biggest hit was etch, 8.9 points, the etch rate chart had been falling before I PM'd it — so I picked Etch residue. Wrong: "What did hurt this lot: Keyhole void... 3.6 points at Plating." Problems: (1) the hint says "opens on narrow vias only" — there are no vias on this route, it's a trench level. (2) I never saw a cross-section, a void count, or anything at plating except a chart the game itself called "in control". (3) Etch cost me 2.5x more than plating, but apparently the etch loss isn't a "failure mode". So the question "which failure mode hurt this lot" really means "which hidden mechanism did the game roll", and the evidence wasn't on screen. That breaks the promise in the question: "Read the evidence". As a training tool this is the worst moment so far: it tells a new hire their reasoning (biggest loss step + a chart that was trending the right way) is wrong, without showing why.
+I try: Done with this run. Shipped.
+Mood: annoyed

@@ -125,3 +125,24 @@ I see: Went straight. The plating room opened already finished: "83.3% → 79.0%
 I think: (4:25) Wait, what? I didn't even get to see the room. 4.4 points gone with zero input from me. I'm now under 80 and getting close to the "Spec 70%" line. This is where I start to feel like a passenger. I'm also basically at my five minutes.
 I try: Continue (two rooms left, I'll push through to see the end).
 Mood: annoyed
+
+### Step 19 — CMP (auto) and Metrology (auto)
+Screenshot: docs/playtest/shots/phone-5min/123456-30-s1-20-cmp.png, docs/playtest/shots/phone-5min/123456-32-s1-21-metrology.png
+I see: Went straight both times. CMP opened already done: "79.0% → 72.0%, cost 7.0 points". Metrology: "72.0% → 72.0%", "Nothing could be played here", "Lot shipped: it meets the customer spec."
+I think: (4:50) Three rooms in a row where I did nothing and the game played itself. CMP ate 7 points and I never got a say. Made it by 2 points over spec. Relief, but it's not my win, I scraped over by luck.
+I try: See the ship report.
+Mood: bored
+
+### Step 20 — Ship report and Diagnose
+Screenshot: docs/playtest/shots/phone-5min/123456-33-s1-22-ship.png, docs/playtest/shots/phone-5min/123456-33-s1-23-diagnose.png, docs/playtest/shots/phone-5min/123456-34-s1-24-diagnosed.png
+I see: "Shipped: yield 72% meets the 70% customer spec." Cost per good die 5.00, cycle time 223 min. Buttons: Replay this seed / New seed / New NMOS transistor lot. Below: DIAGNOSE "Which failure mode hurt this lot? One guess." Four boxes (Underlayer attack, Keyhole void, Removal-rate drift, Etch residue). Then a yield-by-step table, wafer map, and six SPC charts — the page is 5 screens long.
+I think: (5:10) The guess is the best bit: four short options, one tap, quiz-show feel. Etch lost the most (8.9), so I guessed Etch residue. Tapping it threw me back to the TOP of the page, and the answer was hidden below the fold — I had to scroll down to find "Not this one. What did hurt this lot: Keyhole void... cost 3.6 points in Plating". So the thing that cost me 8.9 points in Etch wasn't "the" failure? Feels like a trick question. And Plating was a room where I couldn't do anything. Run took about 5 minutes. Finishable, just.
+I try: Reload the page to see if it remembers me.
+Mood: confused
+
+### Step 21 — Reload after the end
+Screenshot: none
+I see: Fresh start screen, yield 100%, Notebook (0).
+I think: Fine, run was over anyway. Notebook still 0 because I guessed wrong — so nothing to show for the run.
+I try: Done with this seed. Total about 5 minutes, ~35 taps. Shipped at 72%.
+Mood: bored

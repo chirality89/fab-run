@@ -1,82 +1,92 @@
 # Phone player with 5 minutes — seed 42
 
-Plan from last time: the red "SPC" tags on the map are the danger. Find a PM stop before them.
-
-### Step 1 — Floor plan
-Screenshot: docs/playtest/shots/phone-5min/42-00-s42-01-first.png
-I see: Same factory, three red SPC tags this time: Wet clean (step 1), Etch (4), Wet clean (5). PM stops between 1–2 and 2–3, none between 3–4.
-I think: (0:00) Now I get the map: tags between rooms are the stops I can pick. Step 1 is flagged and there's no stop before it, so I just eat it. I need a PM before Etch.
+### Step 1 — Floor plan (start)
+Screenshot: docs/playtest/shots/phone-5min/42-00-s2-01-first.png
+I see: Same start screen, Inlaid Cu line again. This time five red SPC badges on the map: Wet clean (step 1), Deposition (2), Wet clean (5), Etch (4), Deposition (6).
+I think: (0:00) Now I know red SPC = that tool is going off and will eat yield, and PM in the corridor fixes one. Five flagged tools and I can PM maybe one per corridor. Step 1 is flagged and there's no corridor before it, so I can't fix that one. Same lot as last time; the other lot type I'll save for later.
 I try: Enter step 1.
 Mood: curious
 
-### Step 2 — Wet clean (flagged)
+### Step 2 — Wet clean room
 Screenshot: none
-I see: Red "Out of control… A point beyond the upper control limit." But forecast: "about 1.0 points" — same as last run's healthy wet clean. Empty hand again, button at the bottom.
-I think: (0:15) So red here costs nothing extra? Last run red etch cost 25 points. Red means "maybe a bomb, maybe nothing". I can't read that.
-I try: Scroll, Run wet clean. 100 → 99.1. Corridor.
-Mood: confused
-
-### Step 3 — Corridor → PM / DOE
-Screenshot: docs/playtest/shots/phone-5min/42-04-s42-02-pm.png ; docs/playtest/shots/phone-5min/42-04-s42-03-pm-tools.png
-I see: A page about four phone-screens tall. Top: "DOE a practice" with lines like "residue ×0.3 · underlayer attack ×1.5 · underlayer attack ×0.5 with etch stop" vs "×1.25". Then "PM a tool on the route ahead": six tools each with its own full control chart and a "PM this tool" button.
-I think: (0:40) Wall of text and multipliers. I skip the DOE part entirely — I don't know what ×1.25 underlayer attack means for me. I scroll past four charts to find Etch. It's the right idea, but on a phone it's a lot of thumb work for one tap.
-I try: Scroll down, "PM this tool" on Etch. It says "PM done: the next lots run on a restored tool". Good, clear.
+I see: Same room as last run, but the chart text says "Excursion: one lot measured past the control limit. Standard practice is to re-measure and check the tool..." Same rinse card.
+I think: (0:20) Muscle memory: scroll, card, run. 100 → 99.5. The excursion text is a paragraph; skipped.
+I try: Rinse card, Run wet clean, Continue to the corridor.
 Mood: curious
 
-### Step 4 — Deposition
-Screenshot: none
-I see: Same empty-hand room. 99.1 → 97.9.
-I think: (1:10) Still a press-one-button room. I already scroll to the bottom by reflex.
-I try: Run deposition, corridor.
-Mood: bored
-
-### Step 5 — Corridor → PM again, then Litho
-Screenshot: none
-I see: Second PM stop. Wet clean (step 5) now restored. The list also shows Deposition at step 6 has just turned red.
-I think: (1:40) Fixed the other flagged tool. Of course a new one pops up. Litho forecast 6.6 points with default resist and my one card is greyed out again ("condition is not met" — which condition?!).
-I try: PM wet clean; Run litho bay. 97.9 → 91.7.
+### Step 3 — Reload mid-run (test: can I stop and come back?)
+Screenshot: docs/playtest/shots/phone-5min/42-04-s2-02-after-reload.png
+I see: After a reload: a small "Resumed seed 42" line, and I'm back on the wet clean RESULT screen, not the corridor I was on.
+I think: (0:35) Good — it remembers me, my yield and cash. It put me one screen back, which is fine. I can close this on the train and pick it up later. That's a real plus.
+I try: Continue to the corridor again.
 Mood: curious
 
-### Step 6 — Procurement
+### Step 4 — PM / DOE (corridor 1)
 Screenshot: none
-I see: Optical endpoint detector 600 (etch, "only helps when there is a clear film change"), pad conditioner 350, three-additive copper bath 200.
-I think: (2:10) Etch is the killer room, so I'll buy the expensive etch thing. Bath for plating too.
-I try: Buy 600 and 200. Cash 700.
-Mood: hooked
+I see: The same long PM / DOE page. DOE wall first, then tool charts. Deposition, Etch and Wet clean say "Shift" or "Excursion" in red.
+I think: (0:50) This time I know to scroll straight past the DOE part. Deposition is next and is used twice (steps 2 and 6), so PM it.
+I try: PM the Deposition tool, Continue (scrolled to the bottom again for it).
+Mood: curious
 
-### Step 7 — Etch (PM'd, with endpoint detector)
-Screenshot: docs/playtest/shots/phone-5min/42-17-s42-04-etch.png ; docs/playtest/shots/phone-5min/42-19-s42-05-etch-result.png
-I see: "This room will cost about 21.4 points" — even after the PM and the 600-cash detector in the slot. Played the over-etch card: forecast 18.1. Ran: 91.7 → 73.4.
-I think: (2:40) WHAT. I did everything the last run taught me — PM'd the tool, bought the etch upgrade, played the card — and etch still takes ~18 points. Last time with nothing it took ~22. So my whole plan bought me 3–4 points and 850 cash. Nothing on screen tells me why etch is so brutal or what would actually fix it. The detector's text said "only helps when there is a clear film change" — no idea if there is one. Spec is 70% and I'm at 73.4% with five rooms left. Same dead end as last run.
-I try: Continue anyway, I want to see an ending once.
+### Step 5 — Deposition (oxide)
+Screenshot: none
+I see: "About 0.7 points". Pump-purge card now says "About 0.1 points more lost in this room."
+I think: (1:05) Same nothing-card. Skip. Honestly the PM didn't feel like it did much, 0.7 vs 0.8 last time.
+I try: Run deposition. 99.5 → 98.8.
+Mood: bored
+
+### Step 6 — PM Etch, then Litho bay
+Screenshot: none
+I see: PM'd Etch from the corridor (it was red "Shift"). Litho: "about 2.7 points", the dead "Strip and re-expose" card again with "Can't play", plus Trim dose.
+I think: (1:30) Same dead card again, same text. Trim, run. 98.8 → 96.8. Litho just costs 2 points no matter what, apparently.
+I try: Trim dose, Run litho bay, Continue.
+Mood: bored
+
+### Step 7 — Event: Hot lot request
+Screenshot: docs/playtest/shots/phone-5min/42-17-s2-03-event.png
+I see: "Run it hot: −30 min cycle time · +150 cash · +0.02 risk (about 2.0 points of yield)" vs "Keep its place in line: Nothing changes".
+I think: (1:45) This one I actually get, because it says "about 2.0 points of yield" in plain numbers. Why can't the Q-time corridor say that too? But: I still have 1460 cash and nothing I want to buy, and cycle time has never mattered to me. So +150 cash and −30 min are worth zero, and 2 points of yield is real. Easy no. Not a real choice.
+I try: Keep its place in line, then Continue.
+Mood: curious
+
+### Step 8 — Etch
+Screenshot: docs/playtest/shots/phone-5min/42-19-s2-04-etch.png, docs/playtest/shots/phone-5min/42-20-s2-05-etch-result.png
+I see: "This room will cost about 9.6 points of yield". PM'd tool, empty slot (didn't buy the trim this time). One card, Timed over-etch, no "points" line at all this time. Result: 96.8 → 87.6, "cost 9.2 points... about 0.2 points came from the Etch tool's drift."
+I think: (2:00) So I spent a corridor and 40 minutes PM'ing this tool and it saved me... 0.2 points? The other 9 points come from somewhere I can't see and can't touch. Last run with the trim and the PM it was 8.9; now 9.2. Whatever I do, Etch takes 9. That's the moment the game stops feeling like it's about my choices. And the card without a "points" line — is that good, bad, zero? I don't know, so I skip it.
+I try: Run etch.
 Mood: annoyed
 
-### Step 8 — Wet clean (5), Q-time corridor, Deposition (6)
-Screenshot: docs/playtest/shots/phone-5min/42-23-s42-06-qtime.png
-I see: Wet clean 0.8 points. Corridor now has a Q-time warning: every side stop adds "+0.020 oxide risk". Deposition (6) was red and cost 3.2: 72.6 → 69.3, now under spec.
-I think: (3:20) Q-time note is short and clear: don't dawdle here. Fine, go straight. Dropping under 70% was announced by nothing in particular — it just ticked over.
-I try: Go straight, run, run.
-Mood: bored
+### Step 9 — Wet clean (strip) and Deposition (barrier)
+Screenshot: none
+I see: Wet clean "about 0.6". This time I skipped the rinse card because last run the next deposition hurt and the card said "qtime oxide". Deposition then said "about 3.1" (last time 3.4).
+I think: (2:30) Maybe skipping the rinse saved me 0.3? That's the first time I felt like I outsmarted something — but I'm guessing, nothing on screen confirmed it. 87.6 → 87.0 → 83.5.
+I try: Go straight both times, no cards.
+Mood: curious
 
-### Step 9 — Plating, CMP
-Screenshot: docs/playtest/shots/phone-5min/42-27-s42-07-plating.png
-I see: Plating with my bath in the slot, empty hand, 2.4 points. CMP, empty hand, "about 8.2 points", cost 8.2. 67.0 → 58.8.
-I think: (3:50) Another surprise big room with zero cards. CMP was "in control" all run and still took 8 points. So the SPC flags aren't even the main predictor of pain. I'm just watching numbers fall.
-I try: Run, continue, go straight.
-Mood: bored
-
-### Step 10 — Metrology, end
-Screenshot: docs/playtest/shots/phone-5min/42-33-s42-08-metrology.png ; docs/playtest/shots/phone-5min/42-34-s42-09-end.png
-I see: Metrology costs 0.0. A card "Measure all 25 sites, 20 min · 150 cash". I skip it. "Lot rejected: shipped below the customer spec."
-I think: (4:05) Finally an ending. Final room is a formality. 
-I try: "See the ship report".
-Mood: bored
-
-### Step 11 — Ship report + diagnose
-Screenshot: docs/playtest/shots/phone-5min/42-35-s42-10-report.png ; docs/playtest/shots/phone-5min/42-36-s42-11-diagnose.png
-I see: Verdict rejected, 58.8%, cost per good die 7.62, cycle time 223 min. Then "Diagnose: which failure mode hurt this lot? One guess." Four options: Underlayer attack, Etch residue, Q-time oxide, Removal-rate drift. Then a yield-by-step table (etch 18.4 is the big one, CMP 8.2) and six SPC charts. Page is about five phone screens tall.
-I think: (4:30) The yield-by-step table is the best thing in the game — that's what I wanted to see DURING the run. Diagnose is a neat idea; it's under the fold though. I guessed Etch residue (run 1's etch chart said "8 points below the centre line", i.e. rate falling). Wrong: it was Underlayer attack. Which is… the over-etch card I played, both runs, because it was the only card and it lowered the forecast. So the game nudged me to play it and then blamed me for it. I feel tricked, not taught. Also "not written in your notebook: diagnose it on a later run to earn it" — what notebook? I've never seen one.
-I try: Nothing. One guess and done.
+### Step 10 — PM Plating, Plating room (auto)
+Screenshot: docs/playtest/shots/phone-5min/42-30-s2-06-plating.png
+I see: PM page now only shows Plating and CMP, both "In control", and "No practice in your deck can be tuned here." I PM'd Plating because last run's diagnosis said the keyhole void in plating was the problem. Plating auto-ran: "83.5% → 78.4%, cost 5.1 points... 0.3 from drift". "Nothing could be played here."
+I think: (2:50) Worse than last time (4.4). I PM'd it and it got worse. The only lever I have at plating is the PM, and it does nothing I can see. I'm a spectator for the last three rooms again.
+I try: Continue.
 Mood: annoyed
 
-Run summary: about 4:30 of my time for a full run, because I now skip everything and know where the buttons are. Rejected at 58.8%. Finishable in five minutes only on the second run, and only by not reading.
+### Step 11 — Procurement before CMP
+Screenshot: docs/playtest/shots/phone-5min/42-32-s2-07-shop.png
+I see: One item for sale: "Inline metrology 500 — Shows drift sooner; does not fix anything by itself."
+I think: (3:05) I have 1460 cash, have never needed it, and the one thing for sale "does not fix anything". Cash is pointless in this game so far. Left.
+I try: Continue to step 8.
+Mood: bored
+
+### Step 12 — CMP (auto) and Metrology (auto)
+Screenshot: none
+I see: CMP auto-ran: "78.4% → 72.2%, cost 6.2 points", "Nothing could be played here". Metrology: shipped.
+I think: (3:20) Again the last three rooms just happen to me. 72.2% vs 72.0% last run — basically the same result whatever I do. Shipped by 2 points again.
+I try: Go straight, See the ship report.
+Mood: bored
+
+### Step 13 — Ship report + Diagnose
+Screenshot: docs/playtest/shots/phone-5min/42-37-s2-08-diagnosed.png
+I see: "Shipped: yield 72.2%". Diagnose options: Chamber flaking, Dishing, Removal-rate drift, Q-time oxide — different from last time. I guessed Q-time oxide (the barrier deposition lost 3.5 after a clean). Answer: "Not this one. What did hurt this lot: Dishing... cost 3.9 points at CMP. How to spot it: Wide lines are thin and high-resistance; narrow lines are fine." Again the answer appeared below the fold after the page jumped to the top.
+I think: (3:40) Wide lines? Narrow lines? I never saw a single thing about line widths anywhere in this run. How was I supposed to spot that? 0 for 2. Notebook still (0). The quiz is the only part that felt like a game, and it's unwinnable from what I'm shown. Run took about 3.5 minutes; quicker because I knew where to scroll.
+I try: Done with this seed. ~35 taps.
+Mood: about to quit

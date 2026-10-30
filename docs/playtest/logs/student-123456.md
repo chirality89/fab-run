@@ -97,3 +97,87 @@ I see: 96.4 → 86.6%, "cost 9.8 points. Of this, about 0.3 from the Etch tool's
 I think: Only 0.3 from drift — so the scary SPC tag was nearly irrelevant, and PMing etch wouldn't have saved me. The rest is "just etch". The map is cool though: the edge ring is visibly worse, matching "depth differs center to edge". I can see the physics. But 9.8 points with nothing I could do feels like a tax, not a decision.
 I try: Continue.
 Mood: confused
+
+### Step 23 — PM / DOE stop after etch
+Screenshot: docs/playtest/shots/student/123456-23-s1-17-pm2.png
+I see: DOE options for the rinse and the pump-purge cards. Charts for Wet clean, Deposition, Plating, CMP — all "In control". Plating's last five points sit above centre and creep up; CMP's creep down towards the lower dashed line; Deposition's last two jump up.
+I think: All green text, but my eyes say plating and CMP are walking. The glossary said trends inside the limits are the early warning. The next corridor is a Q-time one (the QT tag), so if I want a PM it's now or never for plating. I pick plating because "seam rate on fill" sounds like holes in the copper.
+I try: PM the Plating tool.
+Mood: hooked
+
+### Step 25 — Resist strip + wet clean (step 5)
+Screenshot: docs/playtest/shots/student/123456-25-s1-18-strip.png
+I see: Same rinse card as step 1, again "About 0.2 points less", and its text: "That only matters after the strip clean, where the barrier goes on next."
+I think: THIS is after the strip clean. The card warned me back at step 1. So the rinse here buys 0.2 points but feeds the Q-time oxide. Real decision, and I only get it because I read the small print. I like this one. But the "about 0.2 points less" line doesn't include the later oxide cost, so the preview tempts me into the wrong move.
+I try: Skip the rinse, Run wet clean. 86.6 → 85.9.
+Mood: hooked
+
+### Step 27 — Q-time corridor
+Screenshot: docs/playtest/shots/student/123456-27-s1-19-qt-corridor.png
+I see: "Q-time window: native oxide keeps growing until the barrier goes on. Every minute the lot waits at a side stop here adds oxide risk." Each side stop shows "Waits in Q-time: +0.040 oxide risk" (PM) or "+0.010".
+I think: Clear. I learned a real thing: bare copper/silicon surface grows "native oxide" if it waits, so you don't park the lot. But "+0.040 oxide risk" — risk in what unit? The hot-lot event said 0.02 risk = about 2.0 points, so I guess 0.04 is ~4 points. I'm guessing.
+I try: Go straight to step 6.
+Mood: curious
+
+### Step 28 — Deposition (barrier + seed) (step 6)
+Screenshot: docs/playtest/shots/student/123456-28-s1-20-barrier.png
+I see: "This room will cost about 3.1 points". Pump-purge card again, no "points less" line. Chart's last points rising (23.3).
+I think: Why 3.1 here when the oxide deposition was 0.8? Nothing says. Is it the Q-time oxide? Particles? I tried the purge: the forecast stayed at 3.1 exactly. So that card is a dud and I wasted 20 cash. Actual loss 3.4.
+I try: Purge, Run deposition.
+Mood: confused
+
+### Step 32 — Event: Supplier change
+Screenshot: docs/playtest/shots/student/123456-32-s1-21-event2.png
+I see: "Purchasing offers a cheaper CMP slurry... Switch now: +150 cash · CMP tool steps off target (watch its SPC chart)" vs "Keep the qualified slurry".
+I think: Nice real-world flavour. Again, cash has no visible use for me so I take the safe one.
+I try: Keep the qualified slurry.
+Mood: curious
+
+### Step 34 — Plating (Cu fill) (step 7)
+Screenshot: docs/playtest/shots/student/123456-34-s1-22-plating.png, docs/playtest/shots/student/123456-34-s1-23-plating-chart.png
+I see: I land straight on the result: "82.5% → 78.6%. This room cost 3.9 points. Nothing could be played here, so the lot went straight through." The SPC chart here is drawn huge, full width, with giant axis numbers. The point after my PM is 2.48% — still above centre.
+I think: Wait, what? I never got to see the room. No cards, no choice — just 3.9 points gone. And my PM: the chart after it is still above centre, so did it do anything? No breakdown of where the 3.9 came from this time. The giant chart looks like a different game.
+I try: Continue.
+Mood: annoyed
+
+### Step 36 — PM / DOE before CMP
+Screenshot: none
+I see: "No practice in your deck can be tuned here." Only CMP can be PM'd.
+I think: CMP chart was walking down, so PM it. Easy pick, no tension.
+I try: PM the CMP tool.
+Mood: bored
+
+### Step 38 — CMP (step 8)
+Screenshot: docs/playtest/shots/student/123456-38-s1-24-cmp.png
+I see: Again straight to the result: 78.6 → 72.4, 6.2 points, "Nothing could be played here".
+I think: 6.2 points with zero input, right after I PM'd the tool. I'm now 2.4 points above the spec and I'm a passenger. The glossary says "wide lines dish, dense areas erode" — I'd love a card about that. Nothing.
+I try: Continue, go straight to Metrology.
+Mood: annoyed
+
+### Step 40 — Metrology (step 9)
+Screenshot: docs/playtest/shots/student/123456-40-s1-25-metrology.png
+I see: 72.4 → 72.4, "Nothing could be played here", "Lot shipped: it meets the customer spec."
+I think: Metrology does nothing. So that 500-cash "Inline metrology" equipment would have been useless. Shipped, phew, but barely.
+I try: See the ship report.
+Mood: curious
+
+### Step 41 — Ship report
+Screenshot: docs/playtest/shots/student/123456-41-s1-26-ship.png, docs/playtest/shots/student/123456-41-s1-27-ship-evidence.png, docs/playtest/shots/student/123456-41-s1-28-ship-charts.png
+I see: Verdict "Shipped: yield 72.4% meets the 70% customer spec." Cost per good die 4.55 ("For reference only"), cycle time 283 min. A DIAGNOSE box: "Which failure mode hurt this lot? ... One guess." Four options: Underlayer attack, Keyhole void, Removal-rate drift, Etch residue, each with one-line symptoms. A yield-by-step table (etch 9.8 is by far the biggest), final wafer map with five red failed sites scattered, and all six SPC charts.
+I think: "Cost per good die: for reference only" and "cycle time" — so the two things I kept worrying about (cash, minutes) don't matter for winning. Now I know, at the very end. Diagnose: the symptoms talk about "narrow vias", "leakage", "notch in the film below", "cross-section". There's no cross-section anywhere on screen, and no via in an Inlaid Cu trench line as far as I know. The only evidence I can actually read is: etch lost the most, and the etch rate chart fell. That matches "Etch residue" word for word ("while the etch rate falls on the etch SPC chart").
+I try: Etch residue.
+Mood: curious
+
+### Step 42 — Diagnosis answer
+Screenshot: docs/playtest/shots/student/123456-42-s1-29-diagnosis.png
+I see: "Not this one. What did hurt this lot: Keyhole void. It is not written in your notebook: diagnose it on a later run to earn it. It cost 3.2 yield points: Plating, step 7 (3.2 points). How to spot it: Opens on narrow vias only; a seam or void sits in the middle of the fill."
+I think: That feels unfair. Etch cost me 9.8 points and the answer is a 3.2-point thing in plating — a room where I wasn't even allowed to play. "How to spot it" is the same sentence as the option, and I had no view of "the middle of the fill". So it's a quiz, not a lesson. The one thing I did learn: plating's seam-rate chart creeping up = voids in the copper fill. That's a real fact. And I PM'd plating! Still lost 3.2 points to it. So what should I have done? It doesn't say.
+I try: Notebook.
+Mood: annoyed
+
+### Step 43 — Notebook
+Screenshot: docs/playtest/shots/student/123456-43-s1-30-notebook.png
+I see: "Nothing diagnosed yet... 20 failure modes still to find." Back.
+I think: 20 failure modes. OK, that's a hook if diagnosing ever becomes fair. Next run I'll pick by "which room's chart was walking" rather than "which room lost most".
+I try: Next run, seed 42.
+Mood: curious
