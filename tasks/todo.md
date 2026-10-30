@@ -124,6 +124,49 @@ Finished plans (M0 to M4.5 item 4) are in `docs/archive/todo-done.md`. The curre
 - **Answered (David, 30 Oct):** "call it fab yield": the Spec entry now says the yield bar's mark is the fab yield target. Reviewer's question was: real customers rarely put a lot-yield number in their spec. They specify parametrics and reliability, and yield is mostly the fab's cost. Is "the customer's requirement the lot must meet" acceptable shorthand?
 - **Left out for now:** tapping an underlined word in room text to open its term. The Words button gives the same help from every screen. Linking words inside card text needs the text split into pieces, which is a bigger UI change. Do it if playtesters still get stuck.
 
+### Task: diffusion and implant tools and starter cards (30 Oct 2026, David: "yes those cards"): built
+- [x] **Tool monitors** (`toolMonitors.js`):
+  - Diffusion: monitor oxide thickness (furnace temperature drift), feeding `gate_oxide`. The anneal step names its own drift pattern, `junction_spread` (`driftPattern` in `lotTypes.js`): the same furnace, but no oxide is grown there.
+  - Implant: monitor sheet resistance (beam-angle drift), feeding `channeling_tail`, which bites at the anneal.
+- [x] **Two small engine changes, to keep the Cu line exactly as it was:**
+  1. `tools.js`: diffusion and implant draw their starting health and SPC history from a generator of their own. Every seed keeps the tools, PM rolls and SPC points it had for the other rooms. Without this, the PM roll in the CMP hand check moved from 84 to 93.
+  2. `run.js`: a route step may name `driftPattern`. That's 2 lines, plus a test that the pattern is real and its step realizes it.
+- [x] **Starter cards**, each with a DOE version and cross-section art:
+  - `chlorinatedOxidation` (diffusion): gate_oxide ×0.7, particles ×1.2, 60 cash.
+  - `preAmorphizingImplant` (implant): channeling ×0.4, implant damage ×1.6, 40 cash. Damage is ×1.6, not the ×1.4 in the research table, so it breaks even on a centred beam and pays only when the beam-angle chart drifts.
+- [x] The rinse card's text names both Q-time windows. It no longer says "barrier" on NMOS (playtest round 2).
+- **Measured (NMOS, smart bot, seeds 1–30):**
+  - Chlorinated oxidation is played in 23 of 30 lots: a real choice.
+  - The pre-amorphizing implant is played in none. On a fixed scatter-free run it gains more than its cash in about half the seeds (median 0.43 points, max 5.9). The bot PMs the implant tool instead, because a PM costs 40 minutes and no cash, and minutes count for nothing yet. That's the next task.
+- Tests: `npm test` 289 pass. The expected starter deck now lists the two new ids; they are never dealt on the Cu line, which has no diffusion or implant room.
+
+### Task: cash and cycle time count toward winning (David, 30 Oct 2026: "yes count towards winning"): plan, waiting for David's OK
+**Today:**
+- A lot wins by shipping at or above the 70% fab yield target.
+- Cash only limits buying, and every run ends with more than 1,200 unspent.
+- Cycle time is shown but never used.
+- The ship report shows cost per good die "for reference only".
+- So PMs, side stops and shopping cost nothing that matters, and events that trade yield for cash are traps (playtest round 2, issue 5).
+
+**Proposal: one number, cost per good die, with cycle time inside it.**
+- **Lot cost** = base cost (2,000) + cash spent + **cycle time × a carrying cost per minute** (for example 2 per minute, for the tool time and the money tied up while the lot waits). This is the fab's own measure of a lot.
+- **Win** = the lot ships at or above the yield target **and** its cost per good die is at or under a **cost target**. Shipped but over the target reads "Shipped at a loss": not a win. A rejected or scrapped lot is a loss as before.
+- **The ship report** shows both checks, yield and cost, each with its target, and drops "for reference only".
+- **The yield bar stays the health bar.** A cost line goes in the header ("Cost so far … / target …") so spending is visible during the run.
+- **The numbers** (cost target, cost per minute) are balance numbers in `balance.js`, set by measuring:
+  - doing nothing should fail on yield;
+  - good, frugal play should win about half the time;
+  - "buy everything, PM everything" should often fail on cost.
+- **The bots** score cost per good die, not yield plus a fixed cash value, and `exit-check` counts wins instead of ships. The targets stay the same.
+- **Game rule 1 is unchanged**: a run still ends when the lot ships or is scrapped. Only what counts as winning changes.
+
+**Simpler alternative:** lower the starting cash (for example 1,500 → 600), so cash competes without a new rule. Cycle time still wouldn't count.
+
+**Questions for David:**
+1. Is cost per good die with cycle time folded in the right measure, or should cycle time be its own target (for example a hot-lot deadline)?
+2. When a lot ships over the cost target, is that a loss, or a "shipped, poor margin" grade that still counts?
+3. Notebook farming: I read your "yes" as "a replay of the same seed may still earn the entry", so nothing changes. Say if you meant the other way.
+
 ### Task: NMOS you can play (item 2): built 30 Oct 2026
 **David's answers (30 Oct 2026):**
 - Cut risks (A).

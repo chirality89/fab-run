@@ -18,6 +18,8 @@
 //                 (content.js). Only static traits belong here.
 // A step marked `qtime` opens a Q-time window in the corridor after it; its
 // `qtimeNote` says in words what grows while the lot waits (the map shows it).
+// A step may name a `driftPattern`: what its room's drifted tool feeds in
+// this step, when it is not the monitor's own pattern (toolMonitors.js).
 //
 // Order inside a step (run.js follows it): add the step's risks, apply the
 // step's own effects, then apply equipment and material effects, then the cards played; on resolving,
@@ -189,7 +191,9 @@ export const LOT_TYPES = {
         realizes: ['particles'] },
       // Diffusion happens in the anneal itself, so junction spread enters
       // here (spike anneal scales it).
-      { room: 'diff', label: 'Activation anneal',
+      // The same furnace as gate oxidation: here its temperature drift
+      // spreads the junctions instead of thickening an oxide.
+      { room: 'diff', label: 'Activation anneal', driftPattern: 'junction_spread',
         adds: { particles: 0.005, junction_spread: 0.016 },
         realizes: ['particles', 'channeling_tail', 'implant_damage', 'junction_spread'] },
       // Electrical test, then ship against the customer spec. Nothing added here.

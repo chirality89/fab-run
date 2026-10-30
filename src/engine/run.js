@@ -193,15 +193,19 @@ export function enterStep(state) {
   // e.g. an etch stop laid down at deposition cuts the attack at etch
   // (lotTypes.js `effects`). Ordinary content effects, checked like a card's.
   if (step.effects) lot = applyEffects({ ...state, lot }, { id: step.label, effects: step.effects }).lot;
-  // A drifted tool adds risk to the pattern it feeds (0 for a healthy tool).
+  // A drifted tool adds risk to the pattern it feeds (0 for a healthy tool):
+  // its monitor's pattern, unless this step names its own (lotTypes.js
+  // `driftPattern`, e.g. a furnace that grows gate oxide in one step and
+  // anneals junctions in another).
   const monitor = TOOL_MONITORS[step.room];
   const drift = monitor ? driftRisk(state.tools[step.room].health, monitor.oneSided) : 0;
-  if (drift > 0) lot = addRisk(lot, monitor.pattern, drift);
+  const driftPattern = step.driftPattern ?? monitor?.pattern;
+  if (drift > 0) lot = addRisk(lot, driftPattern, drift);
   // The drift's share of its pattern, so the result screen can say what the
   // drift cost (M4.5 item 4). Cards and items only multiply a pattern, so
   // the share holds until the room resolves (tests/content.test.js checks
   // that no card or item uses addRisk). Null for a healthy tool.
-  const driftShare = drift > 0 ? { pattern: monitor.pattern, fraction: drift / lot.risks[monitor.pattern] } : null;
+  const driftShare = drift > 0 ? { pattern: driftPattern, fraction: drift / lot.risks[driftPattern] } : null;
   // Entering a room also closes any shop, PM/DOE or event stop the lot was at.
   let next = {
     ...state, lot, shop: null, pm: null, event: null,

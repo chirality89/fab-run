@@ -57,7 +57,8 @@ test('createRun: defaults are the cuLine, the starter deck, i-line resist loaded
   assert.equal(state.lotTypeId, 'cuLine');
   // measureAll is a starter card but is not dealt yet (run.js NOT_DEALT_YET).
   assert.deepEqual(state.deck, [
-    'timedOveretch', 'reworkLitho', 'extraDiRinse', 'chamberPurge', 'doseTrimSpc',
+    'timedOveretch', 'reworkLitho', 'chlorinatedOxidation', 'preAmorphizingImplant',
+    'extraDiRinse', 'chamberPurge', 'doseTrimSpc',
   ]);
   assert.deepEqual(state.deck, starterDeck());
   assert.deepEqual(state.slots, { resist: { id: 'resistIline', shelfLife: 8, decay: 1 } });

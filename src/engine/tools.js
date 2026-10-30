@@ -86,35 +86,57 @@ function measure(rngState, monitor, health) {
   return { value: monitor.direction * driftShift(health) + noise.value, rngState: noise.rngState };
 }
 
+// One room's tool at the start of a run, drawn from generator `rngState`:
+// its health (from the seed, unless fixed) and, for a monitored tool, its
+// SPC history: the lots that ran on it before this run, when it was
+// healthier by WEAR_PER_RUN per lot. Returns the tool and the generator's
+// next number.
+function rollTool(rngState, roomId, toolDrift, startingHealth) {
+  const monitor = TOOL_MONITORS[roomId];
+  let health = STARTING_TOOL_HEALTH;
+  if (monitor && toolDrift) {
+    const roll = randomInt(rngState, STARTING_HEALTH_MIN, STARTING_TOOL_HEALTH);
+    rngState = roll.rngState;
+    health = roll.value;
+  }
+  if (startingHealth[roomId] !== undefined) health = startingHealth[roomId];
+
+  const spc = [];
+  if (monitor) {
+    for (let lotsAgo = SPC_HISTORY - 1; lotsAgo >= 1; lotsAgo--) {
+      const healthThen = Math.min(STARTING_TOOL_HEALTH, health + WEAR_PER_RUN * lotsAgo);
+      const point = measure(rngState, monitor, healthThen);
+      rngState = point.rngState;
+      spc.push(point.value);
+    }
+  }
+  return { tool: { health, spc, pmAt: [] }, rngState };   // pmAt: SPC point counts where a PM happened
+}
+
+// Diffusion and implant got monitors later (30 Oct 2026). Their tools are
+// drawn from a generator of their own, so every seed keeps exactly the
+// tools, PM rolls and SPC points it had before for the other rooms.
+const ADDED_LATER = ['diff', 'implant'];
+const ADDED_LATER_SEED_MIX = 0x1B873593;   // any fixed number, unlike the others
+
 // Every room's tool for a new run, and the tools' generator number.
 //   toolDrift      false: every tool starts at full health (hand checks)
 //   startingHealth e.g. { cmp: 60 } fixes one tool's health (tests)
-// A monitored tool also gets its SPC history: the lots that ran on it before
-// this run, when it was healthier by WEAR_PER_RUN per lot.
 export function startingTools(seed, { toolDrift = true, startingHealth = {} } = {}) {
   let rngState = toolSeed(seed);
   if (rngState === null) throw new Error(`startingTools: bad seed ${seed}`);
+  let laterRngState = normalizeSeed((seed ^ ADDED_LATER_SEED_MIX) >>> 0);
   const tools = {};
   for (const roomId of Object.keys(ROOMS)) {
-    const monitor = TOOL_MONITORS[roomId];
-    let health = STARTING_TOOL_HEALTH;
-    if (monitor && toolDrift) {
-      const roll = randomInt(rngState, STARTING_HEALTH_MIN, STARTING_TOOL_HEALTH);
-      rngState = roll.rngState;
-      health = roll.value;
+    if (ADDED_LATER.includes(roomId)) {
+      const rolled = rollTool(laterRngState, roomId, toolDrift, startingHealth);
+      tools[roomId] = rolled.tool;
+      laterRngState = rolled.rngState;
+    } else {
+      const rolled = rollTool(rngState, roomId, toolDrift, startingHealth);
+      tools[roomId] = rolled.tool;
+      rngState = rolled.rngState;
     }
-    if (startingHealth[roomId] !== undefined) health = startingHealth[roomId];
-
-    const spc = [];
-    if (monitor) {
-      for (let lotsAgo = SPC_HISTORY - 1; lotsAgo >= 1; lotsAgo--) {
-        const healthThen = Math.min(STARTING_TOOL_HEALTH, health + WEAR_PER_RUN * lotsAgo);
-        const point = measure(rngState, monitor, healthThen);
-        rngState = point.rngState;
-        spc.push(point.value);
-      }
-    }
-    tools[roomId] = { health, spc, pmAt: [] };   // pmAt: SPC point counts where a PM happened
   }
   return { tools, toolRngState: rngState };
 }

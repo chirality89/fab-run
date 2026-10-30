@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 140" role="img">
+  <title>Pre-amorphizing implant: a first implant turns the top of the Si amorphous, so the dopant stops in it with no deep channeling tail. A row of end-of-range damage marks sits just under the old amorphous edge.</title>
+  <rect class="mat-si"    x="0" y="40" width="260" height="100"/>
+  <!-- The amorphous layer the first implant made (drawn faint), with the dopant in it. -->
+  <rect class="mat-ghost" x="0" y="40" width="260" height="44"/>
+  <rect class="mat-doped" x="0" y="40" width="260" height="34"/>
+  <path class="mat-junction" d="M0 74h260"/>
+  <!-- Ions come straight down; no channel to run along. -->
+  <path class="mat-plasma" d="M60 14v14M110 14v14M160 14v14"/>
+  <!-- End-of-range defects just below the amorphous edge. -->
+  <path class="mat-damage" d="M30 88l6 6M36 88l-6 6M90 88l6 6M96 88l-6 6M150 88l6 6M156 88l-6 6M210 88l6 6M216 88l-6 6"/>
+  <text class="art-label-on-dark" x="6" y="28">amorphous first</text>
+  <text class="art-label" x="6" y="62">doped Si</text>
+  <text class="art-label" x="6" y="112">end-of-range defects</text>
+  <text class="art-label" x="6" y="132">Si</text>
+  <!-- Scale bar. Thin films are drawn at least 6 px thick, so it is a guide, not a ruler. -->
+  <path class="mat-measure" d="M208 16h44M208 12v8M252 12v8"/>
+  <text class="art-label-on-dark" x="252" y="9" text-anchor="end">200 nm</text>
+</svg>

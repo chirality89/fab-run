@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 140" role="img">
+  <title>Chlorinated dry oxidation: a thin, even gate oxide grows on the Si, with no mobile-ion marks in it. A few particles shed by the chlorine-attacked furnace parts sit on top.</title>
+  <rect class="mat-si"    x="0" y="56" width="260" height="84"/>
+  <!-- The gate oxide: thin and even. -->
+  <rect class="mat-oxide" x="0" y="48" width="260" height="8"/>
+  <!-- Chlorine gas in the furnace (dashed arrows). -->
+  <path class="mat-plasma" d="M40 14v18M100 14v18M160 14v18"/>
+  <!-- Particles shed by the corroded tube and boat. -->
+  <circle class="mat-particle" cx="70"  cy="44" r="4"/>
+  <circle class="mat-particle" cx="196" cy="44" r="4"/>
+  <text class="art-label-on-dark" x="6" y="10">O2 + a little chlorine</text>
+  <text class="art-label" x="6" y="76">Si</text>
+  <text class="art-label" x="110" y="76">gate oxide above</text>
+  <text class="art-label" x="150" y="40">particles</text>
+  <!-- Scale bar. Thin films are drawn at least 6 px thick, so it is a guide, not a ruler. -->
+  <path class="mat-measure" d="M208 112h44M208 108v8M252 108v8"/>
+  <text class="art-label" x="252" y="130" text-anchor="end">10 nm</text>
+</svg>

@@ -105,8 +105,9 @@ test('every risk that enters bites later, and nothing bites before it enters', (
     const waiting = new Set(Object.keys(lotType.startRisks));
     lotType.route.forEach((step, i) => {
       for (const pattern of Object.keys(step.adds)) waiting.add(pattern);
-      // A drifted tool also adds risk to its pattern on entering (tools.js).
-      if (TOOL_MONITORS[step.room]) waiting.add(TOOL_MONITORS[step.room].pattern);
+      // A drifted tool also adds risk to its pattern on entering (run.js):
+      // the step's own driftPattern, else its monitor's.
+      if (TOOL_MONITORS[step.room]) waiting.add(step.driftPattern ?? TOOL_MONITORS[step.room].pattern);
       for (const pattern of step.realizes) {
         assert.ok(waiting.has(pattern),
           `${lotType.id} step ${i + 1} realizes ${pattern}, which has not entered`);
@@ -114,6 +115,18 @@ test('every risk that enters bites later, and nothing bites before it enters', (
       }
     });
     assert.deepEqual([...waiting], [], `${lotType.id}: risks that never bite`);
+  }
+});
+
+test('a step\'s driftPattern is a pattern its room has a monitor for, and the step realizes it', () => {
+  for (const lotType of ALL_LOT_TYPES) {
+    lotType.route.forEach((step, i) => {
+      if (step.driftPattern === undefined) return;
+      const where = `${lotType.id} step ${i + 1}`;
+      assert.ok(TOOL_MONITORS[step.room], `${where}: room ${step.room} has no monitor`);
+      assert.ok(Object.hasOwn(PATTERNS, step.driftPattern), `${where}: ${step.driftPattern} is not a pattern`);
+      assert.ok(step.realizes.includes(step.driftPattern), `${where}: ${step.driftPattern} is not realized here`);
+    });
   }
 });
 
