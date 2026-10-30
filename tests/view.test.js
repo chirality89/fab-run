@@ -11,7 +11,7 @@ import {
 import { lotYield } from '../src/engine/lot.js';
 import { seedSellingTestItems, SHOP_TEST_UNLOCKS } from './shopSeed.js';
 import {
-  roomView, resultView, mapView, stopView, shopView, siteBand, siteView, yieldBand, parseSeed, pointsChangeText, badSeedText, stopKeyText,
+  roomView, resultView, mapView, stopView, shopView, siteBand, siteView, yieldBand, parseSeed, parseLotType, pointsChangeText, badSeedText, stopKeyText,
 } from '../src/ui/view.js';
 
 const SEED = 123456;
@@ -106,6 +106,26 @@ test('parseSeed: digits give that seed, anything else the fallback', () => {
   assert.equal(parseSeed('', 7), 7);
   assert.equal(parseSeed('?seed=-5', 7), 7);
   assert.equal(parseSeed('?seed=99999999999', 7), 7, 'too big for a 32-bit seed');
+});
+
+test('parseLotType: a lot type the game has, else the Cu line', () => {
+  assert.equal(parseLotType('?seed=1&lot=nmos'), 'nmos');
+  assert.equal(parseLotType('?lot=cuLine'), 'cuLine');
+  assert.equal(parseLotType('?seed=1'), 'cuLine');
+  assert.equal(parseLotType('?lot=bipolar'), 'cuLine', 'no such lot type');
+  assert.equal(parseLotType('?lot=toString'), 'cuLine', 'not an own key');
+});
+
+test('mapView names the lot type and its own Q-time window', () => {
+  assert.equal(mapView(createRun({ seed: 123456 })).lotName, 'Inlaid Cu line');
+  let state = createRun({ seed: 123456, lotTypeId: 'nmos' });
+  assert.equal(mapView(state).lotName, 'NMOS transistor');
+  // Walk to the corridor after step 6 (pre-gate clean), the NMOS Q-time window.
+  for (let step = 0; step < 6; step++) {
+    if (step > 0) state = walkCorridor(state, null);
+    state = resolveStep(enterStep(state));
+  }
+  assert.match(mapView(state).qtimeText, /until the gate oxide is grown/, 'seed 123456');
 });
 
 test('whyIllegal says "its condition is not met" for endpoint etch without the detector', () => {

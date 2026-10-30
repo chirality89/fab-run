@@ -290,13 +290,15 @@ test('junk in the save is ignored', () => {
     JSON.stringify({ version: 0, seed: SEED, unlocked: [], actions: [] }),
     JSON.stringify({ version: 1, seed: SEED, actions: [] }),   // a save from before M4 item 4
     JSON.stringify({ version: SAVE_VERSION + 1, seed: SEED, unlocked: [], actions: [] }),
-    JSON.stringify({ version: SAVE_VERSION, unlocked: [], actions: [] }),
-    JSON.stringify({ version: SAVE_VERSION, seed: -1, unlocked: [], actions: [] }),
-    JSON.stringify({ version: SAVE_VERSION, seed: 1.5, unlocked: [], actions: [] }),
-    JSON.stringify({ version: SAVE_VERSION, seed: SEED, actions: [] }),   // no unlocked list
-    JSON.stringify({ version: SAVE_VERSION, seed: SEED, unlocked: 'all', actions: [] }),
-    JSON.stringify({ version: SAVE_VERSION, seed: SEED, unlocked: [7], actions: [] }),
-    JSON.stringify({ version: SAVE_VERSION, seed: SEED, unlocked: [], actions: 'enter' }),
+    JSON.stringify({ version: SAVE_VERSION, lotTypeId: 'cuLine', unlocked: [], actions: [] }),
+    JSON.stringify({ version: SAVE_VERSION, lotTypeId: 'cuLine', seed: -1, unlocked: [], actions: [] }),
+    JSON.stringify({ version: SAVE_VERSION, lotTypeId: 'cuLine', seed: 1.5, unlocked: [], actions: [] }),
+    JSON.stringify({ version: SAVE_VERSION, lotTypeId: 'cuLine', seed: SEED, actions: [] }),   // no unlocked list
+    JSON.stringify({ version: SAVE_VERSION, lotTypeId: 'cuLine', seed: SEED, unlocked: 'all', actions: [] }),
+    JSON.stringify({ version: SAVE_VERSION, lotTypeId: 'cuLine', seed: SEED, unlocked: [7], actions: [] }),
+    JSON.stringify({ version: SAVE_VERSION, lotTypeId: 'cuLine', seed: SEED, unlocked: [], actions: 'enter' }),
+    JSON.stringify({ version: SAVE_VERSION, seed: SEED, lotTypeId: 'bipolar', unlocked: [], actions: [] }),   // no such lot type
+    JSON.stringify({ version: SAVE_VERSION, seed: SEED, lotTypeId: 'toString', unlocked: [], actions: [] }),   // not an own key
   ];
   for (const text of junk) {
     const storage = fakeStorage();
@@ -310,10 +312,23 @@ test('clearRun removes the save, and the run key leaves other keys alone', () =>
   writeJson(NOTEBOOK_KEY, { entries: ['keyholeVoid'] }, storage);
 
   saveRun({ seed: SEED, unlocked: [], actions: [['enter']] }, storage);
-  assert.deepEqual(loadRun(storage), { seed: SEED, unlocked: [], actions: [['enter']] });
+  // No lot type given: the save holds the default, the Cu line (save v7).
+  assert.deepEqual(loadRun(storage), { seed: SEED, lotTypeId: 'cuLine', unlocked: [], actions: [['enter']] });
   assert.equal(clearRun(storage), true);
   assert.equal(loadRun(storage), null);
   assert.deepEqual(readJson(NOTEBOOK_KEY, storage), { entries: ['keyholeVoid'] });
+});
+
+test('an NMOS run saves its lot type and resumes as NMOS, with the same state', () => {
+  let state = createRun({ seed: SEED, lotTypeId: 'nmos' });
+  const actions = [['enter'], ['run'], ['walk', null], ['enter'], ['run']];
+  for (const action of actions) state = applyAction(state, action);
+  const storage = fakeStorage();
+  saveRun({ seed: SEED, lotTypeId: 'nmos', unlocked: [], actions }, storage);
+  const save = loadRun(storage);
+  assert.equal(save.lotTypeId, 'nmos', `seed ${SEED}`);
+  const resumed = replayRun(createRun({ seed: save.seed, lotTypeId: save.lotTypeId, unlocked: save.unlocked }), save.actions);
+  assert.deepEqual(resumed, state, `seed ${SEED}`);
 });
 
 // --- the notebook (M4 item 2) --------------------------------------------

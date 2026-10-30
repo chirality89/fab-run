@@ -33,6 +33,7 @@ import {
   enterStep, playCard, resolveStep, walkCorridor, buyItem, pmTool, doeCard, chooseEventOption, scrapLot,
 } from '../engine/run.js';
 import { normalizeSeed } from '../engine/rng.js';
+import { LOT_TYPES, DEFAULT_LOT_TYPE } from '../content/lotTypes.js';
 
 // Goes up whenever a change ships that could replay an old save
 // differently: the actions, the engine rules, or any number or effect in
@@ -44,8 +45,9 @@ import { normalizeSeed } from '../engine/rng.js';
 // 4 (26 Oct 2026): the map no longer offers metrology and the deck no longer holds measure all (M4.5 item 5), so an old save's side stops and cards would not match.
 // 5 (26 Oct 2026): an etch stop now cuts etch's underlayer attack, and over-etch on a stop is ×1.05 (M4.5 item 3), so an old save with the stop would replay to a different yield.
 // 6 (27 Oct 2026): a service (tool health up) now marks the SPC chart like a PM (M4.5 item 4), so an old save's chart would read differently.
-export const SAVE_VERSION = 6;
-export const SAVE_KEY = 'fabrun.run.v6';   // bump the v6 together with SAVE_VERSION
+// 7 (30 Oct 2026): the save holds the lot type (NMOS is playable), and NMOS's risks were halved.
+export const SAVE_VERSION = 7;
+export const SAVE_KEY = 'fabrun.run.v7';   // bump the v7 together with SAVE_VERSION
 
 // The browser's localStorage, or null. Even LOOKING it up throws in some
 // browsers when storage is blocked, hence the try. Node has none.
@@ -92,27 +94,30 @@ export function removeKey(key, storage = browserStorage()) {
 
 // --- the run save --------------------------------------------------------
 
-// Saves the run as { seed, unlocked, actions }: its seed, the unlocked list
-// it began with, and its action list. True if saved.
-export function saveRun({ seed, unlocked, actions }, storage = browserStorage()) {
-  return writeJson(SAVE_KEY, { version: SAVE_VERSION, seed, unlocked, actions }, storage);
+// Saves the run as { seed, lotTypeId, unlocked, actions }: its seed, its lot
+// type (lotTypes.js), the unlocked list it began with, and its action list.
+// True if saved.
+export function saveRun({ seed, lotTypeId = DEFAULT_LOT_TYPE, unlocked, actions }, storage = browserStorage()) {
+  return writeJson(SAVE_KEY, { version: SAVE_VERSION, seed, lotTypeId, unlocked, actions }, storage);
 }
 
 // True for a list of item ids (text). An id no longer in the content is
 // harmless: the deck and the shop only ever look up ids that exist.
 const isIdList = value => Array.isArray(value) && value.every(id => typeof id === 'string');
 
-// The saved { seed, unlocked, actions }, or null if there is no usable save:
-// nothing stored, another version, a bad seed, an unlocked list that isn't
-// a list of ids, or actions that aren't a list.
+// The saved { seed, lotTypeId, unlocked, actions }, or null if there is no
+// usable save: nothing stored, another version, a bad seed, a lot type the
+// game doesn't have, an unlocked list that isn't a list of ids, or actions
+// that aren't a list.
 export function loadRun(storage = browserStorage()) {
   const save = readJson(SAVE_KEY, storage);
   if (save === null || typeof save !== 'object') return null;
   if (save.version !== SAVE_VERSION) return null;
   if (normalizeSeed(save.seed) === null) return null;
+  if (!Object.hasOwn(LOT_TYPES, save.lotTypeId)) return null;
   if (!isIdList(save.unlocked)) return null;
   if (!Array.isArray(save.actions)) return null;
-  return { seed: save.seed, unlocked: save.unlocked, actions: save.actions };
+  return { seed: save.seed, lotTypeId: save.lotTypeId, unlocked: save.unlocked, actions: save.actions };
 }
 
 // Removes the run save (when the run ends, or a new run starts).

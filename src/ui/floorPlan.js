@@ -7,6 +7,7 @@
 //   row 1:  1 → 2 → 3
 //   row 2:  6 ← 5 ← 4
 //   row 3:  7 → 8 → 9
+// and on for as many rows as the route needs (NMOS has 13 rooms: 5 rows).
 // Corridors sit between neighbouring bays, and at the ends of the rows
 // where the route turns. The look is plain for now; the toy-diorama art
 // comes in M6.
@@ -28,7 +29,7 @@ function columnOf(index) {
 
 // The plan is a grid with a narrow corridor track between bays:
 //   grid columns 1, 3, 5 hold bays; 2 and 4 hold corridors between them
-//   grid rows    1, 3, 5 hold bays; 2 and 4 hold the turns between rows
+//   grid rows    1, 3, 5 … hold bays; 2, 4 … hold the turns between rows
 // These two functions give the CSS grid line numbers (counted from 1).
 function bayCell(index) {
   const row = Math.floor(index / BAYS_PER_ROW);
@@ -97,9 +98,18 @@ function drawCorridor(corridor) {
   return node;
 }
 
+// The grid's rows: a bay row, then a corridor row between each two bay rows
+// ("auto minmax(32px, auto) auto …"). Written here, not in room.css, because
+// the count depends on the route.
+function planRows(bayCount) {
+  const bayRows = Math.ceil(bayCount / BAYS_PER_ROW);
+  return Array(bayRows).fill('auto').join(' minmax(32px, auto) ');
+}
+
 function drawPlan(view) {
   const box = panel('Floor plan', 'plan-panel');
   const grid = el('div', 'floor-plan');
+  grid.style.gridTemplateRows = planRows(view.bays.length);
   grid.setAttribute('role', 'list');
   grid.setAttribute('aria-label', 'Floor plan of the route');
   view.bays.forEach((bay, index) => grid.append(drawBay(bay, index)));
@@ -114,7 +124,7 @@ function drawPlan(view) {
 function drawMapHeader(view, notebook, words) {
   const header = el('header', 'room-band map-band');
   header.append(el('h1', 'room-name', 'Floor plan'));
-  header.append(el('p', 'room-step', `Inlaid Cu line · yield ${view.yieldPercent.toFixed(1)}%`));
+  header.append(el('p', 'room-step', `${view.lotName} · yield ${view.yieldPercent.toFixed(1)}%`));
   const facts = el('p', 'room-facts');
   facts.append(
     el('span', 'seed', `Seed ${view.seed}`),
@@ -151,6 +161,25 @@ function drawChoices(view, actions) {
   }
   box.append(actionButton(view.goText, 'go-button', actions.onGoStraight));
   if (view.position !== 'start') box.append(drawScrap(actions));
+  if (actions.lotChoice) box.append(drawLotChoice(actions.lotChoice));
+  return box;
+}
+
+// At the door, before anything is done: which kind of lot to run. The lot
+// this run already is reads "This lot"; another one starts that lot on the
+// same seed. `lotChoice` is { options: [{ id, name, current }], onChoose(id) }.
+function drawLotChoice(lotChoice) {
+  const box = el('div', 'lot-choice');
+  box.append(el('h3', 'choice-heading', 'Lot type'));
+  const buttons = el('div', 'result-buttons');
+  for (const option of lotChoice.options) {
+    if (option.current) {
+      buttons.append(el('p', 'lot-current', `${option.name}: this lot`));
+    } else {
+      buttons.append(actionButton(`Run ${option.name} instead`, 'lot-button secondary-button', () => lotChoice.onChoose(option.id)));
+    }
+  }
+  box.append(buttons);
   return box;
 }
 
@@ -170,8 +199,9 @@ function drawScrap(actions) {
 }
 
 // Draws the map screen. `actions` holds onTakeStop(kind), onGoStraight(),
-// onScrap(), notebook ({ count, onOpen }, for the Notebook button) and
-// words ({ onOpen }, for the Words button).
+// onScrap(), notebook ({ count, onOpen }, for the Notebook button), words
+// ({ onOpen }, for the Words button) and, at the door only, lotChoice
+// (see drawLotChoice).
 export function renderMap(container, view, actions) {
   const body = el('div', 'map-body');
   body.append(drawChoices(view, actions), drawPlan(view));

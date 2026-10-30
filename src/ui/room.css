@@ -328,6 +328,8 @@
 .buy-button { margin-top: 10px; }
 
 /* --- Notebook page and its button (notebookPage.js) ------------------------ */
+.lot-choice { margin-top: 16px; }
+.lot-current { margin: 0; align-self: center; font-weight: 600; }
 .header-buttons { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }   /* Notebook and Words: white on the band */
 
 /* --- Words page (wordsPage.js) -------------------------------------------- */

@@ -350,6 +350,10 @@ export function renderShip(container, view, actions) {
     actionButton('Replay this seed', 'replay-button', actions.onReplay),
     actionButton('New seed', 'new-seed-button secondary-button', actions.onNewSeed),
   );
+  // A new lot of another kind (otherLots: [{ id, name }]), on a new seed.
+  for (const other of actions.otherLots ?? []) {
+    buttons.append(actionButton(`New ${other.name} lot`, 'other-lot-button secondary-button', () => actions.onOtherLot(other.id)));
+  }
   verdict.append(buttons);
   container.replaceChildren(header, verdict, drawDiagnose(view.diagnose, actions), drawStepTable(view),
     drawWaferMap(view), drawRouteSpc(view));

@@ -1,6 +1,9 @@
 // exit-check.js — does the game pass the "winnable and readable" test?
 //
-// Usage:  npm run exit-check [-- --seeds 100]
+// Usage:  npm run exit-check [-- --seeds 100] [--lot nmos]
+//
+// --lot picks the lot type (src/content/lotTypes.js; default cuLine). Every
+// lot type is held to the same targets.
 //
 // Plays the same seeds with each bot policy, with the starter deck (a new
 // player) and with the full deck (a player with many unlocks), and prints how
@@ -37,11 +40,11 @@ export const TARGETS = {
 };
 
 // Plays seeds 1..count with one policy and totals the results.
-export function runPolicy(policy, count, deck) {
+export function runPolicy(policy, count, deck, lotTypeId = 'cuLine') {
   const yields = [];
   const counts = { shipped: 0, rejected: 0, scrapped: 0 };
   for (let seed = 1; seed <= count; seed++) {
-    const { summary } = playRun(seed, policy, { deck });
+    const { summary } = playRun(seed, policy, { deck, lotTypeId });
     yields.push(summary.yield * 100);
     counts[summary.status] += 1;
   }
@@ -82,12 +85,13 @@ function readArgs(argv) {
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const args = readArgs(process.argv.slice(2));
   const count = Number(args.seeds ?? 100);
-  console.log(`Seeds 1 to ${count}\n`);
+  const lotTypeId = args.lot ?? 'cuLine';
+  console.log(`Lot type ${lotTypeId}, seeds 1 to ${count}\n`);
   console.log('deck     policy   shipped rejected scrapped   mean  lowest highest');
   const results = {};
   const rows = [...POLICIES.map(policy => [policy, 'starter']), ['smart', 'full']];
   for (const [policy, deck] of rows) {
-    const r = runPolicy(policy, count, deck);
+    const r = runPolicy(policy, count, deck, lotTypeId);
     results[deck === 'full' ? 'smartFull' : policy] = r;
     console.log(`${deck.padEnd(8)} ${policy.padEnd(8)} ${String(r.shipped).padStart(7)} ${String(r.rejected).padStart(8)} ${String(r.scrapped).padStart(8)}   ${r.mean.toFixed(1).padStart(5)}  ${r.lowest.toFixed(1).padStart(6)}  ${r.highest.toFixed(1).padStart(6)}`);
   }
