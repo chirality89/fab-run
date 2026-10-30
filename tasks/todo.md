@@ -143,6 +143,20 @@ Finished plans (M0 to M4.5 item 4) are in `docs/archive/todo-done.md`. The curre
   - **Must-fix, for David:** the furnace monitor contradicts the evidence. `fm_gate_breakdown` says thickness and C-V are on target, but a temperature drift makes the oxide off target (and thicker, not thinner). Chlorine also doesn't fix a temperature drift.
   - The reviewer's fix: monitor **contamination** instead (mobile ion charge on a monitor C-V, one-sided). The tube and boat collect sodium and metals with use, and chlorine cleans exactly that.
   - The anneal's junction-spread drift would then need its own temperature monitor, or be dropped.
+- **NMOS exit-check with the two new tools and cards (100 seeds):**
+
+  | Deck | Policy | Ships | Mean yield |
+  |---|---|---|---|
+  | Starter | idle | 1% | 44.1 |
+  | Starter | random | 2% | 51.8 |
+  | Starter | casual | 30% | 63.9 |
+  | Starter | smart | 49% | 67.7 |
+  | Full | smart | **87%** | 74.2 |
+
+  - Smart beats idle by 23.6 points on the starter deck.
+  - **Six of seven targets pass. Full-deck smart ships 87%, against a target of at least 90%:** two more drifting tools add loss.
+  - Not tuned yet. The furnace monitor may change (David's answer above), and making cash count rebalances everything, so tune once after both. Cu-line numbers are unchanged; the new tools draw from their own generator.
+- `npm run screens`: 90 pass.
 
 ### Task: cash and cycle time count toward winning (David, 30 Oct 2026: "yes count towards winning"): plan, waiting for David's OK
 **Today:**
