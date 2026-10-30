@@ -1,94 +1,85 @@
-# Min-maxer — seed 42
-
-Plan going in (from 123456): DUV resist, PM the flagged Etch before litho, Timed over-etch, copper bath + PM plating, no pad conditioner, no metrology, take cash events.
+# Min-maxer — seed 42 (Inlaid Cu line, repeating the best line from 123456)
 
 ### Step 1 — Floor plan
-Screenshot: docs/playtest/shots/minmaxer/42-00-map.png
-I see: Same 9 rooms in the same order as 123456 (same "Inlaid Cu line"). Different side stops between rooms. SPC flags on Wet clean (room 1 and 5) and Etch. Cash 1500.
-I think: Same line, same rooms, so my 123456 spreadsheet carries over directly. Corridor 1 has BUY and PM, corridor 2 has PM — so this seed lets me both buy DUV and PM Etch. Better seed than 123456.
+Screenshot: docs/playtest/shots/minmaxer/42-00-s42-01-floor.png
+I see: Same 9-room Inlaid Cu route, cash 1500, notebook (1). SPC flags on Wet clean (1), Deposition (2 and 6), Wet clean (5), Etch (4). Corridors differ from 123456: corridor 3 and 4 have no BUY; Q-time corridor still after step 5.
+I think: Same route, different flags, different corridor tags. Plan: PM Deposition at c1, shop at c2 (gas trim), PM Etch at c3, PM Wet clean at c4, straight through Q-time, PM Plating at c6, PM CMP at c7. Unlocked plating card in hand.
 I try: Enter step 1.
 Mood: curious
 
-### Step 2 — Room 1: Wet clean (flagged)
-Screenshot: none
-I see: Forecast 1.0. SPC "Out of control: the particle adders may be shifting." No cards. Actual 100.0 → 99.1.
-I think: Flagged tool, and it cost exactly what the unflagged one cost on 123456 (0.9). The red SPC tag here is noise. Nothing on the map tells me which flags matter.
-I try: Run, then Procurement.
-Mood: bored
-
-### Step 3 — Procurement (corridor 1)
-Screenshot: none
-I see: Inline metrology 500, DUV resist 140, Three-additive copper bath 200.
-I think: Metrology 500 is the trap. DUV worth ~2.4 points last seed, bath ~4 with PM. Buy both in one stop — the shop lets me buy as many as I want for one 10-min stop, so one shop visit per run is all I need.
-I try: Buy DUV + bath. 1500 → 1160.
+### Step 2 — Room 1: Wet clean
+Screenshot: docs/playtest/shots/minmaxer/42-01-s42-02-room1.png
+I see: Forecast 0.7. SPC "Excursion: one lot past the control limit ... if a one-off, the next lots come back". Last lot 17.0, inside. Same single rinse card, 0.2 less.
+I think: The red SPC flag on the map is a one-off that already came back. Map flag scared me for nothing — the map doesn't tell excursion from shift. Can't PM before step 1 anyway.
+I try: Rinse (1500 -> 1490), run: 100 -> 99.5.
 Mood: curious
 
-### Step 4 — Room 2 → PM / DOE (corridor 2)
-Screenshot: docs/playtest/shots/minmaxer/42-10-pm.png
-I see: Dep 99.1 → 97.9. PM/DOE screen: three DOEs on top (Timed over-etch, Measure all 25 sites, Strip and re-expose — the last one with numbers "cd error ×0.2 · particles ×1.2"), then PM cards for Litho, Etch (out of control), Wet clean (out of control), Deposition (now out of control too), Plating, CMP. Every PM button just says "PM this tool".
-I think: I hit the wrong "PM this tool" — I PM'd Litho instead of Etch. All six buttons have identical words and the tool name is far above the button. In etch I saw "27.0 points" forecast and no "Just PM'd". My mistake, but the screen set it up.
-I try: Reload. Replayed the whole route (deterministic, same numbers), this time PM'd Etch. The "undo by reload" trick works perfectly for any mistake, at the cost of replaying.
-Mood: annoyed
-
-### Step 5 — Litho → Etch (PM'd)
-Screenshot: docs/playtest/shots/minmaxer/42-14-etch.png
-I see: Litho with DUV: forecast 4.4, actual 97.9 → 93.7. Etch forecast 23.5 after PM (27.0 without), over-etch → 20.3, actual 93.7 → 73.4 (20.4).
-I think: Same as 123456: PM on the screaming tool buys ~3.5 points, over-etch ~3. And then the room still eats 20 points regardless. There's a ~20-point etch tax that no card, item or PM touches. Spec is 70; I'm at 73.4 with four rooms left that cost ~13 points together. The run is decided and it's lost.
-I try: Continue. Event in corridor 4.
-Mood: about to quit
-
-### Step 6 — Event: Quality audit (again)
-Screenshot: none
-I see: Same audit as 123456: Walk them through (+30 min, Wet clean tool serviced) or −100 cash.
-I think: Wet clean is flagged and next, so service is free value. Took it.
-I try: Walk them through.
+### Step 3 — PM / DOE stop, corridor 1
+Screenshot: docs/playtest/shots/minmaxer/42-05-s42-03-pm1.png
+I see: DOEs on offer are different this seed: Low-current start step (8 min void x0.5 -> 10 min void x0.4) and Extra rinse (particles 0.75 -> 0.8, oxide 1.1 -> 1.05). 100 cash each. Deposition and Etch charts "Shift".
+I think: The low-current DOE is the first DOE that's not obviously bad: 0.5 -> 0.4 on a card worth 1.8 points is maybe +0.4 points for 100 cash, which is free money since cash isn't scored. But it costs the PM slot, and a PM on a shifted tool is worth more. PM wins again.
+I try: PM Deposition. Room 2 forecast 0.7, pump-purge "0.1 more lost" — skip. 99.5 -> 98.8.
 Mood: curious
 
-### Step 7 — Room 5: Wet clean after "service"
-Screenshot: docs/playtest/shots/minmaxer/42-20-wetclean-after-audit.png
-I see: SPC STILL says "Out of control … A point beyond the upper control limit." No PM mark. Forecast 0.7, actual 73.4 → 72.6.
-I think: Did the service do anything? Chart doesn't show it. Room cost the same 0.7–0.8 it always costs. Either way it was worth nothing.
-I try: Go straight (Q-time corridor).
-Mood: annoyed
-
-### Step 8 — Room 6, PM plating, Room 7
-Screenshot: none
-I see: Dep (flagged): forecast 3.9, actual 72.6 → 69.3. Below spec. PM'd plating; plating with bath + PM: forecast 2.1, actual 69.3 → 67.0.
-I think: Bath + PM consistently ~2 points vs ~6 without. That's the best purchase in the game. Still dead.
-I try: Event.
+### Step 4 — Procurement, corridor 2
+Screenshot: docs/playtest/shots/minmaxer/42-10-s42-04-shop.png
+I see: Identical stock to 123456: gas trim 200, inline metrology 500, thick resist 90.
+I think: The shop is fixed across seeds. No "random offers" at all. Trim it is.
+I try: Buy trim (1490 -> 1290).
 Mood: bored
 
-### Step 9 — Hot lot event → CMP
+### Step 5 — Litho, corridor 3, Etch
 Screenshot: none
-I see: Run it hot: −30 min, +150 cash, +0.02 risk. Took it. Cash 1160 → 1310. CMP forecast 9.4, actual 67.0 → 57.6.
-I think: CMP was 6.7 on the do-nothing replay of this seed and 7.1 on 123456. 9.4 here. If that's the hot lot's "random dots", the 150 cash cost me ~2.7 yield points. Not free after all — but the card only said "+0.02 risk", not "about 3 points at CMP".
-I try: Last corridor: Event.
-Mood: annoyed
-
-### Step 10 — Event: "A quiet shift"
-Screenshot: docs/playtest/shots/minmaxer/42-34-quiet-event.png
-I see: "Event cost 10 min of cycle time. A quiet shift: nothing that matters for this lot comes up."
-I think: Paid 10 min for literally nothing. Fine since cycle time doesn't score, but it's filler.
-I try: Continue, run metrology (skipped the 150 Measure card), ship.
+I see: Litho forecast 2.7 even with the tool in control; trim dose still claims 0.4. Litho 98.8 -> 96.8. PM Etch at c3. Etch forecast 8.9, "2.9 from depth variation" — same as 123456 with trim. Over-etch again "+0.1 more lost". Etch 96.8 -> 88.2 (8.6).
+I think: Trim dose card text says it only fixes a steady shift — but my litho chart is in control and it still saves 0.4. So it's just always-on. Etch is the same toll every time.
+I try: Continue.
 Mood: bored
 
-### Step 11 — Ship report
-Screenshot: docs/playtest/shots/minmaxer/42-37-report.png
-I see: Rejected 57.6%. Cost per good die 6.08. Lot cost 2190 ÷ 360.1. Cycle time 248 min. Diagnose: Underlayer attack / Etch residue / Q-time oxide / Removal-rate drift.
-I think: Lot cost 2190 = 2000 + 340 spent − 150 hot-lot fee. So income lowers lot cost. Diagnosed Underlayer attack (I over-etched) — "Diagnosed... Written in your notebook", same unlock text as before, "start to count in a later update". Over-etch is both my best etch card and the thing the game blames. That's the loop: the card that saves 3 points is always the diagnosis.
-I try: Replay, test scrap.
-Mood: annoyed
-
-### Step 12 — Scrap test
-Screenshot: docs/playtest/shots/minmaxer/42-43-scrap.png, docs/playtest/shots/minmaxer/42-44-scrapped.png
-I see: After room 1, "Scrap the lot" asks "Scrap this lot? The run ends, and everything spent on it is lost." Yes → "Scrapped by you before step 2 at 99.1% yield. Cost per good die: none. No good die shipped. Lot cost 2000, all lost." Cycle time 10 min. "This lot lost too little to tell what hurt it."
-I think: Cheapest way to lose: 2 taps, 10 minutes. Same "result" as a rejected ship — both lose all 2000 — except a rejected lot at least gets a diagnosis. Scrap is never better than shipping a bad lot.
-I try: Replay, do-nothing line.
+### Step 6 — Corridor 4, room 5, Q-time corridor, barrier dep
+Screenshot: docs/playtest/shots/minmaxer/42-26-s42-05-barrier.png
+I see: PM Wet clean at c4. Step 5 forecast 0.6, skipped rinse (oxide). 88.2 -> 87.6. Q-time corridor: same +0.040 / +0.010 / +0.010 oxide risk. Straight on. Barrier dep forecast 3.1, actual 3.5 (87.6 -> 84.1).
+I think: Same numbers as last seed, almost to the decimal. These seeds aren't really different lots, they're the same lot with a different red flag.
+I try: PM Plating at c6.
 Mood: bored
 
-### Step 13 — Do-nothing line (go straight everywhere, play no cards, buy nothing)
-Screenshot: none
-I see: 99.1 / 97.9 / 91.7 (litho 6.2) / 64.3 (etch 27.5) / 63.6 / 60.7 / 54.6 (plating 6.1) / 47.9 (CMP 6.7). Rejected 47.9%. Cost per good die 6.68. Cycle time 133 min.
-I think: Best effort: 57.6% for 6.08. Zero effort: 47.9% for 6.68. All my optimisation is worth ~10 points and neither line gets near 70. Both "Not paid". If spec is unreachable, the only score that changes is cost per good die on a lot nobody pays for.
-I try: Seed 777.
-Mood: about to quit
+### Step 7 — Plating, PM CMP, last event
+Screenshot: docs/playtest/shots/minmaxer/42-39-s42-06-event.png
+I see: Plating forecast 4.3, Low-current card 1.8 less. Played: 84.1 -> 81.4. PM CMP at c7, CMP 81.4 -> 74.9 (6.4). Event after CMP: "A quiet shift: nothing that matters for this lot comes up." Cost 10 min.
+I think: An event stop that can be empty. Good to know: the last event slot is dead.
+I try: Ship report.
+Mood: bored
+
+### Step 8 — Ship report, best line
+Screenshot: docs/playtest/shots/minmaxer/42-41-s42-07-ship.png
+I see: Shipped 74.9%. Lot cost 2240 (2000 + 240 spent), 4.78 per good die, cycle 353 min. Diagnose: Chamber flaking / Handling particles / Removal-rate drift / Keyhole void ("In notebook").
+I think: Line holds: 74.1 on 123456, 74.9 here. Last time "Handling particles" was the answer on a clean run, and nothing big went wrong this time either. Guessing it from the meta, not the evidence.
+I try: Handling particles.
+Mood: curious
+
+### Step 9 — Diagnosis
+Screenshot: docs/playtest/shots/minmaxer/42-42-s42-08-diag.png
+I see: "Diagnosed: Handling particles. Written in your notebook. 4.8 points, 0.5-0.7 in every room. Unlocks: Pre-deposition clean, Megasonic clean."
+I think: Right answer from pattern, not from reading. When you play clean, the answer is the background particle tax.
+I try: Replay, do nothing.
+Mood: hooked
+
+### Step 10 — Do-nothing replay of 42
+Screenshot: docs/playtest/shots/minmaxer/42-68-s42-09-donothing.png
+I see: Rooms: 0.7, 1.3, 2.4, 18.5 (!), 0.6, 4.0, 4.5, 5.4, 0. REJECTED 62.6%. Cost/die 5.11, "rejected.." typo again.
+I think: Here the free PM on Etch was worth ~10 points. On 123456 the same PM was worth 1.4. Same "Shift" label on both charts. So "do nothing" isn't safe; "PM every shifted tool, skip everything else" is the real baseline. That's still close to do nothing: 4 taps.
+I try: Diagnose. Options: Chamber flaking, Overhang void, Q-time oxide, Dose offset. None of them is an etch failure, yet etch ate 18.5 points.
+Mood: confused
+
+### Step 11 — Diagnosis on the do-nothing run
+Screenshot: docs/playtest/shots/minmaxer/42-69-s42-10-diag2.png
+I see: Guessed Chamber flaking. "Not this one. What did hurt this lot: Overhang void, 4.0 points, Plating." Table shows "98%", "77%", "68%" next to "99.3%" — mixed decimals.
+I think: The thing that killed this lot (18.5 points in etch) isn't even a choice. I'm asked to name a 4-point plating void. The "diagnosis" is a quiz about a side detail.
+I try: Replay, do nothing again, answer Overhang void.
+Mood: annoyed
+
+### Step 12 — Farmed diagnosis
+Screenshot: docs/playtest/shots/minmaxer/42-96-s42-11-farmed.png
+I see: Rejected again 62.6% (identical). "Diagnosed: Overhang void. Written in your notebook. Unlocks: Ionized PVD seed, Pulse-reverse plating supply."
+I think: Confirmed on a second seed: fail -> read answer -> replay -> collect. Works even on a rejected lot. Notebook is 3/20 for zero reading. I'd farm the remaining 17 the same way.
+I try: Seed 777, and take the NMOS lot.
+Mood: hooked

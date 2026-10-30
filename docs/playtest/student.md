@@ -1,64 +1,89 @@
 # Curious student
 
 ## Where I would quit, and why
-Seed 777, step 7 (etch room). "I've now tried everything the game offered me for etch across three runs: PM'd the tool, DOE'd the card, bought a 600 endpoint detector, bought a 450 edge-tuned chuck. The forecast says about 21 points every single time. It never told me why etch costs that much, so there's nothing left for me to learn or try. From here I'm just pressing Run and watching myself fall under spec at step 6 again." In practice I'd have been close to quitting at seed 123456 step 21, the first time I dropped below spec with four rooms left and nothing to play in any of them.
+Seed 42, step 33 (CMP result, just before the ship report). "I played that run completely differently: PM'd other tools, got a free service, skipped the rinse before the barrier, never waited in Q-time. I finished at 72.5%. Last run I finished at 72.4%. My choices moved the result by 0.1 points. Plating, CMP and metrology don't even let me in; the lot just goes through and loses 4 to 6 points. Why am I clicking?" I kept going because I was there to learn, and the notebook unlock (dummy fill) pulled me back in on seed 777. If the NMOS run hadn't given me a CMP screen that explained dishing and a readable edge-ring map, I'd have stopped after run 2.
 
 ## Problems
-1. **Etch takes ~20 points and the game never says why.** Every run, etch was forecast at 21–23 points and took 16.7–19.6, whatever I did. PM, DOE, endpoint detector and edge chuck each moved it by 0–4 points. No text says what makes etch so lossy or what would fix it. I expected the biggest loss in the game to come with the biggest explanation. Instead it's a flat tax and all three runs failed the same way. Evidence: docs/playtest/shots/student/123456-17-etch.png, docs/playtest/shots/student/42-16-etch.png, docs/playtest/shots/student/777-16-etch.png.
-2. **The diagnosis is a quiz with the answer key withheld.** You get one guess, then just a name ("What did hurt this lot: Edge ring"). There's no why, no step, no "you should have…". Worse, the answer never matched the yield table. Handling particles was "right" on seed 42, but wet clean cost me under 1 point a room, while etch took 17. The edge-ring card says "inner sites are clean", but my inner sites were 56–64 and red. I worked out that the answer is just whichever tool had a red SPC badge on the opening floor plan. That's a pattern-match. I didn't learn any physics from it. Evidence: docs/playtest/shots/student/123456-40-diagnosed.png, docs/playtest/shots/student/123456-39-ship-report-lower.png, docs/playtest/shots/student/777-37-diagnosed.png.
-3. **The first screen doesn't say what the game is.** Nothing says what a lot is (I learned "25 wafers" from a caption under the wafer map), what I'm trying to do, or how I lose. The scrap line and spec only appear once I'm inside a room. The legend explains abbreviations with abbreviations ("PM PM / DOE"). PM, DOE, CMP, CD and SPC are never spelled out anywhere in three runs. Evidence: docs/playtest/shots/student/123456-00-s123456-01-floor.png.
-4. **No way to look anything up.** I tried tapping "i-line positive resist", "Strip and re-expose" and "CD". Nothing is tappable, and there's no glossary, help or "?" anywhere. The game says it writes diagnoses "in your notebook", but there's no notebook to open on any screen. Evidence: seed 123456 step 11, seed 777 step 1.
-5. **Red SPC warnings don't match what happens.** "Out of control … A shifted tool costs yield in this room" on wet clean cost 0.9, the same as or less than a healthy wet clean (1.4 on seed 777). PM'ing a flagged CMP tool was followed by a bigger loss (7.4) than an unflagged CMP the run before (6.2). An auditor "serviced" wet clean, but its chart still said out of control. Deposition said "out of control" with no red point I could see. After three runs I learned to ignore the warnings, and that has to be the wrong lesson. Evidence: docs/playtest/shots/student/42-01-room1-spc.png, docs/playtest/shots/student/42-22-wetclean5.png, docs/playtest/shots/student/42-37-ship-spc.png, docs/playtest/shots/student/777-31-cmp.png.
-6. **The cards are missing or dead.** Most rooms say "No practices left in your hand" when I never had any. The only litho card always says "Can't play: Its condition is not met" and never says which condition. Out of 27 room visits I played 4 cards. Evidence: docs/playtest/shots/student/123456-01-room1.png, docs/playtest/shots/student/123456-11-litho.png.
-7. **Paid features that do nothing.** The Metrology side stop costs 20 min and says "comes in the next update". "Measure all 25 sites" took 150 cash and changed nothing I could see. The notebook unlock says "Unlocks start to count in a later update." Each one felt like being charged for a placeholder. Evidence: docs/playtest/shots/student/123456-21-metrology.png, docs/playtest/shots/student/123456-37-measured.png, docs/playtest/shots/student/42-38-diagnosed.png.
-8. **Shop items don't say what they're worth.** I only found out the copper bath saves ~4–5 points on plating by skipping it on purpose in run 2 and comparing. CMP and deposition losses also changed from run to run (deposition 3.3–5.8) with no reason shown. Cash also dropped 950 to 930 at CMP with no message. Evidence: seed 42 step 14, seed 123456 step 24.
+1. **My choices barely change the outcome** — Two Cu-line runs with very different PM, rinse and event choices ended at 72.4% and 72.5%. The big losses (etch about 10 points, CMP about 6, plating 4 to 5) were the same every time. I expected PMs and cards to move the result by several points. Instead they move tenths, and the run feels like a fixed tax with flavour text. Evidence: seed 123456 step 41 and seed 42 step 36 (yield-by-step tables, docs/playtest/shots/student/123456-41-s1-27-ship-evidence.png).
+2. **Rooms I never get to play** — Plating, CMP (Cu line), Metrology, Diffusion (both), Implant and Electrical test jump straight to "Nothing could be played here, so the lot went straight through", often with a 3 to 6 point loss and no breakdown. The new NMOS rooms I most wanted to learn about (diffusion, implant) are the ones I only watch. On seed 777 the anneal took 4.6 points and left me at 70.2% with nothing to do. Evidence: docs/playtest/shots/student/123456-34-s1-22-plating.png, docs/playtest/shots/student/777-36-s3-10-diffusion.png, seed 777 step 53.
+3. **Green SPC charts that still cost me points** — Seed 777: deposition chart "In control", then "about 2.7 points came from the Deposition tool's drift". Same run: the wet clean was "In control", then 1.3 points from drift. The game teaches me to read charts and then punishes me for trusting them. On seed 42 etch was PM'd and its chart stayed down near 277 after the PM. Evidence: seed 777 steps 10 and 33; docs/playtest/shots/student/42-36-s2-10-ship-charts.png.
+4. **First diagnosis felt like a trap, not a lesson** — Seed 123456: etch cost 9.8 points, its chart fell, "Etch residue" matched the symptom word for word. Answer: keyhole void, 3.2 points in plating, a room I couldn't enter. The options mention cross-sections, vias, leakage, line resistance, none of which are on screen. "How to spot it" just repeats the option. The edge-ring diagnosis on seed 777 was the opposite: I could read it off the map. Evidence: docs/playtest/shots/student/123456-42-s1-29-diagnosis.png vs docs/playtest/shots/student/777-56-s3-16-ship-map.png.
+5. **The game hints at levers I can't reach** — Cu-line etch: "The film stack set how big this is before the lot got here: without an etch stop..." I never saw an etch-stop choice in two runs. I felt blamed for a decision I wasn't given. Evidence: docs/playtest/shots/student/123456-19-s1-15-etch.png.
+6. **Card text and the preview number disagree** — Trim dose says it "only fixes a steady shift, not scatter" but shows "0.4 points less" on an in-control tool. Over-etch says "on a steady tool the attack costs about what it saves" but shows "1.4 points less" on a steady tool. Pump-purge says it does almost nothing on a healthy chamber but shows "0.8 less" on a green chart. The rinse card talks about "the barrier" in the transistor flow. I stopped trusting either the text or the number. Evidence: seed 42 step 12; seed 777 steps 4, 10 and 23.
+7. **Nobody tells me the goal on the first screen** — The first screen doesn't say what yield, spec or scrap mean, or what the 70% target is. I found out from the "Words" button, which I only pressed because I press everything, and from the yield bar inside room 1. The fact that cash and cycle time don't count toward winning only shows on the ship report. So for a whole run I worried about 40 minutes and 200 cash for nothing. Evidence: docs/playtest/shots/student/123456-00-s1-01-first.png, docs/playtest/shots/student/123456-41-s1-26-ship.png.
+8. **Glossary is missing the room names** — The Words list explains SPC, PM, Q-time and CD well, but not litho, etch, deposition, plating, diffusion, implant, NMOS, resist, SiN, poly-Si, etch stop or anneal. Those are exactly what I came to learn. Words in card text can't be tapped. Evidence: seed 777 step 2 (Words list checked against the NMOS floor plan).
+9. **Tapping a card plays it instantly** — I wanted to see what the over-etch would do to the forecast before I chose it. Tapping it spent it, with no undo. Evidence: seed 777 step 48.
 
 ## Compliment
-The Q-time corridor text ("native oxide keeps growing until the barrier goes on") taught me a real fact in one sentence, the kind of thing I'd tell a friend. It only came at step 5 of my first run, though.
+The Words screen's "real meaning / In the game" pairs, and the seed-777 CMP line naming dishing, where it was set, and both fixes, taught me real things.
 
 ## Ratings (1 = bad, 5 = great)
-- Clarity: 2 — the yield bar, per-room forecast and yield-by-step table are clear, but the main terms and the biggest loss are never explained.
-- Real decisions: 2 — shop, DOE and events are real choices, but most rooms are a single Run button and etch ignores what I pick.
-- Wanting another run: 2 — three runs failed the same way at the same room, and I can't see what I'd do differently.
+- Clarity: 3 — great glossary and loss attribution in places, but goal and win condition are hidden, room names are never explained, and card text contradicts its own numbers.
+- Real decisions: 2 — the rinse-before-Q-time and dummy-fill choices are real; almost everything else changes the result by tenths, and a third of the rooms have no choices at all.
+- Wanting another run: 3 — the notebook and unlocks pull me back; being a passenger for the biggest losses pushes me away.
 
 ## Jargon I hit
+
 | Term | First seen at seed+step | Explained? |
 |---|---|---|
-| Lot | 123456 step 1 | late (wafer-map caption implies 25 wafers, step 2) |
-| Yield / line yield | 123456 step 1 | late (bar with scrap/spec at step 2) |
-| Inlaid Cu line | 123456 step 1 | no |
-| MET / Metrology | 123456 step 1 | no (and the stop does nothing) |
-| PM | 123456 step 1 | no (guessed preventive maintenance) |
-| DOE | 123456 step 1 | late, partly ("tunes one practice's recipe", step 9); never spelled out |
-| EVT / BUY | 123456 step 1 | yes (legend) |
-| QT / Q-time | 123456 step 1 | late (123456 step 20, corridor text) |
-| SPC | 123456 step 1 | no (chart key explains lines, never the term) |
-| CMP | 123456 step 1 | no (guessed polishing from "pad" and "removal rate") |
-| Litho / Etch / Deposition / Plating | 123456 step 1 | no (guessable from names) |
-| Wafer map / site | 123456 step 2 | yes (caption) |
-| Particle adders | 123456 step 2 | no (guessable) |
-| Control limits / spec limits | 123456 step 2 | yes (chart key) |
-| Practice / hand | 123456 step 2 | no |
-| Time budget | 123456 step 2 | no (never had enough cards to spend it) |
-| Slots | 123456 step 2 | late (procurement text, step 14) |
-| Cycle time | 123456 step 4 | late (ship report: "room time, side stops and events"); never said if it matters |
-| SiN + oxide | 123456 step 4 | no (guessable from chemistry) |
-| Wet bench | 123456 step 6 | no (guessed = wet clean tool) |
-| Underlayer attack / etch stop / residue | 123456 step 9 | partly (card text) |
-| CD / Monitor CD | 123456 step 9 | no |
-| Seam rate on fill monitor | 123456 step 9 | no |
-| i-line positive resist | 123456 step 11 | no |
-| Strip and re-expose / "condition" | 123456 step 11 | no |
-| Trench | 123456 step 11 | no (guessable) |
-| In-situ pad conditioner | 123456 step 14 | partly ("stable polish rate") |
-| Three-additive bath / bottom-up fill | 123456 step 14 | partly (one line) |
-| Native oxide / barrier + seed | 123456 step 20 | yes (Q-time text), seed not explained |
-| Hot lot | 123456 step 22 | yes (event text) |
-| Cost per good die | 123456 step 27 | yes (formula shown) |
-| Edge ring / keyhole void / T-top / etch residue | 123456 step 27 | partly (one-line descriptions, no explanation after) |
-| Notebook | 123456 step 27 | no (mentioned, never shown) |
-| Endpoint detector | 42 step 7 | partly ("film change to detect") |
-| Handling particles / removal-rate drift | 42 step 16 | partly (one line) |
-| Edge-tuned chuck | 777 step 3 | partly ("better edge uniformity") |
-| Chemically amplified DUV resist | 777 step 3 | partly (tradeoff only) |
-| Dishing | 777 step 11 | partly (one line, unrelated to anything on screen) |
+| Yield | 123456 step 0 | yes (Words) |
+| Lot | 123456 step 0 | yes (Words) |
+| Inlaid Cu line | 123456 step 0 | no |
+| NMOS transistor | 123456 step 0 | no |
+| Cycle time | 123456 step 0 | yes (Words) |
+| PM | 123456 step 0 (map legend "PM PM / DOE") | yes (Words); legend is circular |
+| DOE | 123456 step 0 | yes (Words) |
+| SPC | 123456 step 0 | yes (Words) |
+| Q-time / QT | 123456 step 0 | yes (Words, and corridor text) |
+| Wet clean | 123456 step 0 | no (guessable) |
+| Deposition | 123456 step 0 | no |
+| Litho / litho bay | 123456 step 0 | no |
+| Etch | 123456 step 0 | no |
+| Plating | 123456 step 0 | no |
+| CMP | 123456 step 0 | yes (Words) |
+| Metrology | 123456 step 0 | yes (Words) |
+| Scrap line / Spec | 123456 step 3 | yes (Words) |
+| Particle adders | 123456 step 3 | no (guessable) |
+| Control limits | 123456 step 3 | yes (Words + chart key) |
+| DI water | 123456 step 3 | no |
+| Strip clean | 123456 step 3 | no |
+| Barrier | 123456 step 3 | no |
+| qtime oxide | 123456 step 3 | late (Q-time corridor, step 27) |
+| Drift | 123456 step 5 | yes (Words) |
+| Over-etch | 123456 step 7 | no (guessable) |
+| Underlayer attack | 123456 step 7 | no (guessable) |
+| Etch stop | 123456 step 7 | no |
+| Residue | 123456 step 7 | no (guessable) |
+| CD / Monitor CD | 123456 step 7 | yes (Words) |
+| Shift (SPC rule) | 123456 step 7 | late (etch room, step 19: "8 points in a row below the centre line") |
+| Seam rate on fill monitor | 123456 step 7 | no |
+| Removal rate | 123456 step 7 | no (guessable) |
+| Flakes | 123456 step 9 | late (card text) |
+| Endpoint detector | 123456 step 12 | no |
+| TSV | 123456 step 12 | no |
+| i-line positive resist | 123456 step 12 | no |
+| Edge ring | 123456 step 12 | late (seed 777 diagnosis) |
+| Depth variation | 123456 step 12 | late (etch room, step 19) |
+| Dose | 123456 step 13 | no |
+| Hot lot | 123456 step 16 | yes (event text) |
+| Slurry | 123456 step 32 | yes (Words, under CMP) |
+| Native oxide | 123456 step 27 | yes (corridor text) |
+| Seed (Cu seed layer) | 123456 step 28 | no |
+| Keyhole void | 123456 step 41 | late (after wrong answer, symptom only) |
+| Via | 123456 step 41 | no |
+| Cross-section | 123456 step 41 | no (never shown) |
+| Cost per good die / Die | 123456 step 41 | yes (Words) |
+| Excursion | 42 step 1 | yes (Words + chart text) |
+| Dishing | 42 step 36 | yes (Words under CMP; seed 777 CMP room) |
+| Chamber flaking | 42 step 36 | no |
+| Dummy fill | 42 step 37 | late (seed 777 CMP room) |
+| Pad oxide + SiN | 777 step 1 | no |
+| Diffusion | 777 step 0 | no |
+| Implant / S/D implant | 777 step 0 | no |
+| Gate oxide / gate oxidation | 777 step 35 | no |
+| Poly-Si | 777 step 36 | no |
+| Isolation trench | 777 step 14 | late (CMP room, step 27) |
+| Activation anneal | 777 step 52 | no |
+| Stringers | 777 step 56 | no |
+| Junction leakage | 777 step 56 | no |
+| Chuck (edge-tuned) | 777 step 57 | no |

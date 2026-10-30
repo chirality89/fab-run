@@ -11,36 +11,242 @@ Finished plans (M0 to M4.5 item 4) are in `docs/archive/todo-done.md`. The curre
 **David's answer: a quarter, not a third.** Applied: residue 0.021, underlayer attack 0.016, edge ring 0.016, depth variation 0.042 (the quarter version, tested the same way: no target fails at spec 70%); spec back to 70%. Result, `exit-check` seeds 1–100, all 7 targets PASS: starter idle 5% ship (mean 52.8), random 4% (54.7), casual 29% (65.0), smart 50% (68.5), smart beats idle by 15.7 points; full-deck smart 98% (81.6), 28.8 points over idle. 27 tests moved; every new value came from `etchmodel.py`-style independent python model that first reproduced every old value (idle 0.701678, forecast 11.8893, stop 7.7630 / 0.881240, over-etch on a stop 6.0471 / 0.898399, detector 0.854045, route-only 0.690471, drift 13.7950 / 2.0380 / 0.6158). New values: idle run 0.723578 (ships at 70%); etch forecast 9.2677, over-etch 9.3802, after etch 0.866193 / 0.865068; stop 6.0742 / 0.898128, stop + over-etch 4.7660 / 0.911209; detector 0.877082; route-only 0.754274 / 0.734732 / 0.698025 / 0.712021; health-60 etch 11.2329 / 2.0689 / 0.6252; DOE ratio 1.002403. One value (drift share 0.522179) sits between the exact 0.522180 and the engine's erf approximation 0.5221785.
 **Tests that moved (was "Tests that move"):** the idle-run and etch values in `lot`, `lotTypes`, `run`, `events`, `tools`, `doe`, `resolve`, `view`; the 68% view tests go back to 70. Every new value would be computed by the independent python model first and listed here for David before any test is edited.
 
-### Next stage plan (proposal, 29 Oct 2026) — waiting for David's OK
-**Goal:** a build David can hand to 2–3 real people, who can ship a lot and say why they lost one. M4.5 is mostly done; what is left decides whether a stranger understands the game. NMOS and modifiers (M5) wait until that gate passes.
+### Next stage plan (rev. 3, 29 Oct 2026): David OK'd ("go ahead")
+**Goal:** a build David can hand to 2–3 real people. They should be able to ship a lot and say why they lost one. NMOS is now on `main` but can't be played on screen yet. Modifiers and choosing a lot type wait for M5.
+
+**Already done (29 Oct 2026):**
+- The radial gas-flow trim is on `main` (PR #30).
+- PR #26 (NMOS) is merged. `main` was merged into it, keeping its `copperLine` trait and main's smaller Cu-line risks. Checks on the merged code:
+  - `npm test`: 282 pass.
+  - `npm run screens`: 78 pass.
+  - `exit-check`, seeds 1–40: all 7 targets pass. Smart beats idle by 15.8 points on the starter deck.
+
+**David's answers (29 Oct 2026):**
+- Keep the trim.
+- Reword `oesEndpoint`, and add a depth-variation failure mode.
+- The Words page comes first.
+- Defer the round wafer map to M6.
+- Merge NMOS (done).
+- Idea for later: a diffusion (furnace) step after the first wet clean.
 
 **Order (one item per session, each planned in this file first):**
-1. **Diagnosis you can read off the screen** (M4.5 issue 2, part 2; also a diagnosable failure mode for depth variation). The engine part is done (decoys only from causes that could have happened; "which step lost the lot"). Left: failure-mode signatures that name evidence the screen shows (keyhole void, dishing, underlayer attack cite line widths and cross-sections nothing displays), a right answer that unlocks something the player does not already own, and a short "what to do instead". `content-drafter` then `physics-reviewer`, then David. Test: for each failure mode, the evidence its signature names is on a screen.
-2. **Phone layout and run-ending buttons** (issues 8, 17) and **small fixes** (9, 10, 13, 14, 15, 16 as still open). Scrap and Replay away from the main button, PM buttons that differ, the main button above the fold on a phone. Screens only, no engine. Playwright at 375 px, looked at by eye.
-3. **Words page** (`glossary.js`, about 15 terms: lot, PM, DOE, CMP, CD, SPC, Q-time, yield, spec, scrap line...), opened like the Notebook. `content-drafter`, `physics-reviewer`, then David.
-4. **Physics-review wording fixes** David already decided (26 Oct): Q-time as moisture uptake, T-top only with a CAR resist, slurry "signed engineering deviation", audit "wet bench past its bath-change interval", gauge text. Data and text only, reviewed by `physics-reviewer`.
-5. **Gate (P5 of `tasks/plan-winnable.md`).** `playtester`, then the five `persona-*` agents on seeds 123456, 42, 777 (they write only `docs/playtest/`), then 2–3 real people play one run each while David watches without helping. Pass: the exit test in `tasks/next-stages.md` (at least one persona ships by a path they can explain; best and worst strategy differ by over 10 points; do-nothing fails; nobody guesses the diagnosis by elimination). Fail: back to balance with the per-room table (see the 29 Oct lesson).
-6. **Then M5** (modifiers, random lot type, NMOS).
+0. **Housekeeping (small).**
+   - PR #27 (setup tidy: hooks, agent models): bring it up to date with `main`, run the tests, and ask David before merging. It changes how sessions run.
+   - PR #21 (native-oxide label): check whether `main` already has it. If so, close it with a note. If not, merge it.
+1. **Words page** (`src/content/glossary.js`, data only, plus a page opened like the Notebook).
+   - About 15 terms: lot, wafer, site, yield, spec, scrap line, PM, SPC, drift, DOE, CD, CMP, Q-time, metrology, failure mode.
+   - Each term gets one plain sentence and one "in the game" sentence.
+   - Underlined game words in room text open the term. This is a small UI change. No engine change.
+   - `content-drafter` drafts the entries, `physics-reviewer` checks them, then David.
+   - Tests: every term has both sentences; the page opens and closes on a 375 px phone.
+2. **Diagnosis you can read off the screen** (M4.5 issue 2, part 2).
+   - Failure-mode signatures name only evidence the screen shows. Today keyhole void, dishing and underlayer attack cite line widths and cross-sections that nothing displays. Either reword them to the wafer map, SPC and metrology the game has, or add a simple cross-section card (I'll ask before any UI beyond text).
+   - **New failure mode for depth variation**, for example "etch-rate center-to-edge nonuniformity". Its signature is a center-to-edge ring pattern on the map plus the etch SPC. It unlocks the gas-flow trim's stronger relatives or the endpoint detector.
+   - **Reword `oesEndpoint`.** An endpoint signal stops the etch when the film clears. It fixes the mean depth from wafer to wafer and run to run, not the center-to-edge spread. Proposed: keep its number, re-aim it at the mean-depth part (residue and underlayer attack from over- or under-etch), and drop or shrink its depth_variation cut. Numbers are David's call. `physics-reviewer` checks it.
+   - A right diagnosis unlocks something the player doesn't already own, with a short "what to do instead".
+   - Test: the evidence each failure mode's signature names appears on a screen.
+3. **Phone layout and run-ending buttons** (issues 8, 17), plus the small fixes still open (9, 10, 13, 14, 15, 16).
+   - Move Scrap and Replay away from the main button.
+   - Make the PM buttons look different from each other.
+   - Keep the main button above the fold on a phone.
+   - Screens only. Playwright at 375 px, checked by eye.
+4. **Physics wording fixes** David decided on 26 Oct:
+   - Q-time as moisture uptake.
+   - T-top only with a CAR resist.
+   - Slurry "signed engineering deviation".
+   - Audit "wet bench past its bath-change interval".
+   - The gauge text.
 
-**From the physics review of the gas-flow trim (29 Oct 2026), for David:**
-- The trim's edge cost is real but always smaller than its depth gain (median +0.35 yield points, never loses), so it is an honest cash-for-yield purchase (200 of 1,500 cash), not a decision that can go wrong. Accepted as the cheap first-tier fix; a lot modifier that raises edge ring (M5) would let the cost bite.
-- `oesEndpoint` (depth variation ×0.7) may teach that an endpoint signal fixes the center-to-edge spread; an endpoint corrects the whole-wafer mean depth from run to run. Reword or re-aim at David's call (physics, so yours).
-- No failure mode has `pattern: 'depth_variation'`, so that loss cannot be diagnosed into the notebook (rule 6). Added to item 1, the diagnosis work.
+   Data and text only; `physics-reviewer` checks them.
+5. **Gate** (P5 of `tasks/plan-winnable.md`).
+   - Run `playtester`, then the five `persona-*` agents on seeds 123456, 42 and 777.
+   - Then 2–3 real people play one run each.
+   - Pass is the exit test in `tasks/next-stages.md`.
+6. **Then M5:**
+   - Modifiers.
+   - A random lot type.
+   - NMOS playable on screen: `main.js` hardcodes `cuLine` today.
+   - The NMOS questions still open in `tasks/todo-c.md`:
+     - Is channeling_tail right for an n+ arsenic implant?
+     - Should ceriaSlurry be sold on the Cu line?
+     - Should fm_dose_offset need a cause?
+     - Should the tilted-implant card be about a larger tilt?
 
-**Housekeeping (small, before item 1):**
-- Open PR #26 (NMOS, data only): it edits `lotTypes.js` and `content.js`, which this work also changed. Merge `main` into it locally, run `npm test` and `npm run screens`, then merge. (It is not needed for the gate; it could wait for M5.)
-- PR #27 (setup tidy: hooks, agent models) and PR #21 (native-oxide label, probably already on `main` through PR #20): check and merge or close.
+**Later (not planned yet):**
+- **A diffusion / furnace room** (David, 29 Oct). On the Cu line the route goes wet clean → oxide deposition. A thermal step after the first clean (oxidation, or a diffusion/anneal) would add a furnace room.
+  - It needs a room color, art, practices, failure modes (for example oxide thickness drift across the boat, or particles from the tube), and route changes. Every do-nothing yield test would move.
+  - NMOS already has gate oxidation and an anneal, which a furnace room could take over.
+  - Plan it with M5 or M6, not before the gate.
+- Round 21-site wafer map: M6.
+- Item art, the inspect view and card motion: after M5.
 
-**Left out on purpose:**
-- The round 21-site wafer map moves every yield test and is cosmetic: M6, or a view-only change. (Proposed 28 Oct; needs David's yes.)
-- Item art, inspect view, card motion: after M5.
+**David's answers, round 2 (29 Oct 2026):**
+- Go ahead.
+- Move the endpoint detector's effect to residue and underlayer attack (item 2).
+- The diffusion room goes in M5.
+- David wants an NMOS build soon. David is playtesting with friends now, and wants another bot test soon.
 
-**Decisions for David:**
-1. Is this order right, or should the Words page or the phone layout come first (for example if the first playtesters use phones)?
-2. OK to defer the round wafer map to M6?
-3. Merge PR #26 (NMOS) now, or leave it until M5?
-4. Who are the 2–3 real playtesters, and when?
+**Order, revised for these answers:**
+0. Housekeeping:
+   - PR #21: merged.
+   - PR #27: brought up to date with `main`. Its duplicate `tasks/done.md` is dropped, since `main` already has `docs/archive/todo-done.md`. `npm test` 282 pass. Waiting on David's OK to merge, because it turns on hooks and changes agent models.
+1. Words page (below).
+2. **NMOS you can play.** Choose the lot type when a new run starts (Cu line or NMOS), and accept `?lot=nmos` in the address.
+   - Check that every NMOS room has a starter practice or runs by itself (the `skip.test.js` rule).
+   - Run `exit-check` on NMOS.
+   - If NMOS can't be won, or is won by doing nothing, bring David options. No tuning without his OK.
+   - This item gets its own plan here first.
+3. **Bot test:** `playtester`, then the five personas, on both lot types (seeds 123456, 42, 777). They write only `docs/playtest/`. I compare the results with Lane F's earlier reports.
+4. Diagnosis you can read off the screen. This includes the depth-variation failure mode and the endpoint move.
+5. Phone layout and run-ending buttons.
+6. Physics wording fixes.
+7. M5: modifiers, a random lot type, the diffusion room, an **e-test module** (David, 30 Oct), and the open NMOS questions.
+   - E-test: electrical test of the finished lot (parametric test structures: threshold voltage, leakage, sheet and contact resistance). Today the last room on each route is metrology or "Electrical test" and runs by itself.
+   - A real e-test module would give the diagnosis its strongest evidence: each failure mode shows a parametric signature (for example gate oxide breakdown, junction leakage, or line resistance from a void). It would also make the last room a decision: which structures to measure for the minutes.
+   - Plan it with the diffusion room.
 
+### Task: Words page (item 1), 29 Oct 2026: DONE on the branch
+- [x] `src/content/glossary.js`: about 18 terms the screens use.
+  - Each term has a `plain` sentence (what it is in a fab) and an `inGame` sentence (where you meet it here), plus `draft: true`.
+  - Terms are not items, so they get no `tradeoff`.
+  - Listed A to Z.
+- [x] `src/ui/wordsPage.js`: the page, drawn like the Notebook, with Back returning to where the player was.
+  - A **Words** button sits next to the Notebook button on the floor plan and the ship report, and in the room header. The room redraws from the run state, so the cards already played stay played.
+- [x] Tests:
+  - Every term has both sentences, no brand names, and the list is in A–Z order.
+  - Screen: Words opens from the map, the room and the ship report; Back returns; the button is 44 px; phone 375 px.
+- [x] `physics-reviewer` checks the sentences. David reviews them (`draft: true` until then).
+- **Result:**
+  - 20 terms (the reviewer added Die and Excursion).
+  - The Words button is on the floor plan, every room, the room result and the ship report.
+  - `npm test` 285 pass; `npm run screens` 84 pass. Phone shots checked.
+  - Reviewer fixes applied: tool health is hidden and wears every visit; control limits mean an excursion; the map stacks all 25 wafers; spec also means the SPC spec lines.
+- **Answered (David, 30 Oct):** "call it fab yield": the Spec entry now says the yield bar's mark is the fab yield target. Reviewer's question was: real customers rarely put a lot-yield number in their spec. They specify parametrics and reliability, and yield is mostly the fab's cost. Is "the customer's requirement the lot must meet" acceptable shorthand?
+- **Left out for now:** tapping an underlined word in room text to open its term. The Words button gives the same help from every screen. Linking words inside card text needs the text split into pieces, which is a bigger UI change. Do it if playtesters still get stuck.
+
+### Task: NMOS you can play (item 2): built 30 Oct 2026
+**David's answers (30 Oct 2026):**
+- Cut risks (A).
+- Research a few starter card options (below).
+- The lot-type choice as planned.
+- The Spec word means fab yield.
+- Add an e-test module (M5).
+
+**Done:**
+- [x] **NMOS risks cut to 52%** of the drafted sizes, rounded to 3 decimals. 100 seeds:
+
+  | Scale | Result |
+  |---|---|
+  | 50% | Casual ships 37%: too easy |
+  | 55% | Smart ships 36%: too hard |
+  | **52%** | Idle 3%, random 3%, casual 31%, smart 53% (beats idle by 20.6 points), full-deck smart 96% (27.4 points). Every target passes. |
+
+  - The do-nothing test moved to 0.743044 / 0.706805 / 0.719851, computed first by hand. It was 0.565525 / 0.514917 / 0.533136.
+  - `exit-check --lot nmos` is new; every lot type is held to the same targets.
+- [x] **Lot type choice:**
+  - `?lot=nmos` in the address.
+  - At the door, "Run NMOS transistor instead" on the same seed.
+  - The ship report has "New Inlaid Cu line lot" (a new seed).
+  - The save holds the lot type (`SAVE_VERSION` 7).
+  - The map header shows the lot's name.
+  - The Q-time warning is the lot type's own (`qtimeNote`).
+  - The floor plan grows to 5 rows.
+- [x] Tests:
+  - `npm test` 288 pass, including the NMOS save round trip, `parseLotType` and the NMOS Q-time text.
+  - `npm run screens` 90 pass: the switch at the door, an NMOS reload, and a full NMOS walk to the ship report and back to the Cu line.
+- [ ] Diffusion and implant starter cards: options below, waiting for David.
+
+**The plan as approved:**
+**What I found (29 Oct 2026, nothing edited yet):**
+- **NMOS can't be won today.** Bot on 20 seeds with `lotTypeId: 'nmos'`:
+
+  | Deck | Policy | Shipped | Mean yield |
+  |---|---|---|---|
+  | Starter | idle | 0 | 39.8 |
+  | Starter | random | 0 | 44.0 |
+  | Starter | casual | 0 | 47.6 |
+  | Starter | smart | 0 | 49.8 |
+  | Full | smart | 0 | 57.5 |
+
+  Thirteen rooms lose about 60 points doing nothing; the nine Cu rooms lose about 47.
+- **Points lost per NMOS room** (idle, seeds 1–100):
+
+  | Step | Room | Points |
+  |---|---|---|
+  | 1 | Clean | 5.0 |
+  | 2 | Pad oxide + SiN | 4.0 |
+  | 3 | Litho active | 7.1 |
+  | 4 | Isolation etch | 9.4 |
+  | 5 | Fill + CMP | 9.6 |
+  | 6 | Pre-gate clean | 4.3 |
+  | 7 | Gate oxidation | 4.6 |
+  | 8 | Poly dep | 3.0 |
+  | 9 | Litho gate | 4.6 |
+  | 10 | Gate etch | 5.6 |
+  | 11 | Implant | 0.2 |
+  | 12 | Anneal | 2.7 |
+  | 13 | Test | 0.0 |
+
+  Each room has about 1 point of handling particles plus tool drift. NMOS's own risks were never put through the ×0.7 pass the Cu line had.
+- **Diffusion and implant have no starter practices** (`spikeAnneal`, `tiltedImplant` and `screenOxideImplant` are all unlocked by the notebook). Those three rooms would run by themselves.
+- **The screen assumes the Cu line:**
+  - `main.js` has `LOT_TYPE_ID = 'cuLine'`.
+  - The map header says "Inlaid Cu line".
+  - The floor-plan grid has room for 3 rows of bays (9 rooms); NMOS needs 5.
+  - The save doesn't store the lot type.
+
+**Steps:**
+1. **Balance first (David chooses).** Options, each tested on 100 seeds against the same exit-check targets:
+   - **A. Scale NMOS's own risks**, as the Cu line had. Same 70% spec. Fab realism is unchanged; only the sizes move.
+   - **B. A spec for each lot type** (for example 55% for NMOS). A different product can have a different customer spec. Risks stay as drafted.
+   - **C. A mix:** a smaller cut plus a slightly lower spec.
+
+   I'd go with **A**: one spec is easier to learn, and the per-room table points at the CMP and isolation-etch losses. The numbers come to David before any change, and every test value that moves is computed first.
+2. **Choosing the lot type.**
+   - `?lot=nmos` in the address.
+   - On the first floor plan, before Go, a "Lot type" choice (Cu line / NMOS).
+   - On the ship report, "New seed" keeps the lot type, and a second button switches it.
+   - The save stores `lotTypeId` (`SAVE_VERSION` 7).
+   - The map header shows the lot type's own name.
+3. **Floor plan for 13 rooms.** The grid grows to as many rows as the route needs. Checked at 375 px and 1280 px.
+4. **A starter practice in diffusion or implant?** The rule from M4.5 is that every room has a starter practice or runs by itself. If David wants a decision there, `content-drafter` drafts one (for example a slower furnace ramp, or a screen oxide that costs time). Otherwise they join `ROOMS_THAT_RUN_THEMSELVES` for NMOS.
+5. **Tests and bots.**
+   - `exit-check --lot nmos` gets the same targets.
+   - `skip.test.js` runs for each lot type.
+   - The screen tests walk an NMOS lot to its ship report.
+   - Persona bot test right after (item 3).
+6. `physics-reviewer` on any content change, then close as usual.
+
+**Questions for David:**
+1. Balance: A, B or C?
+2. Diffusion and implant: add one starter practice each, or let them run by themselves?
+3. Should the default lot stay the Cu line, with NMOS chosen on the first screen?
+
+### Starter card options for the diffusion and implant rooms (research for David, 30 Oct 2026)
+**What makes a card a decision here.** The diffusion and implant rooms have no tool monitor (`toolMonitors.js`), so no SPC chart and no drift. Their risks are the same size on every NMOS lot. A starter card there would then be worth the same on every lot: the bot either always plays it or never does. That's the 29 Oct lesson, "a card that costs only minutes is always played". A card becomes a decision when what it's worth changes from lot to lot, and the screen shows the change. Two data-only ways to get there:
+- **Give each room a monitored tool** (data in `toolMonitors.js`, no engine change). Each gets an SPC chart and drift, like the Cu rooms.
+  - Diffusion: a monitor oxide thickness from the furnace's temperature control, feeding `gate_oxide`.
+  - Implant: a sheet-resistance monitor that tracks beam-angle drift, feeding `channeling_tail`. A tilted beam lines up with crystal channels.
+  - A card that counters the drift but costs something else is then worth playing only when the chart says so.
+  - This also adds drift loss to NMOS, so balance gets measured again.
+- **Tie a card to something the player chose.** For example, a card that only pays off if the lot waited in the Q-time corridor before gate oxidation.
+
+**Options (numbers are first guesses; nothing added yet):**
+
+| # | Room | Card | Effect | Cost (the tradeoff) | When it's worth it |
+|---|---|---|---|---|---|
+| D1 | Diffusion (gate oxidation) | Chlorinated dry oxidation | gate_oxide ×0.7 | particles ×1.2 | When the furnace chart drifts (needs the monitor). Chlorine ties up mobile ions such as sodium in the oxide, but corrodes the tube and boat, which sheds particles. |
+| D2 | Diffusion (gate oxidation) | Low-temperature load, nitrogen push | qtime_oxide ×0.5 | cash 30 (tube time) | Only after a long wait in the Q-time corridor. Loading cool in nitrogen stops uncontrolled native oxide growing during the push. |
+| D3 | Diffusion (anneal) | Lower-temperature, longer anneal | junction_spread ×0.6 | implant_damage ×1.4 | A straight swap between the two anneal failure modes. It's a real choice only if one of them varies from lot to lot (an implant monitor, or M5 modifiers). |
+| I1 | Implant | Pre-amorphizing implant | channeling_tail ×0.4 | implant_damage ×1.4 | When the beam-angle chart drifts (needs the monitor). An amorphous layer has no channels, but the extra implant leaves end-of-range defects the anneal must repair. |
+| I2 | Implant | Chilled platen | implant_damage ×0.75 | cash 40 | A warm wafer anneals some damage during the implant but also spreads the dopant. Cooling keeps the damage simple to repair. It always helps a little, so it's routine unless damage varies. |
+
+**My recommendation:**
+- Add the two tool monitors.
+- Starter cards **D1** (chlorinated oxidation) and **I1** (pre-amorphizing implant). Each counters its room's drift at a real cost, so the SPC chart decides when to play it, as on the Cu line.
+- D2 is a good second card, since it rewards reading the Q-time warning. It can come later.
+- Then measure NMOS again.
+- `physics-reviewer` checks the wording before anything is added.
 
 ### Task: M4.5 "A real decision in every room" (issue 3), plan approved 28 Oct 2026
 Most of it was already built on `claude/winnable-p0-p1` (P1 bots, P2 starter practices and skipped rooms); this session brings that in and closes the gaps.

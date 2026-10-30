@@ -16,6 +16,8 @@
 //                 (view.js carriedInText).
 //   • traits      facts about this lot that cards check with when: { lot }
 //                 (content.js). Only static traits belong here.
+// A step marked `qtime` opens a Q-time window in the corridor after it; its
+// `qtimeNote` says in words what grows while the lot waits (the map shows it).
 //
 // Order inside a step (run.js follows it): add the step's risks, apply the
 // step's own effects, then apply equipment and material effects, then the cards played; on resolving,
@@ -34,6 +36,9 @@
 // reach the 70% spec. Measured with tools/exit-check.js, see tasks/todo.md.
 // Etch's own risks and the depth variation carried in were cut by about a quarter
 // on 29 Oct 2026 (David, after a playtest: etch was ending most first runs).
+
+// The lot a new run starts with unless the player picks another.
+export const DEFAULT_LOT_TYPE = 'cuLine';
 
 export const LOT_TYPES = {
   cuLine: {
@@ -77,7 +82,7 @@ export const LOT_TYPES = {
       { room: 'clean', label: 'Resist strip + wet clean',
         adds: { particles: 0.007, qtime_oxide: 0.028 },
         realizes: ['particles'],
-        qtime: 'qtime_oxide' },
+        qtime: 'qtime_oxide', qtimeNote: 'native oxide keeps growing until the barrier goes on.' },
       // Void risk enters here: the seed's coverage down the trench sets how
       // hard the fill will be (ionizedSeed scales it), and plating realizes it.
       { room: 'dep', label: 'Deposition (barrier + seed)',
@@ -123,9 +128,14 @@ export const LOT_TYPES = {
     id: 'nmos', draft: true, name: 'NMOS transistor',
     traits: ['siliconFrontEnd', 'thinGateOxide'],
 
+    // Every risk below was cut to 52% on 30 Oct 2026 (David: "cut risks"). The
+    // drafted sizes are in git history. Thirteen rooms wear twelve tools, so
+    // tool drift alone costs NMOS about 32 points, against about 20 on the
+    // Cu line, and 52% puts the bots in the same exit-check bands (50% let casual
+    // play ship 37%, 55% held smart play to 36%).
     // Latent from the start: dishing in wide isolation trenches is set by the
     // layout. Dummy active fill (litho) scales it before CMP, where it bites.
-    startRisks: { dishing: 0.06 },
+    startRisks: { dishing: 0.031 },
     startRiskNotes: {
       dishing: 'The layout set how big this is: oxide in wide isolation trenches dishes in any polish. Dummy fill at the active litho or a gentler polish here reduces it.',
     },
@@ -134,53 +144,53 @@ export const LOT_TYPES = {
     // them at once (the test step adds none).
     route: [
       { room: 'clean', label: 'Wet clean',
-        adds: { particles: 0.01 },
+        adds: { particles: 0.005 },
         realizes: ['particles'] },
       { room: 'dep', label: 'Pad oxide + SiN',
-        adds: { particles: 0.01 },
+        adds: { particles: 0.005 },
         realizes: ['particles', 'flakes'] },
       { room: 'litho', label: 'Litho (active)',
-        adds: { particles: 0.01, cd_error: 0.03 },
+        adds: { particles: 0.005, cd_error: 0.016 },
         realizes: ['particles', 'cd_error'] },
       // The isolation trench is etched into silicon on purpose, so there is
       // no film below to attack: residue and the edge ring are what is left.
       { room: 'etch', label: 'Etch (isolation trench)',
-        adds: { particles: 0.01, residue: 0.04, edge_ring: 0.03 },
+        adds: { particles: 0.005, residue: 0.021, edge_ring: 0.016 },
         realizes: ['particles', 'residue', 'edge_ring'] },
       { room: 'cmp', label: 'Oxide fill + CMP (stop on SiN)',
-        adds: { particles: 0.01, rr_drift: 0.04 },
+        adds: { particles: 0.005, rr_drift: 0.021 },
         realizes: ['particles', 'dishing', 'rr_drift'] },
       // The clean leaves the risk the gate oxide grows on: contamination and
       // roughness (gate_oxide) and, while the lot waits, native oxide. Both
       // bite at gate oxidation. `qtime` marks the corridor after this step
       // as a Q-time window, as on the Cu line.
       { room: 'clean', label: 'SiN strip + pre-gate clean',
-        adds: { particles: 0.01, gate_oxide: 0.04, qtime_oxide: 0.03 },
+        adds: { particles: 0.005, gate_oxide: 0.021, qtime_oxide: 0.016 },
         realizes: ['particles'],
-        qtime: 'qtime_oxide' },
+        qtime: 'qtime_oxide', qtimeNote: 'native oxide keeps growing on the bare silicon until the gate oxide is grown.' },
       { room: 'diff', label: 'Gate oxidation',
-        adds: { particles: 0.01 },
+        adds: { particles: 0.005 },
         realizes: ['particles', 'gate_oxide', 'qtime_oxide'] },
       { room: 'dep', label: 'Poly-Si deposition',
-        adds: { particles: 0.01 },
+        adds: { particles: 0.005 },
         realizes: ['particles', 'flakes'] },
       { room: 'litho', label: 'Litho (gate)',
-        adds: { particles: 0.01, cd_error: 0.03 },
+        adds: { particles: 0.005, cd_error: 0.016 },
         realizes: ['particles', 'cd_error'] },
       // The poly etch must stop on the thin gate oxide: punch-through
       // (underlayer_attack) kills the transistor.
       { room: 'etch', label: 'Gate etch (stop on gate oxide)',
-        adds: { particles: 0.01, residue: 0.04, underlayer_attack: 0.03, edge_ring: 0.03 },
+        adds: { particles: 0.005, residue: 0.021, underlayer_attack: 0.016, edge_ring: 0.016 },
         realizes: ['particles', 'residue', 'underlayer_attack', 'edge_ring'] },
       // Channeling and crystal damage are set here and bite after the
       // anneal, which repairs damage and activates the dopant.
       { room: 'implant', label: 'S/D implant',
-        adds: { particles: 0.01, channeling_tail: 0.04, implant_damage: 0.04 },
+        adds: { particles: 0.005, channeling_tail: 0.021, implant_damage: 0.021 },
         realizes: ['particles'] },
       // Diffusion happens in the anneal itself, so junction spread enters
       // here (spike anneal scales it).
       { room: 'diff', label: 'Activation anneal',
-        adds: { particles: 0.01, junction_spread: 0.03 },
+        adds: { particles: 0.005, junction_spread: 0.016 },
         realizes: ['particles', 'channeling_tail', 'implant_damage', 'junction_spread'] },
       // Electrical test, then ship against the customer spec. Nothing added here.
       { room: 'metro', label: 'Electrical test',

@@ -395,3 +395,8 @@ The expected names were written from the items' ids, not read from `content.js`.
 - **What happened:** a playtest said etch "ends most runs". Measured on 100 seeds, etch lost 13.5 of about 48 points when idle, and the smart bot with the starter deck still lost 11.7 there. Every etch remedy (etch stop, endpoint detector, e-chuck) was locked behind the notebook, so a first run had only the over-etch card and a PM. The exit-check passed because it only measures totals.
 - **Root cause:** balance was judged on total yield, not per room, and not on how much of each room's loss a new player could recover.
 - **Rule:** when balancing the first run, tabulate points lost per room and what the starter deck can recover in each (idle vs smart). A room that loses much more than its neighbours and offers no starter lever is a wall; fix it with base risks (balance), not by bending physics.
+
+## 29 Oct 2026 — A new header button crashed the room result screen
+- **What happened:** the Words button went into `drawHeader`, the room's top bar. The room screen got its `words` action, but the result screen after Run uses the same `drawHeader` and didn't. Every Run showed "Something went wrong". I committed after the unit tests passed, while the screen tests were still running, and only the etch screen tests caught it.
+- **Root cause:** I changed a shared drawing function's inputs and updated the callers I was thinking of, not every caller. Unit tests don't draw screens.
+- **Rule:** when a drawing function gets a new input, grep every caller (`grep -n "drawHeader(" src/ui/*.js`) and pass it everywhere. Don't commit a UI change until `npm run screens` has finished green. A screen test should open each new button from every screen that shows it.

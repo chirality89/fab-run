@@ -6,7 +6,7 @@
 // returns.
 
 import { EQUIPMENT, MATERIALS, ROOMS, PATTERNS } from '../content/content.js';
-import { LOT_TYPES } from '../content/lotTypes.js';
+import { LOT_TYPES, DEFAULT_LOT_TYPE } from '../content/lotTypes.js';
 import { SIDE_STOPS } from '../content/sideStops.js';
 import {
   SCRAP_LINE, CUSTOMER_SPEC, SITE_GOOD_LINE, SIDE_STOP_MINUTES, QTIME_RISK_PER_MINUTE,
@@ -245,6 +245,13 @@ export function badSeedText(search, seed) {
 }
 const MAX_SEED_TEXT = String(2 ** 32 - 1);   // the largest seed rng.js accepts
 
+// The lot type in the page address (?lot=nmos), or the default when there
+// is none or it names no lot type the game has.
+export function parseLotType(search) {
+  const id = new URLSearchParams(search).get('lot');
+  return id !== null && Object.hasOwn(LOT_TYPES, id) ? id : DEFAULT_LOT_TYPE;
+}
+
 // What happens to the lot after a room, in words.
 function outcomeText(after, route) {
   if (after.status === 'scrapped') {
@@ -384,6 +391,7 @@ export function mapView(state) {
 
   return {
     seed: state.seed,
+    lotName: LOT_TYPES[state.lotTypeId].name,
     cash: state.cash,
     cycleTime: state.cycleTime,
     yieldFraction,
@@ -410,7 +418,7 @@ export function mapView(state) {
     stopKeyText: stopKeyText(),
     offers: here ? here.offers.map(kind => offerView(kind, qtimePattern)) : [],
     qtimeText: qtimePattern
-      ? 'Q-time window: native oxide keeps growing until the barrier goes on. Every minute the lot waits at a side stop here adds oxide risk.'
+      ? `Q-time window: ${route[here.afterStep].qtimeNote} Every minute the lot waits at a side stop here adds oxide risk.`
       : null,
     whereText: position === 'start'
       ? 'The lot is at the door, ready for step 1.'

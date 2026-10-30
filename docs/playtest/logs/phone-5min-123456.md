@@ -1,129 +1,148 @@
 # Phone player with 5 minutes — seed 123456
 
 ### Step 1 — Floor plan (first screen)
-Screenshot: docs/playtest/shots/phone-5min/123456-00-s123456-01-first.png
-I see: Big blue header "FLOOR PLAN", "Inlaid Cu line · yield 100.0%", seed, cash 1500, cycle time 0. A card saying "The lot is at the door, ready for step 1" with one big button "Enter step 1: Wet clean". Below, a grid of 9 coloured rooms with little tags MET / EVT / PM / BUY / QT between them, and a legend in tiny grey text.
-I think: (10 s) Some factory board game? "Inlaid Cu line" means nothing to me. Yield 100% is probably my health. One button, good, I know what to tap. The little tags between rooms are noise for now; legend is tiny grey text I won't read. Red "SPC" on Etch looks like a warning but I don't know what of.
-I try: The big blue button. Tap count 1.
+Screenshot: docs/playtest/shots/phone-5min/123456-00-s1-01-first.png
+I see: Blue header "FLOOR PLAN", "Inlaid Cu line · yield 100.0%", seed, Cash 1500, Cycle time 0 min, Notebook and Words buttons. A card "START — The lot is at the door" with a big blue "Enter step 1: Wet clean". Below, a lot type switch "Run NMOS transistor instead". Then a grid of 9 coloured boxes (Wet clean, Deposition, Litho bay...) with tiny PM/BUY/EVT/QT/SPC tags between them.
+I think: (10 s) Some factory thing. Yield 100% looks like my health. The tiny PM/BUY/EVT tags mean nothing to me. Two of the boxes already have red "SPC" badges, which feels like something is already wrong before I start? The big blue button is obvious, though.
+I try: The big blue button, "Enter step 1: Wet clean".
 Mood: curious
 
-### Step 2 — Wet clean room (top of screen)
-Screenshot: docs/playtest/shots/phone-5min/123456-01-s123456-02-room1.png
-I see: Cyan header "WET CLEAN, Step 1 of 9". Line yield 100% bar with Scrap 40% and Spec 70% marks. "This room will cost about 1.0 points of yield if nothing changes." A 5x5 grid of "100" tiles. No button anywhere on screen.
-I think: (about 0:20 in) OK, yield is health, 40% I die, 70% I need to pass. Grid of 100s is pretty but tells me nothing yet. Where's the button? Nothing to tap on this screen. The page is twice the height of my phone and there's no hint there is more.
-I try: Scroll down with my thumb looking for something to press.
-Mood: confused
+### Step 2 — Wet clean room (top)
+Screenshot: docs/playtest/shots/phone-5min/123456-01-s1-02-room.png
+I see: Cyan header WET CLEAN, step 1 of 9. A big "100.0%" yield with a green bar and Scrap 40% / Spec 70% marks. "This room will cost about 0.8 points of yield if nothing changes." Then a 5x5 grid of "100" boxes. No buttons at all on the first screen.
+I think: (about 0:20) OK, yield is my health, I lose some per room. Bar with scrap/spec makes sense. But where do I DO anything? The whole first screen is just numbers. I have to scroll to find out.
+I try: Scroll down.
+Mood: curious
 
-### Step 3 — Wet clean room (bottom)
-Screenshot: docs/playtest/shots/phone-5min/123456-01-s123456-03-room1-bottom.png
-I see: Time budget 10 of 10 min, Slots "empty", a control chart with red and dashed lines plus a paragraph key, "In control" in green. Hand: "No practices left in your hand." Button "Run wet clean".
-I think: (about 0:40 in) "No practices left in your hand" — left? I never had any. So the first room is just a button at the bottom of a long page. Chart is fine I guess, green = good. I skipped the key paragraph.
-I try: "Run wet clean". Tap count 2 (plus a scroll).
-Mood: confused
+### Step 3 — Wet clean room (bottom: SPC chart + hand)
+Screenshot: docs/playtest/shots/phone-5min/123456-01-s1-03-hand.png
+I see: After about two screens of scrolling: an empty "Slots", a line chart "Particle adders" with a paragraph key, and a HAND with one card "Extra DI-water rinse 3 min · 10 cash" plus a five-line description, then "Run wet clean".
+I think: (0:35) The chart key is a paragraph, skipped. One card. "About 0.2 points less lost in this room" — that's the only line I actually read. It's cheap, take it. I don't understand "qtime oxide" at all.
+I try: Tap the card.
+Mood: curious
 
 ### Step 4 — Wet clean result
-Screenshot: docs/playtest/shots/phone-5min/123456-02-s123456-04-after1.png
-I see: "100.0% → 99.1%", "This room cost 0.9 points of yield". Result: moves on to Deposition (SiN + oxide). Big "Continue to the corridor", and right under it "Replay this seed" and "New seed". Map tiles now 98/99.
-I think: (about 0:50 in) So I pressed a button and lost 0.9%. I made zero choices. "Replay this seed" and "New seed" sit right under my thumb next to Continue — if I fat-finger those does it nuke my run? Scary placement.
-I try: "Continue to the corridor". Tap count 3.
-Mood: bored
+Screenshot: docs/playtest/shots/phone-5min/123456-03-s1-04-after.png
+I see: Card gone, time 7 of 10. I tapped "Run wet clean" and the page jumped back to the top: "100.0% → 99.5%", "This room cost 0.5 points". A RESULT box: "Continue to the corridor", plus "Replay this seed" and "New seed" right under it.
+I think: (0:50) Fine, I lost half a point, the card saved me a bit. That's my first "I understand" moment, 3 taps in (enter, card, run). But "Replay this seed" and "New seed" sitting right under Continue after room ONE? One sloppy thumb and my run is gone. Also the card had nothing to decide: one card, play it, done.
+I try: Continue to the corridor.
+Mood: curious
 
 ### Step 5 — Corridor
-Screenshot: docs/playtest/shots/phone-5min/123456-03-s123456-05-corridor.png
-I see: Floor plan header again, cycle time 10 min. "Corridor": take one side stop — Metrology +20 min "reveals hidden values (coming in a later update)", Event +10 min "A choice with a tradeoff". Or the big blue "Go straight to step 2". Then "Scrap the lot" as a full button just below it.
-I think: (about 1:05 in) Finally a choice. Metrology literally says "coming in a later update" — so it's a dead option, why show it? Event sounds like the fun one. "Scrap the lot" sitting one thumb-width under the main button is a landmine — is there a confirm? I'm not testing it.
-I try: Event, because "a choice" is the first promise of a decision.
+Screenshot: docs/playtest/shots/phone-5min/123456-04-s1-05-corridor.png
+I see: Back on the floor plan. "CORRIDOR": take one side stop — "PM / DOE +40 min" or "Event +10 min, a choice with a tradeoff" — or "Go straight to step 2". "Scrap the lot" is right below the main button, outlined, same width-ish.
+I think: (1:05) This is the map node part, like that card game. "PM / DOE" is gibberish to me. "Event" sounds like a fun random thing. Minutes cost... of what? Cycle time is 10 min up top, I don't know if that matters. "Scrap the lot" right under the big button scares me.
+I try: Event, because it's the only one I understand.
 Mood: curious
 
 ### Step 6 — Event: Quality audit
-Screenshot: docs/playtest/shots/phone-5min/123456-04-s123456-06-event.png
-I see: "Quality audit". Auditor wants to walk the line. Option A: +30 min cycle time, Wet clean tool serviced. Option B: −100 cash. Each has a "Choose this". And a third big button "Continue to step 2" at the bottom.
-I think: (about 1:20 in) Fits on one screen, nice. But I can't weigh it: I don't know what cycle time costs me or what cash buys. The wet clean tool wasn't flagged (the red SPC was on Etch), so "serviced" seems worthless. And can I just hit Continue and dodge both? Then why choose? I'll pick the one that doesn't cost money.
-I try: "Choose this" on Walk them through now.
-Mood: confused
-
-### Step 7 — Event result
-Screenshot: docs/playtest/shots/phone-5min/123456-05-s123456-07-event-after.png
-I see: Option A marked "Chosen". One line of result: lot held 30 min, wet bench serviced. Continue button.
-I think: Oh — there's another Wet clean at step 5 on the map, so maybe that helps later. Fine. Didn't see anything change on screen though; no number moved.
-I try: Continue. Tap count 6.
+Screenshot: docs/playtest/shots/phone-5min/123456-05-s1-06-event.png, docs/playtest/shots/phone-5min/123456-06-s1-07-event-done.png
+I see: "QUALITY AUDIT". Two options in boxes: "Walk them through now: +30 min cycle time · Wet clean tool serviced" and "Ask them to come back later: −100 cash". Each has a "Choose this" button. A third big blue "Continue to step 2" button is already live at the bottom, same blue as the choose buttons.
+I think: (1:20) Short, readable, nice. But: I have no idea what cycle time costs me, so "+30 min" feels free and "−100 cash" feels like a cost. Not a real choice for me. Also confusing that Continue is already active — can I skip it? Three identical blue buttons.
+I try: "Walk them through now". It says "Chosen" and a line of result text appears. Then Continue.
 Mood: curious
 
-### Step 8 — Deposition room
-Screenshot: docs/playtest/shots/phone-5min/123456-06-s123456-08-depo.png
-I see: Exactly the same layout as wet clean. Same "No practices left in your hand". Only button "Run deposition" hidden below the fold again.
-I think: (about 1:45 in) Second room, second time I scroll a whole page to press the only button. Is this the whole game? Where are these "practices"?
-I try: Scroll, "Run deposition". 99.1 → 98.2. Continue to corridor.
+### Step 7 — Deposition room
+Screenshot: docs/playtest/shots/phone-5min/123456-07-s1-08-dep.png
+I see: Same layout as wet clean: yield, 5x5 map, time 15 min, empty slots, a chart, then one card "Pump-purge cycles" (5 min, 20 cash) with a long text ending "With a healthy chamber it buys almost nothing." No "points less lost" line this time.
+I think: (1:35) Same scroll-past-everything routine again. The card literally tells me it's useless, so why is it my whole hand? Skipped it.
+I try: Scroll, "Run deposition". 99.5% → 98.8%.
 Mood: bored
 
-### Step 9 — Corridor 2
-Screenshot: none (same kind as step 5)
-I see: Side stops: PM / DOE +40 min, Procurement +10 min "spend cash on equipment and materials", Event +10 min. Go straight to Litho. Scrap the lot.
-I think: (about 2:00 in) I have 1500 cash and nothing to spend it on yet. Shopping sounds like it might give me cards. Litho is next, the yellow one.
+### Step 8 — Corridor 2
+Screenshot: none
+I see: Corridor again, now with a third side stop "Procurement +10 min Spend cash on equipment and materials".
+I think: (1:50) A shop. I have 1490 cash and nothing to spend it on yet. Let's look.
 I try: Procurement.
 Mood: curious
 
-### Step 10 — Procurement (shop)
-Screenshot: docs/playtest/shots/phone-5min/123456-09-s123456-09-shop.png
-I see: Three items: In-situ pad conditioner 350 (CMP), Chemically amplified DUV resist 140 (litho), Thick resist for deep etch 90 (litho). Each with a one-line tradeoff and "Next used at step N".
-I think: (about 2:20 in) This is the first screen that feels like a game — a shop. Names are jargon soup but the one-liners are readable. "Next used at step 3" is genuinely helpful. I have no idea if 1500 is a lot. Buying.
-I try: Pad conditioner (350) and DUV resist (140), "stable" and "fine lines" sound good. Cash 1010. Continue to Litho.
-Mood: hooked
-
-### Step 11 — Litho bay
-Screenshot: docs/playtest/shots/phone-5min/123456-12-s123456-10-litho.png ; docs/playtest/shots/phone-5min/123456-12-s123456-11-litho-hand.png
-I see: Yellow header. "This room will cost about 4.5 points of yield." Slots show my DUV resist. Time 30 of 30 min. Hand: one card, "Strip and re-expose — 30 min · 150 cash", greyed, red text "Can't play: Its condition is not met". Run litho bay button at the bottom.
-I think: (about 2:45 in) My first card ever and I can't play it, and it won't tell me WHICH condition. Huh — the wafer map went from 98 to 97 on a bunch of sites before I did anything here; I didn't see what did that. 4.5 points is a big bite and I have no way to reduce it. So the room is still "press the one button".
-I try: Run litho bay.
-Mood: annoyed
-
-### Step 12 — Litho result, then I reload
-Screenshot: docs/playtest/shots/phone-5min/123456-13-s123456-12-reload.png
-I see: 98.2% → 93.5%, cost 4.6 points. Then I reloaded the page (pretend my train hit a tunnel / I switched apps). Back to "FLOOR PLAN · yield 100% · Cash 1500 · ready for step 1".
-I think: (about 3:00 in) It forgot EVERYTHING. Three minutes gone. On a phone where tabs get killed all the time, this is the moment I'd normally close it for good. Being a good sport I'll redo it — the seed is in the address bar so at least it's the same run.
-I try: Re-tapping the same 13 taps as fast as I can. Same numbers come out (93.5%, cash 1010) — at least it's consistent.
-Mood: about to quit
-
-### Step 13 — Corridor 3 (after litho)
-Screenshot: none
-I see: Metrology (still "coming in a later update"), Procurement, Event, go straight to Etch, Scrap. Cycle time 105 min. Etch on the map has a red "SPC" tag.
-I think: (about 3:40 in, counting the redo) Etch is flagged red. Last time an event serviced a tool, maybe I get lucky. No PM stop here, which is what I'd want.
-I try: Event.
-Mood: bored
-
-### Step 14 — Event: hot lot
-Screenshot: none
-I see: Customer wants the lot early. "Run it hot": −30 min cycle time, +150 cash, +0.02 risk of random dots. Or "Keep its place in line": nothing changes.
-I think: Free money for a 0.02 risk? Sure. I still don't know what cycle time does to me.
-I try: Run it hot. Cash 1160. Continue to Etch.
-Mood: curious
-
-### Step 15 — Etch room
-Screenshot: docs/playtest/shots/phone-5min/123456-30-s123456-14-etch.png ; docs/playtest/shots/phone-5min/123456-30-s123456-15-etch-hand.png
-I see: "This room will cost about 25.1 points of yield if nothing changes." Time 8 of 8 min. SPC chart in red: "Out of control: the etch rate may be shifting… 8 points in a row below the centre line." Hand: one card, "Timed over-etch (+20%) 4 min — clears residue but attacks the film below, unless an etch stop is there."
-I think: (about 4:10 in) TWENTY-FIVE points?! Every other room was 1 or 4. So that red "SPC" tag on the map was a bomb, and I walked past the one PM stop because I didn't know. Only now, inside the room, do I see the price. One card, I'll play it, whatever "etch stop" means.
-I try: Tap the card.
-Mood: annoyed
-
-### Step 16 — Etch, card played
-Screenshot: docs/playtest/shots/phone-5min/123456-31-s123456-16-etch-played.png
-I see: Card gone, "4 of 8 min left", "No practices left in your hand". I'm scrolled to the bottom; nothing near my thumb says what the card did.
-I think: Did that help? The yield forecast is at the top of the page, way off screen. (It did drop to 21.7 when I scrolled up — but I had to go hunting.) 4 minutes left and nothing to spend them on.
-I try: Run etch.
+### Step 9 — Procurement (shop)
+Screenshot: docs/playtest/shots/phone-5min/123456-10-s1-09-shop.png
+I see: Three items, each a paragraph: "Radial gas-flow trim 200 (Etch)", "Inline metrology 500", "Thick resist for deep etch 90". Effects written as "depth variation ×0.75 · edge ring ×1.25", "cd error ×1.3".
+I think: (2:05) Wall of text number two. I can't tell if any of these is good for me. The shop doesn't tell me "about X points" like the cards do. The etch one at least helps the room with a red SPC badge, I think. It says it makes the edge worse though. Shrug.
+I try: Buy the gas-flow trim for 200, mostly because I have cash and nothing else to do with it.
 Mood: confused
 
-### Step 17 — Etch result
-Screenshot: docs/playtest/shots/phone-5min/123456-32-s123456-17-etch-result.png
-I see: 93.5% → 71.8%. Wafer map goes red/beige with hatched red fails in the top-left and dotted warnings everywhere.
-I think: (about 4:30 in) That's my run dead — spec is 70%, I'm at 71.8 with five rooms left. Wafer map finally looks interesting and scary, but the damage happened from one room I couldn't do anything about once I was in it. Feels like a gotcha.
-I try: Continue, to see if it really ends badly.
-Mood: about to quit
+### Step 10 — Litho bay
+Screenshot: docs/playtest/shots/phone-5min/123456-12-s1-10-litho.png, docs/playtest/shots/phone-5min/123456-12-s1-11-litho-hand.png
+I see: Yellow LITHO BAY. "This room will cost about 2.9 points". Page is now almost three screens tall. Down at the chart, red text: "Shift: the monitor cd chart has moved off centre. A shifted tool costs yield in this room until it is PM'd or serviced." Hand: "Strip and re-expose" greyed with red "Can't play: Needs a litho step just before this one. No step on this route does that." and "Trim dose from the SPC trend" (5 min, 30 cash, about 0.4 points less).
+I think: (2:30) Oh. So the "PM" thing in the corridor was how I fix this — and I learn that only after I'm already in the room. Annoying. And why is a card I can NEVER play on this route in my hand at all? It's a dead card that took reading time. 35 minutes of budget and I only have one 5-minute card to spend it on, so the time budget is pointless here.
+I try: Trim dose, Run litho bay. 98.8% → 96.3%. Biggest hit so far.
+Mood: annoyed
 
-### Step 18 — Corridor 4 — I quit here
+### Step 11 — Corridor 3
 Screenshot: none
-I see: Metrology (still "coming in a later update"), PM / DOE +40 min, Procurement, go straight to step 5, Scrap the lot. Yield 71.8%, spec 70%, five rooms left.
-I think: (about 4:45 in, my five minutes are basically up) NOW it offers me PM, after the tool already ate my lot. I'm a hair above spec with five rooms left that each cost at least ~1 point; the math says I'm failing spec and there's nothing I can do. I'm not spending another three minutes watching it die. Plus if my phone reloads the tab I lose it all anyway.
-I try: Close the tab. Run stopped by me, not shipped or scrapped.
+I see: Same three side stops.
+I think: (2:45) Lesson learned: Etch has a red SPC badge on the map, so PM it before going in.
+I try: PM / DOE.
+Mood: curious
+
+### Step 12 — PM / DOE screen
+Screenshot: docs/playtest/shots/phone-5min/123456-16-s1-12-pm.png, docs/playtest/shots/phone-5min/123456-16-s1-13-pm-tools.png
+I see: First screen is all "DOE A PRACTICE": three blocks of "Now: 4 min · residue ×0.3 · underlayer attack ×2 · underlayer attack ×0.525 with etch stop / After the DOE: ... ×1.85 · ... ×0.568" and a paragraph each. The page is about four phone screens tall. The thing I came for, "PM the Etch tool", is about two screens down under the DOE stuff, with its chart and a red "Shift" warning. Then four more tool charts with PM buttons.
+I think: (3:05) This is where I nearly closed the tab. A screen full of ×0.525 vs ×0.568. Nobody on a train is comparing those. The thing I wanted is buried below it. Once I found it, the Etch block is actually clear: red text, "PM the Etch tool". Five big identical "PM the X tool" buttons stacked though — easy to hit the wrong one while scrolling.
+I try: Scroll down past all the DOE text, "PM the Etch tool".
 Mood: about to quit
 
-Run summary: ~4:45 of real time to reach step 4 of 9 (including a ~40 s redo after a reload wiped the run). A full run would be ~9–10 minutes for me. Not finishable in five.
+### Step 13 — PM done
+Screenshot: docs/playtest/shots/phone-5min/123456-17-s1-14-pm-done.png
+I see: Green "PM done: the next lots run on a restored tool". All the other PM buttons disappeared. The "Continue to step 4" button is at the very bottom of a ~3-screen page, out of sight.
+I think: (3:15) Good, it worked. Now where's the way out? Had to scroll all the way down past four charts I don't care about.
+I try: Scroll, Continue to step 4.
+Mood: annoyed
+
+### Step 14 — Etch room
+Screenshot: docs/playtest/shots/phone-5min/123456-18-s1-15-etch.png, docs/playtest/shots/phone-5min/123456-19-s1-16-etch-result.png
+I see: "This room will cost about 8.8 points of yield if nothing changes." Slot shows my Radial gas-flow trim. Hand is one card, "Timed over-etch", which says "About 0.1 points more lost in this room."
+I think: (3:30) 8.8 points even after I PM'd it?! What was the PM for then? And my only card makes things worse. So the "decision" is: do nothing. Ran it. 96.3% → 87.4%. The wafer map went orange with dotted borders all around the edge — the edge ring. Wait, the thing I bought said "edge ring ×1.25". Did my 200-cash purchase just hurt me? Nothing on screen tells me whether it helped or hurt.
+I try: Run etch.
+Mood: annoyed
+
+### Step 15 — Corridor 4, then Wet clean (strip) room
+Screenshot: none
+I see: Corridor with PM and Procurement only. Then wet clean again: about 0.6 points, same rinse card, "About 0.2 points less".
+I think: (3:50) Same room as step 1. Same card. Played it, ran it. 87.4% → 86.9%. On autopilot now.
+I try: Go straight, rinse card, Run wet clean, Continue.
+Mood: bored
+
+### Step 16 — Corridor in a Q-time window
+Screenshot: docs/playtest/shots/phone-5min/123456-24-s1-17-qt-corridor.png
+I see: An orange dotted box "Q-time window: native oxide keeps growing until the barrier goes on." Each side stop now says "Waits in Q-time: +0.040 oxide risk" or "+0.010". "Go straight" is pushed below the fold.
+I think: (4:00) OK, the clock matters here — that's the first time "minutes" meant anything. But "+0.040 oxide risk" — is that a lot? In yield points? No idea. I'll just go straight, it's the safe-sounding one. Had to scroll to find it.
+I try: Scroll, Go straight to step 6.
+Mood: confused
+
+### Step 17 — Deposition (barrier + seed)
+Screenshot: docs/playtest/shots/phone-5min/123456-26-s1-18-dep2-result.png
+I see: "This room will cost about 3.4 points" — the first deposition cost 0.8. Same useless pump-purge card. Chart says in control.
+I think: (4:15) Why 3.4 now when the chart is fine? Is it that oxide thing? Did my rinse in the last room cause it (the card said "qtime oxide ×1.1")? The result just says "cost 3.6 points", "0.2 from drift" — and the other 3.4? Not told. I'm losing yield and can't see why.
+I try: Run deposition. 86.9% → 83.3%.
+Mood: confused
+
+### Step 18 — Corridor 6, then Plating (auto)
+Screenshot: docs/playtest/shots/phone-5min/123456-28-s1-19-plating.png
+I see: Went straight. The plating room opened already finished: "83.3% → 79.0%", "This room cost 4.4 points", "Nothing could be played here, so the lot went straight through."
+I think: (4:25) Wait, what? I didn't even get to see the room. 4.4 points gone with zero input from me. I'm now under 80 and getting close to the "Spec 70%" line. This is where I start to feel like a passenger. I'm also basically at my five minutes.
+I try: Continue (two rooms left, I'll push through to see the end).
+Mood: annoyed
+
+### Step 19 — CMP (auto) and Metrology (auto)
+Screenshot: docs/playtest/shots/phone-5min/123456-30-s1-20-cmp.png, docs/playtest/shots/phone-5min/123456-32-s1-21-metrology.png
+I see: Went straight both times. CMP opened already done: "79.0% → 72.0%, cost 7.0 points". Metrology: "72.0% → 72.0%", "Nothing could be played here", "Lot shipped: it meets the customer spec."
+I think: (4:50) Three rooms in a row where I did nothing and the game played itself. CMP ate 7 points and I never got a say. Made it by 2 points over spec. Relief, but it's not my win, I scraped over by luck.
+I try: See the ship report.
+Mood: bored
+
+### Step 20 — Ship report and Diagnose
+Screenshot: docs/playtest/shots/phone-5min/123456-33-s1-22-ship.png, docs/playtest/shots/phone-5min/123456-33-s1-23-diagnose.png, docs/playtest/shots/phone-5min/123456-34-s1-24-diagnosed.png
+I see: "Shipped: yield 72% meets the 70% customer spec." Cost per good die 5.00, cycle time 223 min. Buttons: Replay this seed / New seed / New NMOS transistor lot. Below: DIAGNOSE "Which failure mode hurt this lot? One guess." Four boxes (Underlayer attack, Keyhole void, Removal-rate drift, Etch residue). Then a yield-by-step table, wafer map, and six SPC charts — the page is 5 screens long.
+I think: (5:10) The guess is the best bit: four short options, one tap, quiz-show feel. Etch lost the most (8.9), so I guessed Etch residue. Tapping it threw me back to the TOP of the page, and the answer was hidden below the fold — I had to scroll down to find "Not this one. What did hurt this lot: Keyhole void... cost 3.6 points in Plating". So the thing that cost me 8.9 points in Etch wasn't "the" failure? Feels like a trick question. And Plating was a room where I couldn't do anything. Run took about 5 minutes. Finishable, just.
+I try: Reload the page to see if it remembers me.
+Mood: confused
+
+### Step 21 — Reload after the end
+Screenshot: none
+I see: Fresh start screen, yield 100%, Notebook (0).
+I think: Fine, run was over anyway. Notebook still 0 because I guessed wrong — so nothing to show for the run.
+I try: Done with this seed. Total about 5 minutes, ~35 taps. Shipped at 72%.
+Mood: bored

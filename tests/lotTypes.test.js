@@ -139,11 +139,18 @@ test('cuLine route risks alone (adds and realizes, no step effects): center 0.75
 
 // NMOS has no center-to-edge pattern (no depth_variation), so center and
 // inner sites match; only the edge ring sets the outer sites apart.
-test('nmos doing nothing: center 0.565525, inner 0.565525, outer 0.514917, yield 0.533136', () => {
+// Hand check (risks cut to 52% on 30 Oct 2026): even risk realized 0.297
+// (12 steps of particles 0.005, plus cd 0.032, residue 0.042, dishing
+// 0.031, rr_drift 0.021, gate oxide 0.021, Q-time 0.016, underlayer 0.016,
+// channeling 0.021, implant damage 0.021, junction spread 0.016);
+// e^-0.297 = 0.743044. Edge ring 0.032 × 1.5625 more on the outer 16
+// sites: 0.706805. Yield (9 × center and inner + 16 × outer) / 25 =
+// 0.719851. Before the cut: 0.565525, 0.514917, 0.533136.
+test('nmos doing nothing: center 0.743044, inner 0.743044, outer 0.706805, yield 0.719851', () => {
   const lot = walkRouteDoingNothing(LOT_TYPES.nmos);
-  const byRing = [0.565525, 0.565525, 0.514917];
+  const byRing = [0.743044, 0.743044, 0.706805];
   lot.sites.forEach((s, i) => close(s, byRing[ring(i)], `site ${i}`));
-  close(lotYield(lot), 0.533136, 'yield');
+  close(lotYield(lot), 0.719851, 'yield');
 });
 
 // The NMOS lot is not offered on screen yet, so the bot plays it through

@@ -19,7 +19,8 @@
 import { normalizeSeed } from '../engine/rng.js';
 import { createRun, runDeck, defaultLoadout, nothingToPlay } from '../engine/run.js';
 import { applyAction, saveRun, loadRun, clearRun, replayRun, loadNotebook, saveNotebook } from './storage.js';
-import { roomView, resultView, mapView, stopView, shopView, parseSeed, badSeedText } from './view.js';
+import { roomView, resultView, mapView, stopView, shopView, parseSeed, parseLotType, badSeedText } from './view.js';
+import { LOT_TYPES, DEFAULT_LOT_TYPE } from '../content/lotTypes.js';
 import {
   renderRoom, renderResult, renderShip, renderError, renderResumedNote, renderSeedNote, focusNextAction, showFromTop,
 } from './render.js';
@@ -29,9 +30,9 @@ import { pmView } from './pmView.js';
 import { shipView } from './shipView.js';
 import { notebookView } from './notebookView.js';
 import { renderNotebook } from './notebookPage.js';
+import { renderWords } from './wordsPage.js';
 import { diagnoseLot, unlockedIds } from '../engine/notebook.js';
 
-const LOT_TYPE_ID = 'cuLine';
 
 // A fresh seed from the clock, for when the address has no valid ?seed=.
 // Outside rng.js, seeds come into the game in only two places: here, and
@@ -41,11 +42,14 @@ function seedFromClock() {
   return normalizeSeed(Date.now() % 2 ** 32);
 }
 
-// Puts the seed in the page address (?seed=…) without reloading, so a
-// reload or a shared link replays the run.
-function writeSeedToAddress(seed) {
+// Puts the seed and the lot type in the page address (?seed=…&lot=…)
+// without reloading, so a reload or a shared link replays the run. The
+// default lot type is left out of the address.
+function writeSeedToAddress(seed, lotType = lotTypeId) {
   const params = new URLSearchParams(window.location.search);
   params.set('seed', String(seed));
+  if (lotType === DEFAULT_LOT_TYPE) params.delete('lot');
+  else params.set('lot', lotType);
   window.history.replaceState(null, '', `${window.location.pathname}?${params}`);
 }
 
@@ -59,6 +63,9 @@ function chooseSeed() {
 }
 
 const app = document.getElementById('app');
+// The kind of lot new runs use (lotTypes.js): from ?lot= in the address,
+// else the Cu line. The player can switch it at the door or on the ship report.
+let lotTypeId = parseLotType(window.location.search);
 let state = null;   // the whole run; replaced, never edited
 let actions = [];   // every action taken this run, in order: what the save holds
 // Diagnosed failure modes, kept across runs under their own storage key
@@ -94,7 +101,7 @@ function act(action) {
 // reload after the ship report starts fresh. A blocked storage just means
 // no save (storage.js never throws).
 function keepSave() {
-  if (state.status === 'running') saveRun({ seed: state.seed, unlocked: state.unlocked, actions });
+  if (state.status === 'running') saveRun({ seed: state.seed, lotTypeId: state.lotTypeId, unlocked: state.unlocked, actions });
   else clearRun();
 }
 
@@ -171,16 +178,32 @@ function onNewSeed() {
   });
 }
 
+// Another kind of lot. At the door it keeps the seed (nothing has been done
+// yet); from the ship report it is a new lot, so a new seed too.
+function onChooseLotType(newLotTypeId, seed) {
+  safely(() => {
+    lotTypeId = newLotTypeId;
+    writeSeedToAddress(seed);
+    startRun(seed);
+  });
+}
+
+// The lot types as choices: { id, name, current } for each.
+function lotTypeOptions() {
+  return Object.values(LOT_TYPES).map(lotType => ({ id: lotType.id, name: lotType.name, current: lotType.id === lotTypeId }));
+}
+
 // --- drawing -------------------------------------------------------------
 
 function showRoom() {
-  renderRoom(app, roomView(state), { onPlay, onRunRoom });
+  renderRoom(app, roomView(state), { onPlay, onRunRoom, words: wordsOpener(showRoom) });
 }
 
 // The result of a room, right after Run. `before` is the state at Run.
 function showResult(before) {
   const onShip = () => safely(showShipReport);
-  renderResult(app, resultView(before, state), { onContinue: () => safely(showMap), onShip, onReplay, onNewSeed });
+  renderResult(app, resultView(before, state),
+    { onContinue: () => safely(showMap), onShip, onReplay, onNewSeed, words: wordsOpener(() => showResult(before)) });
 }
 
 // The screen of the side stop just taken: the shop, PM/DOE or event, or
@@ -193,14 +216,21 @@ function showStop(before, stopKind) {
 }
 
 function showMap() {
-  renderMap(app, mapView(state), { onTakeStop, onGoStraight, onScrap, notebook: notebookOpener(showMap) });
+  // The lot type can be changed only at the door, before anything is done.
+  const lotChoice = actions.length === 0
+    ? { options: lotTypeOptions(), onChoose: id => onChooseLotType(id, state.seed) }
+    : null;
+  renderMap(app, mapView(state),
+    { onTakeStop, onGoStraight, onScrap, lotChoice, notebook: notebookOpener(showMap), words: wordsOpener(showMap) });
 }
 
 // The ship report: the one screen every finished run ends on, whether the
 // lot shipped, was rejected or was scrapped.
 function showShipReport() {
   renderShip(app, shipView(state, notebook, diagnosis),
-    { onDiagnose, onReplay, onNewSeed, notebook: notebookOpener(showShipReport) });
+    { onDiagnose, onReplay, onNewSeed, notebook: notebookOpener(showShipReport), words: wordsOpener(showShipReport),
+      otherLots: lotTypeOptions().filter(option => !option.current),
+      onOtherLot: id => onChooseLotType(id, seedFromClock()) });
 }
 
 // The Notebook page (M4 item 3). Opening it is not a run action: nothing
@@ -218,6 +248,14 @@ function notebookOpener(showBehind) {
     count: notebookView(notebook).count,
     onOpen: () => safely(() => showNotebook(showBehind)),
   };
+}
+
+// What the Words button in a header does: opens the Words page, whose Back
+// redraws `showBehind`, the screen the button is on. Like the Notebook, it
+// is not a run action: nothing in the run changes. A room redraws from the
+// run state, so the cards already played stay played.
+function wordsOpener(showBehind) {
+  return { onOpen: () => safely(() => renderWords(app, { onBack: () => safely(showBehind) })) };
 }
 
 // The player names a failure mode on the ship report (M4 item 1). A right
@@ -273,9 +311,9 @@ function enterRoom() {
 // so a replay always starts from the same lot. `unlocked` is what the
 // notebook has earned now (a new run) or what was saved with the run (a
 // resumed one), never the notebook as it is later (M4 item 4).
-function newRun(seed, unlocked) {
+function newRun(seed, unlocked, lotType = lotTypeId) {
   return createRun({
-    seed, lotTypeId: LOT_TYPE_ID, deck: runDeck(unlocked), loadout: defaultLoadout(), unlocked,
+    seed, lotTypeId: lotType, deck: runDeck(unlocked), loadout: defaultLoadout(), unlocked,
   });
 }
 
@@ -289,23 +327,27 @@ function startRun(seed) {
 }
 
 // Picks up the saved run, if there is one for this page. Returns true if it
-// did. Not when the address asks for another seed (the link wins), and not
-// when the save no longer replays or its run has already ended.
+// did. Not when the address asks for another seed or another lot type (the
+// link wins), and not when the save no longer replays or its run has
+// already ended.
 function resumeSavedRun() {
   const save = loadRun();
   if (save === null) return false;
   const fromAddress = parseSeed(window.location.search, null);
   if (fromAddress !== null && fromAddress !== save.seed) return false;
+  const lotInAddress = new URLSearchParams(window.location.search).has('lot');
+  if (lotInAddress && lotTypeId !== save.lotTypeId) return false;
 
-  const resumed = replayRun(newRun(save.seed, save.unlocked), save.actions);
+  const resumed = replayRun(newRun(save.seed, save.unlocked, save.lotTypeId), save.actions);
   if (resumed === null || resumed.status !== 'running') return false;
 
   // The state just before the last action, for screens that show what it
   // changed (the room result, a side stop). Replaying all but the last
   // action gives exactly that state.
-  const before = replayRun(newRun(save.seed, save.unlocked), save.actions.slice(0, -1));
+  const before = replayRun(newRun(save.seed, save.unlocked, save.lotTypeId), save.actions.slice(0, -1));
   state = resumed;
   actions = save.actions;
+  lotTypeId = save.lotTypeId;
   writeSeedToAddress(save.seed);
   try {
     showScreenAfter(save.actions.at(-1), before);
