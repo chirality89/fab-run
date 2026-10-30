@@ -34,3 +34,24 @@ I see: Litho (active) in control, Etch (isolation trench) in control, CMP "Oxide
 I think: OK, step 5 includes the oxide fill, so my "what are you polishing" complaint is answered. STI CMP with a nitride stop: a fast removal rate is less dangerous with a stop layer, but you still get more oxide dishing in wide trenches. The same "Deposition" tool did pad oxide + nitride and will do poly. Three different tools in real life. The deposition tool that just cost me 2.7 points still reads "In control" — I don't trust that chart now. One PM: CMP is flagged, deposition is the one that actually hurt. I'll trust what I saw, not what the chart says: but CMP comes first and the next stop might not have a PM. CMP now.
 I try: PM the CMP tool.
 Mood: confused
+
+### Step 6 — Room 3: Litho (active), dummy fill unlocked
+Screenshot: docs/playtest/shots/fab-engineer/777-14-s777-07-litho-active.png
+I see: i-line resist, CD chart in control at 253.5. New card from my notebook: "Add dummy fill to the mask, 0 min, 100 cash, dishing ×0.4. Costs a mask change and adds capacitance from the fill shapes." Rework still greyed with "no step on this route". Trim dose again "0.3 points less".
+I think: Dummy active fill to even out STI CMP is exactly right, nice that the unlock lands where it's useful. But "add dummy fill to the mask" as a 0-minute, 100-cash move made in the litho bay while the lot sits on the scanner? Fill is a design/tape-out decision and a new reticle is weeks and serious money. "Capacitance" is a metal-fill concern, not active fill. I played it anyway — forecast didn't change here (it pays at CMP), no estimate shown. Ran: 95.8 → 94.0.
+I try: Procurement.
+Mood: curious
+
+### Step 7 — Procurement (NMOS)
+Screenshot: docs/playtest/shots/fab-engineer/777-18-s777-08-procurement.png
+I see: Radial gas-flow trim (etch), Inline metrology "next used at step 13: Electrical test", Thick resist for deep etch, 90 cash, "Survives long etches (TSVs)... cd error ×1.3", next used at step 9: Litho (gate).
+I think: Step 13 is shown as "Metrology" on the floor plan and "Electrical test" here — which is it? Very different things. Inline metrology at the last step still can't warn me of anything. Thick TSV resist offered for a gate litho is a trap a new hire might fall into; at least the cd ×1.3 tells them. Bought nothing.
+I try: Continue to etch.
+Mood: bored
+
+### Step 8 — Room 4: Etch (isolation trench)
+Screenshot: docs/playtest/shots/fab-engineer/777-19-s777-09-sti-etch.png
+I see: Forecast 4.0. Etch rate centred, 301.1, in control. Over-etch card: "on a steady tool the attack costs about what it saves" ... "About 1.4 points less lost in this room." Played it: forecast 4.0 → 2.5, actual 2.5.
+I think: The card text and the number disagree again: steady tool, centred chart, and over-etch saves 1.4 points. And for an STI trench etched into silicon, "residue" and "attack on the film below" don't mean much — there is no film below, over-etch just makes the trench deeper. The card is copied from the metal etch and doesn't fit the step. What a player learns: "always over-etch, it's free yield". Wrong.
+I try: Continue.
+Mood: annoyed
