@@ -484,9 +484,9 @@ export const PRACTICES = [
         { op: 'defectMult', pattern: 'particles', mult: 1.1 },
       ],
       tradeoff: 'Less chlorine sheds fewer particles, but cleans up a little less of the oxide.',
-      physicsNote: 'A DOE on the chlorine fraction finds the point where most mobile ions are already tied up; more chlorine past it mostly attacks the quartzware.' },
-    tradeoff: 'A cleaner gate oxide, but the chlorine corrodes the tube and boat, which shed more particles, and the gas and scrubbing cost cash.',
-    physicsNote: 'A little chlorine-bearing gas in a dry oxidation ties up mobile ions such as sodium and getters metal contamination at the silicon surface, so the oxide leaks and breaks down less. Chlorine also attacks the quartzware and the exhaust, which raises particle counts and maintenance.' },
+      physicsNote: 'A DOE on the chlorine fraction finds the point where most mobile ions are already tied up; past it, chlorine piles up at the silicon surface and can roughen or pit it, and corrodes the gas lines faster.' },
+    tradeoff: 'A cleaner gate oxide, but the chlorine corrodes gas lines and the exhaust, which shed particles and metals, and the gas and scrubbing cost cash.',
+    physicsNote: 'A little chlorine-bearing gas in a dry oxidation ties up mobile ions such as sodium and getters metal contamination at the silicon surface, so the oxide leaks and breaks down less. Chlorine also corrodes metal gas lines and the exhaust, raising particle counts and maintenance.' },
 
   { id: 'preAmorphizingImplant', draft: true, kind: 'practice', room: 'implant', rarity: 'standard',
     name: 'Pre-amorphizing implant', unlockedBy: null,
@@ -504,7 +504,7 @@ export const PRACTICES = [
         { op: 'defectMult', pattern: 'implant_damage', mult: 1.4 },
       ],
       tradeoff: 'A shallower amorphous layer leaves fewer end-of-range defects, but a little more of the tail gets past it.',
-      physicsNote: 'A DOE on the amorphizing energy places the amorphous edge just deep enough to hold the dopant; deeper means more end-of-range defects to anneal out.' },
+      physicsNote: 'A DOE on the amorphizing energy places the amorphous edge just deep enough to hold the dopant; a deeper edge puts its end-of-range defects closer to the junction, where they cause leakage.' },
     tradeoff: 'Almost no channeling, whatever the beam angle, but the extra implant leaves end-of-range defects the anneal must repair. On a well-aligned beam it about breaks even.',
     physicsNote: 'A heavy, electrically inactive ion (such as germanium or silicon) implanted first turns the surface layer amorphous, so there are no crystal channels for the dopant to run down. The anneal regrows the crystal from below, but defects collect just under the old amorphous edge (end-of-range defects) and can cause junction leakage if they are not annealed out.' },
 

@@ -139,6 +139,10 @@ Finished plans (M0 to M4.5 item 4) are in `docs/archive/todo-done.md`. The curre
   - Chlorinated oxidation is played in 23 of 30 lots: a real choice.
   - The pre-amorphizing implant is played in none. On a fixed scatter-free run it gains more than its cash in about half the seeds (median 0.43 points, max 5.9). The bot PMs the implant tool instead, because a PM costs 40 minutes and no cash, and minutes count for nothing yet. That's the next task.
 - Tests: `npm test` 289 pass. The expected starter deck now lists the two new ids; they are never dealt on the Cu line, which has no diffusion or implant room.
+- **Physics review (30 Oct 2026):** the implant monitor, the pre-amorphizing implant, the anneal's junction-spread drift and the art all pass. Applied: chlorine's downside is corroded gas lines and exhaust (not the quartzware), a stale sentence was removed, and the end-of-range note and the implant leakage wording were sharpened.
+  - **Must-fix, for David:** the furnace monitor contradicts the evidence. `fm_gate_breakdown` says thickness and C-V are on target, but a temperature drift makes the oxide off target (and thicker, not thinner). Chlorine also doesn't fix a temperature drift.
+  - The reviewer's fix: monitor **contamination** instead (mobile ion charge on a monitor C-V, one-sided). The tube and boat collect sodium and metals with use, and chlorine cleans exactly that.
+  - The anneal's junction-spread drift would then need its own temperature monitor, or be dropped.
 
 ### Task: cash and cycle time count toward winning (David, 30 Oct 2026: "yes count towards winning"): plan, waiting for David's OK
 **Today:**
@@ -369,6 +373,7 @@ Content in `src/content/content.js` that needs engine behavior beyond the eight 
 - `resets: { slot, field, fraction }`: fresh resist and bath analysis reset a material's shelf life or decay
 - `limit: { perLayer: 1 }`: strip and re-expose once per layer
 - `shelfLife`: counts rooms visited; at 0 the material stops helping
+- A card limited to one step of a room visited twice: `chlorinatedOxidation` is dealt at the NMOS anneal too, where it only adds particles (physics review, 30 Oct 2026). Needs `when: { step }`, or the screen saying "nothing to act on here".
 - Dead cards: a practice whose target pattern was already realized earlier on the route (e.g. `etchStopLayer` at the second dep visit) should be greyed out or hidden
 - Tool wear: tool health stays at 100 in run.js; no rule yet for how much a room wears its tool
 - Consumables: no engine code plays them yet (the starter qual wafer and spare part, and the unlocked bath analysis, fresh resist, implant monitor and oxide monitor). They are left off the Notebook page's "Unlocks" until they can be used (David, 26 Oct 2026)

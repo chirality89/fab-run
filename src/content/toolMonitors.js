@@ -59,14 +59,14 @@ export const TOOL_MONITORS = {
     parameter: 'Monitor oxide thickness', unit: 'nm', target: 10, sigma: 0.2, direction: +1,
     pattern: 'gate_oxide',
     tradeoff: 'Profiling the furnace less often saves tube time, but its temperature walks and so does the oxide it grows.',
-    physicsNote: 'Thermocouples age and heater zones shift, so the real temperature drifts from the setpoint. Oxide growth rate depends steeply on temperature, so a bare monitor wafer oxidized with each load shows it as a thickness drift. Gate oxide grown off target is the thin, leaky oxide that breaks down early. Simplified: the anneal on the same furnace is not affected here.',
+    physicsNote: 'Thermocouples age and heater zones shift, so the real temperature drifts from the setpoint. Oxide growth rate depends steeply on temperature, so a bare monitor wafer oxidized with each load shows it as a thickness drift. Gate oxide grown off target is the thin, leaky oxide that breaks down early.',
   },
   implant: {
     draft: true,
     parameter: 'Monitor sheet resistance', unit: 'ohm/sq', target: 100, sigma: 2, direction: -1,
     pattern: 'channeling_tail',
     tradeoff: 'Checking the beam angle less often saves setup time, but the angle wanders and more ions run down crystal channels.',
-    physicsNote: 'If the beam or wafer angle drifts toward a crystal axis, more ions channel deep before they stop. The deeper, wider dopant profile lowers the sheet resistance of an annealed monitor wafer. It costs yield only after the anneal, where the deep tail shows up as junction leakage.',
+    physicsNote: 'If the beam or wafer angle drifts toward a crystal axis, more ions channel deep before they stop. The deeper, wider dopant profile lowers the sheet resistance of an annealed monitor wafer. It costs yield only after the anneal, where the deep tail makes the junctions deeper and the short transistors leak.',
   },
   cmp: {
     draft: true,
