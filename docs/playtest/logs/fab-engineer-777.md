@@ -55,3 +55,79 @@ I see: Forecast 4.0. Etch rate centred, 301.1, in control. Over-etch card: "on a
 I think: The card text and the number disagree again: steady tool, centred chart, and over-etch saves 1.4 points. And for an STI trench etched into silicon, "residue" and "attack on the film below" don't mean much — there is no film below, over-etch just makes the trench deeper. The card is copied from the metal etch and doesn't fit the step. What a player learns: "always over-etch, it's free yield". Wrong.
 I try: Continue.
 Mood: annoyed
+
+### Step 9 — Room 5: Oxide fill + CMP (stop on SiN)
+Screenshot: docs/playtest/shots/fab-engineer/777-23-s777-10-sti-cmp.png
+I see: Forecast 3.5, "About 1.1 of these points come from dishing (wide features polished below the surface). The layout set how big this is: oxide in wide isolation trenches dishes in any polish. Dummy fill at the active litho or a gentler polish here reduces it." Card: Low-pressure final polish, dishing ×0.6, "About 0.4 points less". Played it. 91.5 → 88.4.
+I think: This is the game at its best. Correct physics, it names the cause, it tells me which earlier choice (dummy fill) already shrank it, and it offers a sensible knob. The unlock from my notebook paid off in the place it should. If every room read like this I'd hand it to an intern.
+I try: PM / DOE next: PM the Deposition tool (it's used again for poly at step 8 and it hurt me at step 2).
+Mood: hooked
+
+### Step 10 — PM list again, then pre-gate clean
+Screenshot: docs/playtest/shots/fab-engineer/777-27-s777-11-pm2.png
+I see: Deposition chart: last point right on the UCL (~27), still "In control". Wet clean "just serviced". PM'd deposition. Pre-gate clean: 88.4 → 87.8. Same rinse card, still talking about "the barrier".
+I think: The deposition chart only now looks bad, after it already took 2.7 points from me. The telegraph came after the hit, not before.
+I try: Run clean without rinse (Q-time next).
+Mood: curious
+
+### Step 11 — Q-time corridor (pre-gate)
+Screenshot: docs/playtest/shots/fab-engineer/777-31-s777-12-qtime.png
+I see: "Q-time window: native oxide keeps growing on the bare silicon until the gate oxide is grown." Same +0.040 / +0.010 oxide risk.
+I think: Here "native oxide on bare silicon" is exactly right. In the copper flow the same sentence was wrong. Same mechanic, correct in one flow, wrong in the other. "Oxide risk 0.040" still has no unit.
+I try: Go straight to gate oxidation.
+Mood: curious
+
+### Step 12 — Room 7: Gate oxidation (Diffusion)
+Screenshot: docs/playtest/shots/fab-engineer/777-32-s777-13-gateox.png
+I see: Ran on its own. "Nothing could be played here". 87.8 → 84.5, 3.3 points. No tool SPC chart at all on this room.
+I think: Gate oxide — the most critical film in the device — and I get no chart (no thickness, no particles), no card, nothing. 3.3 points gone with no reason given. A new hire learns nothing from this step.
+I try: Procurement (nothing worth buying), continue.
+Mood: annoyed
+
+### Step 13 — Room 8: Poly-Si deposition (after PM)
+Screenshot: none
+I see: Forecast 0.5 (vs 4.0 at the pad-oxide step on the same tool before PM). Ran: 84.5 → 84.1.
+I think: The PM was worth it — 2.7 points saved. Good feedback, the one time a PM visibly paid.
+I try: Event.
+Mood: curious
+
+### Step 14 — Event: Hot lot request, again (twice in this run)
+Screenshot: docs/playtest/shots/fab-engineer/777-38-s777-14-event2.png, docs/playtest/shots/fab-engineer/777-47-s777-17-event3.png
+I see: Same hot-lot request at the corridor after poly, and AGAIN after gate etch.
+I think: Fifth time I've seen this event in three runs, twice in one lot. The customer apparently asks every two hours. Feels like there are only three events in the game.
+I try: Keep its place both times.
+Mood: bored
+
+### Step 15 — Room 9: Litho (gate)
+Screenshot: docs/playtest/shots/fab-engineer/777-40-s777-15-gate-litho.png
+I see: Dummy fill offered again (useless here, nothing gets polished after gate), rework still greyed "No step on this route does that", trim dose "0.3 points less". Ran without: 84.1 → 82.6.
+I think: Gate litho, the one place rework matters most, and the rework card can never be played anywhere on either route. It's dead weight in my hand that tells me something false about the route.
+I try: Run, go straight to gate etch.
+Mood: annoyed
+
+### Step 16 — Room 10: Gate etch (stop on gate oxide)
+Screenshot: docs/playtest/shots/fab-engineer/777-43-s777-16-gate-etch.png
+I see: Forecast 4.8. Etch rate centred 303.2. Over-etch card, no estimate shown. Played it: forecast unchanged 4.8, actual 4.7.
+I think: Over-etch on poly with a gate oxide stop: real tradeoff is stringers at the STI steps vs. punching through thin gate oxide. Here it does nothing either way. 4.7 points on a centred tool and no explanation of where it comes from.
+I try: Event (hot lot again), continue.
+Mood: bored
+
+### Step 17 — Rooms 11–12: S/D implant, Activation anneal
+Screenshot: docs/playtest/shots/fab-engineer/777-49-s777-18-implant.png, docs/playtest/shots/fab-engineer/777-51-s777-19-anneal.png
+I see: Both auto-ran. Implant 77.9 → 77.5 (0.4). Activation anneal 77.5 → 72.7 (4.8 points!). No cards, no SPC charts in either room.
+I think: An activation anneal killing 4.8% of die, the biggest single step loss of the run, with no chart, no cause, no choice. What failed? Slip? Contamination? Under-activation (that's parametric)? No dose, no sheet resistance, no thermal-budget hint. I can't diagnose it, and the game doesn't even try to make me. Only 2.7 points of margin left.
+I try: Straight to the last room.
+Mood: about to quit
+
+### Step 18 — Room 13: Electrical test / ship report
+Screenshot: docs/playtest/shots/fab-engineer/777-53-s777-20-etest.png, docs/playtest/shots/fab-engineer/777-54-s777-21-ship.png, docs/playtest/shots/fab-engineer/777-55-s777-23-ship-map.png
+I see: Room header "METROLOGY", step name "Electrical test". Shipped at 72.7%. Lot cost 2160 ÷ 454.5 = 4.75. Cycle time 381 min. Diagnose options: Removal-rate drift, Isolation oxide dishing, Handling particles, Native oxide under the gate. Final map: one red site (69), rest 70–77, no pattern. Post-run SPC for wet clean, deposition, litho, etch, CMP only — none for diffusion or implant.
+I think: These failure-mode descriptions are much better than the copper ones: "C-V shows electrical oxide thickness larger than the furnace recipe, Vt shifted, breakdown normal" — that's how you'd really spot interfacial oxide. "Step-height scan shows field oxide recessed in wide trenches" — correct. But I was never shown a C-V, a step-height scan or a cross-section, so the evidence they describe isn't on screen. Elimination: I PM'd CMP, did dummy fill + low-pressure, wet clean got serviced. The biggest losses I couldn't explain were gate ox (3.3), gate etch (4.7) and anneal (4.8). Gate ox is the only one linked to an option. Picked Native oxide.
+I try: Native oxide under the gate.
+Mood: confused
+
+### Step 19 — Diagnosis result
+Screenshot: docs/playtest/shots/fab-engineer/777-55-s777-22-diagnosis.png
+I see: "Not this one. What did hurt this lot: Handling particles... 5.9 yield points" spread 0.3–1.0 over all 12 steps. "How to spot it: Random killed dies that move from lot to lot; particle adders climb on the wet clean SPC chart."
+I think: In hindsight the wet clean adders did climb over the last ~7 lots, but never tripped a rule, and the game had me "service" that bench via an auditor. "Move from lot to lot" — I've only got one lot, I can't see lot-to-lot. And the 2.7 points the deposition tool's drift took at step 2 is apparently not a failure mode at all, while 0.4 points of particles spread over 12 steps is. So the "failure mode that hurt this lot" is the sum of a background tax, not the excursion I fought. As a training message that's backwards: it rewards guessing the baseline, not finding the excursion. Shipped at 72.7%. I'm done.
+Mood: annoyed
