@@ -19,7 +19,8 @@
 // A step marked `qtime` opens a Q-time window in the corridor after it; its
 // `qtimeNote` says in words what grows while the lot waits (the map shows it).
 // A step may name a `driftPattern`: what its room's drifted tool feeds in
-// this step, when it is not the monitor's own pattern (toolMonitors.js).
+// this step, when it is not the monitor's own pattern (toolMonitors.js),
+// or null when the drift costs nothing in this step (the NMOS anneal).
 //
 // Order inside a step (run.js follows it): add the step's risks, apply the
 // step's own effects, then apply equipment and material effects, then the cards played; on resolving,
@@ -191,12 +192,14 @@ export const LOT_TYPES = {
         realizes: ['particles'] },
       // Diffusion happens in the anneal itself, so junction spread enters
       // here (spike anneal scales it).
-      // The same furnace as gate oxidation: a contaminated tube passes
-      // mobile ions to the wafers here too, and they reach the gate oxide
-      // under the thin poly, so the furnace's drift (gate_oxide) bites here.
-      { room: 'diff', label: 'Activation anneal',
+      // The same furnace as gate oxidation, but its contamination drift is
+      // not counted here (driftPattern null; physics review, 31 Oct 2026):
+      // the gate oxide is capped by hundreds of nm of doped poly, which
+      // holds back sodium, and chlorinated oxidation must not seem to help
+      // an anneal, where no oxide grows. The tool still wears.
+      { room: 'diff', label: 'Activation anneal', driftPattern: null,
         adds: { particles: 0.005, junction_spread: 0.016 },
-        realizes: ['particles', 'channeling_tail', 'implant_damage', 'junction_spread', 'gate_oxide'] },
+        realizes: ['particles', 'channeling_tail', 'implant_damage', 'junction_spread'] },
       // Electrical test, then ship against the customer spec. Nothing added here.
       { room: 'metro', label: 'Electrical test',
         adds: {},

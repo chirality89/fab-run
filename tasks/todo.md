@@ -191,6 +191,8 @@ Finished plans (M0 to M4.5 item 4) are in `docs/archive/todo-done.md`. The curre
 
 - Cu line: all 7 targets pass.
 - NMOS: 6 of 7. Full-deck smart wins 82% (target 90%); its misses are on yield, not cost. Not tuned: options for David.
+- **Physics review of the furnace switch (31 Oct 2026), applied:** the breakdown signature now says oxide thickness (optical and C-V) is on target and points at the mobile-ion monitor; the monitor note says C-V sees mobile ions, not metals, and sodium shifts threshold voltage while metals cause the leakage; the pattern label drops "thin". The anneal counts no furnace drift (`driftPattern: null`, its option b): the doped poly cap holds back sodium, and chlorine must not seem to help an anneal. NMOS re-measured: full-deck smart 84%, starter smart 51%, all else PASS.
+  - **For David:** option (a) instead keeps the drift at the anneal through metals that diffuse through the poly (at full strength, a simplification), and renames the card "Chlorine in the furnace ambient" so it honestly works there too.
 - Pre-amorphizing implant: still played in 0 of 30 NMOS smart lots. The implant tool is PM'd in 18 of 30 instead; a PM still pays even at 80 in lot cost.
 
 ### (Plan as written, 30 Oct 2026)
@@ -411,6 +413,7 @@ P0 and P1 of `tasks/plan-winnable.md` (branch `claude/winnable-p0-p1`):
   5. **Balance**: with the 5 starter cards the smart bot's best starter-deck run is 63.4% (spec 70%); mean 60.2% (was 58.1%). Options for P3: first run is a hard learning run; or move the balance levers; or both (recommended).
 
 ## NEEDS NEW LOGIC
+- **Step-limited cards** (physics review, 31 Oct 2026): a step-level `when` (for example `when: { step: 'Gate oxidation' }`) so chlorinated oxidation only works where an oxide grows. Until then the NMOS anneal counts no furnace drift (`driftPattern: null`), so the card has nothing to cut there.
 
 Content in `src/content/content.js` that needs engine behavior beyond the eight effect operations:
 

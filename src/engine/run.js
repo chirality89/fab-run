@@ -196,11 +196,11 @@ export function enterStep(state) {
   if (step.effects) lot = applyEffects({ ...state, lot }, { id: step.label, effects: step.effects }).lot;
   // A drifted tool adds risk to the pattern it feeds (0 for a healthy tool):
   // its monitor's pattern, unless this step names its own (lotTypes.js
-  // `driftPattern`, e.g. a furnace that grows gate oxide in one step and
-  // anneals junctions in another).
+  // `driftPattern`), or none when the step's driftPattern is null (the
+  // furnace's contamination at the NMOS anneal).
   const monitor = TOOL_MONITORS[step.room];
-  const drift = monitor ? driftRisk(state.tools[step.room].health, monitor.oneSided) : 0;
-  const driftPattern = step.driftPattern ?? monitor?.pattern;
+  const driftPattern = step.driftPattern === undefined ? monitor?.pattern : step.driftPattern;
+  const drift = monitor && driftPattern ? driftRisk(state.tools[step.room].health, monitor.oneSided) : 0;
   if (drift > 0) lot = addRisk(lot, driftPattern, drift);
   // The drift's share of its pattern, so the result screen can say what the
   // drift cost (M4.5 item 4). Cards and items only multiply a pattern, so

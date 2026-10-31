@@ -63,7 +63,7 @@ export const TOOL_MONITORS = {
     parameter: 'Mobile ion charge (monitor C-V)', unit: '1e10/cm2', target: 2, sigma: 0.5, direction: +1,
     pattern: 'gate_oxide', oneSided: true,
     tradeoff: 'Cleaning the tube less often saves downtime, but metal and mobile-ion contamination builds up.',
-    physicsNote: 'With use, the quartz tube and boat collect sodium and metals and pass them to the wafers at oxidation and anneal temperatures. A bias-temperature C-V test on a monitor oxide shows them as a flatband shift. Contaminated gate oxide leaks and breaks down early.',
+    physicsNote: 'With use, the quartz tube and boat collect sodium and metals and, at oxidation and anneal temperatures, pass them to the wafers. A bias-temperature C-V test on a monitor oxide shows the mobile ions (sodium, potassium) as a flatband shift. It does not see the metals directly, but both come from the same dirty tube, so a rising count is the signal to clean it. Mobile ions make the threshold voltage unstable; metals in the oxide make it leak and break down early.',
   },
   implant: {
     draft: true,
