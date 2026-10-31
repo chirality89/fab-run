@@ -54,9 +54,17 @@ test('a rejected lot keeps its cost per good die, marked not paid', () => {
   assert.match(tile.detail, /Not paid/);
 });
 
-test('the cost tile says it is for reference, not the score (M4.5 small fixes, issue 14)', () => {
+// Replaces "for reference only" (M4.5 issue 14): since 31 Oct 2026 the
+// cost counts toward winning (David). Hand-computed: 2000 + 300 + 0 × 2.
+test('the cost tile shows where the lot cost came from, and its target', () => {
   assert.equal(shipView(finished('shipped')).tiles[1].detail,
-    'Lot cost 2300 ÷ 462.5 good die. For reference only: shipping at spec is what wins the run.');
+    'Lot cost 2300 (2000 base + 300 cash spent + 0 min × 2) ÷ 462.5 good die. Target 6.00 or less.');
+});
+
+test('shipped at a loss: (2000 + 800) ÷ 462.5 = 6.05 over the 6.00 target, said in the verdict', () => {
+  const view = shipView({ ...finished('shippedAtLoss'), cash: 700 });
+  assert.equal(view.tiles[1].value, '6.05');
+  assert.match(view.verdictText, /^Shipped at a loss: .* each good die cost 6\.05, over the 6\.00 target\. Not a win\.$/);
 });
 
 test('event income lowers the lot cost: 1650 cash at the end → 2000 − 150 = 1850', () => {

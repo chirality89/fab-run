@@ -5,31 +5,29 @@
 import { ROOMS, PRACTICES, EQUIPMENT, MATERIALS, CONSUMABLES } from '../content/content.js';
 import { TOOL_MONITORS } from '../content/toolMonitors.js';
 import { LOT_TYPES } from '../content/lotTypes.js';
-import { STARTING_CASH, SCRAP_LINE, CUSTOMER_SPEC, LOT_BASE_COST } from '../content/balance.js';
+import { SCRAP_LINE, CUSTOMER_SPEC, LOT_BASE_COST, COST_TARGET_PER_GOOD_DIE, CYCLE_TIME_COST_PER_MINUTE } from '../content/balance.js';
+import { DIE_PER_LOT, lotMoney } from '../engine/cost.js';
 import { lotYield } from '../engine/lot.js';
 import { diagnosisFor, findFailureMode, inNotebook, emptyNotebook, stepsThatLost } from '../engine/notebook.js';
 import { spcView } from './spcView.js';
 import { modeName } from './notebookView.js';   // failure-mode names, shared with the Notebook page
 import { toPercent, siteView, mapKeyText } from './view.js';
 
-// Every die on the lot: 25 wafers × 25 sites. Lot yield is the average of
-// the sites, so good die = yield × DIE_PER_LOT.
-export const DIE_PER_LOT = 25 * 25;
+// The money math lives in the engine (cost.js), since the cost now decides
+// whether a shipped lot wins. Re-exported for the tests and the screens.
+export { DIE_PER_LOT, lotMoney };
 
-// The money side of the lot. The lot cost is the base cost plus the cash
-// spent during the run (event income lowers it). A scrapped lot ships no
-// good die, so it has a lot cost but no cost per good die.
-export function lotMoney(state) {
-  const lotCost = LOT_BASE_COST + (STARTING_CASH - state.cash);
-  const goodDie = state.status === 'scrapped' ? 0 : lotYield(state.lot) * DIE_PER_LOT;
-  const costPerGoodDie = goodDie > 0 ? lotCost / goodDie : null;
-  return { lotCost, goodDie, costPerGoodDie };
-}
-
-// The one line that says how the run ended, and why.
-function verdictText(state, route, yieldPercent) {
+// The one line that says how the run ended, and why. A win needs both: the
+// yield target and the cost target (David, 31 Oct 2026).
+function verdictText(state, route, yieldPercent, money) {
   const spec = toPercent(CUSTOMER_SPEC);
-  if (state.status === 'shipped') return `Shipped: yield ${yieldPercent}% meets the ${spec}% customer spec.`;
+  const target = COST_TARGET_PER_GOOD_DIE[state.lotTypeId].toFixed(2);
+  if (state.status === 'shipped') {
+    return `Shipped: yield ${yieldPercent}% meets the ${spec}% spec, at ${money.costPerGoodDie.toFixed(2)} per good die (target ${target} or less). A win.`;
+  }
+  if (state.status === 'shippedAtLoss') {
+    return `Shipped at a loss: yield ${yieldPercent}% meets the ${spec}% spec, but each good die cost ${money.costPerGoodDie.toFixed(2)}, over the ${target} target. Not a win.`;
+  }
   if (state.status === 'rejected') {
     return `Rejected: yield ${yieldPercent}% is below the ${spec}% customer spec. The customer sends the lot back.`;
   }
@@ -40,20 +38,20 @@ function verdictText(state, route, yieldPercent) {
   return `Scrapped at step ${state.stepIndex + 1}, ${step.label}: yield ${yieldPercent}% fell below the ${toPercent(SCRAP_LINE)}% scrap line.`;
 }
 
-// Said under the cost so it doesn't read as the run's score: today buying
-// anything raises cost per good die, so "lowest cost" would mean "buy
-// nothing" (Lane F issue 14). The score question waits for the M7 balance
-// pass (David, 26 Oct 2026).
-const COST_NOTE = '. For reference only: shipping at spec is what wins the run.';
+// Where the lot cost came from, in one line.
+function costBreakdown(state, money) {
+  const spent = money.cashSpent >= 0 ? `${money.cashSpent} cash spent` : `${-money.cashSpent} cash earned`;
+  return `${LOT_BASE_COST} base + ${spent} + ${state.cycleTime} min × ${CYCLE_TIME_COST_PER_MINUTE}`;
+}
 
-// The cost tile: cost per good die, or why there is none.
+// The cost tile: cost per good die against its target, or why there is none.
 function costTile(state, money) {
+  const target = COST_TARGET_PER_GOOD_DIE[state.lotTypeId].toFixed(2);
   if (money.costPerGoodDie === null) {
-    return { label: 'Cost per good die', value: 'none', detail: `No good die shipped. Lot cost ${money.lotCost}, all lost.` };
+    return { label: 'Cost per good die', value: 'none', detail: `No good die shipped. Lot cost ${money.lotCost} (${costBreakdown(state, money)}), all lost.` };
   }
-  const detail = `Lot cost ${money.lotCost} ÷ ${money.goodDie.toFixed(1)} good die`
-    + (state.status === 'rejected' ? '. Not paid: the lot was rejected.' : '')
-    + COST_NOTE;
+  const detail = `Lot cost ${money.lotCost} (${costBreakdown(state, money)}) ÷ ${money.goodDie.toFixed(1)} good die. Target ${target} or less`
+    + (state.status === 'rejected' ? '. Not paid: the lot was rejected.' : '.');
   return { label: 'Cost per good die', value: money.costPerGoodDie.toFixed(2), detail };
 }
 
@@ -156,8 +154,9 @@ export function shipView(state, notebook = emptyNotebook(), diagnosis = null) {
     cash: state.cash,
     lotName: lotType.name,
     status: state.status,
-    verdictText: verdictText(state, lotType.route, yieldPercent),
-    // The three numbers, side by side, never combined (DESIGN.md §12).
+    verdictText: verdictText(state, lotType.route, yieldPercent, money),
+    // The three numbers, side by side (DESIGN.md §12). A win needs the yield
+    // and the cost tile on target; cycle time is inside the cost.
     tiles: [
       {
         // A scrapped lot never shipped, so its yield is the yield when it was scrapped.
@@ -166,7 +165,7 @@ export function shipView(state, notebook = emptyNotebook(), diagnosis = null) {
         detail: `Customer spec ${toPercent(CUSTOMER_SPEC)}%`,
       },
       costTile(state, money),
-      { label: 'Cycle time', value: `${state.cycleTime} min`, detail: 'Room time, side stops and events' },
+      { label: 'Cycle time', value: `${state.cycleTime} min`, detail: `Room time, side stops and events: ${CYCLE_TIME_COST_PER_MINUTE} per minute in the lot cost` },
     ],
     steps: stepRows(state, lotType.route),
     stepsNotRun: lotType.route.length - state.stepYields.length,

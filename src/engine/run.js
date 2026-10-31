@@ -26,7 +26,7 @@ import { PRACTICES, EQUIPMENT, MATERIALS, STARTER_IDS } from '../content/content
 import { TOOL_MONITORS } from '../content/toolMonitors.js';
 import { LOT_TYPES } from '../content/lotTypes.js';
 import {
-  STARTING_CASH, HAND_SIZE, SCRAP_LINE, CUSTOMER_SPEC, SCATTER_STRENGTH, TIME_BUDGETS,
+  STARTING_CASH, HAND_SIZE, SCRAP_LINE, CUSTOMER_SPEC, COST_TARGET_PER_GOOD_DIE, SCATTER_STRENGTH, TIME_BUDGETS,
   SIDE_STOP_MINUTES, QTIME_RISK_PER_MINUTE,
 } from '../content/balance.js';
 import { normalizeSeed, shuffle } from './rng.js';
@@ -38,6 +38,7 @@ import { shopStock } from './shop.js';
 import { startingTools, driftRisk, useTool, pmChoices } from './tools.js';
 import { cardInRun, doeOffers } from './doe.js';
 import { drawEvent } from './events.js';
+import { lotMoney } from './cost.js';
 
 // The side stops' own actions live in sideStops.js. They are re-exported
 // here so the rest of the game keeps importing every run action from run.js.
@@ -150,7 +151,7 @@ export function createRun({
     minutesUsed: 0,
     cycleTime: 0,
     stepYields: [],         // after each room: { stepIndex, roomId, yieldAfter, lostAfter } (the ship report)
-    status: 'running',      // 'running' | 'scrapped' | 'shipped' | 'rejected'
+    status: 'running',      // 'running' | 'scrapped' | 'shipped' | 'shippedAtLoss' | 'rejected'
     scrappedBy: null,       // 'scrapLine' | 'player' once scrapped
     diagnosed: null,        // the failure mode named on the ship report (notebook.js), once
     log: [],
@@ -309,8 +310,15 @@ export function resolveStep(state) {
     return addLog(next, `  yield ${percent}: scrapped`);
   }
   if (isLastStep) {
-    const status = yieldNow >= CUSTOMER_SPEC ? 'shipped' : 'rejected';
-    next = { ...next, stepIndex: state.stepIndex, status };
+    // Shipped at or above the yield target wins only if the cost per good
+    // die is at or under its target too (cost.js); over it, the lot ships
+    // at a loss. Below the yield target the customer rejects it.
+    next = { ...next, stepIndex: state.stepIndex };
+    let status = 'rejected';
+    if (yieldNow >= CUSTOMER_SPEC) {
+      status = lotMoney(next).costPerGoodDie <= COST_TARGET_PER_GOOD_DIE[state.lotTypeId] ? 'shipped' : 'shippedAtLoss';
+    }
+    next = { ...next, status };
     return addLog(next, `  yield ${percent}: ${status}`);
   }
   // Still running: the lot steps out into the corridor after this room.

@@ -7,7 +7,9 @@
 //
 // Plays the same seeds with each bot policy, with the starter deck (a new
 // player) and with the full deck (a player with many unlocks), and prints how
-// many lots shipped and the final yields. David chose "both" (28 Oct 2026):
+// many lots won (shipped at the yield target and under the cost target; a
+// lot that ships over the cost target is "at loss", not a win) and the
+// final yields. David chose "both" (28 Oct 2026):
 // the first run is winnable but tight, and unlocks give a clear margin.
 // The targets (approved by David, 28 Oct 2026; idle, random and casual
 // loosened 29 Oct 2026: a lucky lot on healthy tools can ship with no
@@ -42,16 +44,19 @@ export const TARGETS = {
 // Plays seeds 1..count with one policy and totals the results.
 export function runPolicy(policy, count, deck, lotTypeId = 'cuLine') {
   const yields = [];
-  const counts = { shipped: 0, rejected: 0, scrapped: 0 };
+  const costs = [];   // cost per good die of every lot that shipped
+  const counts = { shipped: 0, shippedAtLoss: 0, rejected: 0, scrapped: 0 };
   for (let seed = 1; seed <= count; seed++) {
     const { summary } = playRun(seed, policy, { deck, lotTypeId });
     yields.push(summary.yield * 100);
+    if (summary.status === 'shipped' || summary.status === 'shippedAtLoss') costs.push(summary.costPerGoodDie);
     counts[summary.status] += 1;
   }
   const mean = yields.reduce((sum, y) => sum + y, 0) / yields.length;
+  const meanCost = costs.length > 0 ? costs.reduce((sum, c) => sum + c, 0) / costs.length : null;
   return {
     policy, count, ...counts, shipRate: counts.shipped / count,
-    mean, lowest: Math.min(...yields), highest: Math.max(...yields),
+    mean, lowest: Math.min(...yields), highest: Math.max(...yields), meanCost,
   };
 }
 
@@ -87,13 +92,14 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   const count = Number(args.seeds ?? 100);
   const lotTypeId = args.lot ?? 'cuLine';
   console.log(`Lot type ${lotTypeId}, seeds 1 to ${count}\n`);
-  console.log('deck     policy   shipped rejected scrapped   mean  lowest highest');
+  console.log('deck     policy       won at-loss rejected scrapped   mean  lowest highest  cost/die');
   const results = {};
   const rows = [...POLICIES.map(policy => [policy, 'starter']), ['smart', 'full']];
   for (const [policy, deck] of rows) {
     const r = runPolicy(policy, count, deck, lotTypeId);
     results[deck === 'full' ? 'smartFull' : policy] = r;
-    console.log(`${deck.padEnd(8)} ${policy.padEnd(8)} ${String(r.shipped).padStart(7)} ${String(r.rejected).padStart(8)} ${String(r.scrapped).padStart(8)}   ${r.mean.toFixed(1).padStart(5)}  ${r.lowest.toFixed(1).padStart(6)}  ${r.highest.toFixed(1).padStart(6)}`);
+    const cost = r.meanCost === null ? '-' : r.meanCost.toFixed(2);
+    console.log(`${deck.padEnd(8)} ${policy.padEnd(8)} ${String(r.shipped).padStart(7)} ${String(r.shippedAtLoss).padStart(7)} ${String(r.rejected).padStart(8)} ${String(r.scrapped).padStart(8)}   ${r.mean.toFixed(1).padStart(5)}  ${r.lowest.toFixed(1).padStart(6)}  ${r.highest.toFixed(1).padStart(6)}  ${cost.padStart(8)}`);
   }
   console.log('\nTargets:');
   const checks = checkTargets(results);

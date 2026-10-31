@@ -33,6 +33,7 @@
 .room-facts { margin: 0; display: flex; flex-wrap: wrap; gap: 4px 20px; }
 .seed { font-family: var(--mono); font-size: 15px; }
 .cash { font-family: var(--cond); font-weight: 600; font-size: 18px; }
+.cost-so-far { font-family: var(--cond); font-weight: 600; font-size: 18px; }   /* cost per good die so far, next to cash */
 
 /* --- Panels -------------------------------------------------------------- */
 .panel {
