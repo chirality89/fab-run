@@ -158,7 +158,42 @@ Finished plans (M0 to M4.5 item 4) are in `docs/archive/todo-done.md`. The curre
   - Not tuned yet. The furnace monitor may change (David's answer above), and making cash count rebalances everything, so tune once after both. Cu-line numbers are unchanged; the new tools draw from their own generator.
 - `npm run screens`: 90 pass.
 
-### Task: cash and cycle time count toward winning (David, 30 Oct 2026: "yes count towards winning"): plan, waiting for David's OK
+### Task: cash and cycle time count toward winning: BUILT 31 Oct 2026
+**David's answers (31 Oct 2026):** contamination monitor for the furnace; cost per good die with cycle time folded in; shipping over the cost target is a loss; a replay may still earn a notebook entry (no change).
+
+**Done:**
+- [x] Furnace monitor is now mobile ion charge on a monitor C-V (one-sided, target 2, sigma 0.5 ×1e10/cm²). The anneal's drift feeds gate oxide too (a dirty tube contaminates at the anneal), and the anneal realizes gate oxide. The `driftPattern` engine field stays, unused for now. Physics review: see below.
+- [x] `src/engine/cost.js`: lot cost = 2000 base + cash spent + cycle time × 2 per minute (`CYCLE_TIME_COST_PER_MINUTE`). The ship report's money math moved here from `shipView.js`.
+- [x] A lot that meets the yield spec ships as `shipped` (a win) only if cost per good die ≤ its lot type's target (`COST_TARGET_PER_GOOD_DIE`: Cu line 6.00, NMOS 7.00); otherwise `shippedAtLoss`, "Shipped at a loss … Not a win."
+  - One target did not fit both: NMOS has 13 rooms, so its cycle time is about 200 minutes against 130, and at 6.00 smart NMOS lots reached the spec in only 11 of 40.
+- [x] The ship report's cost tile shows the breakdown and the target; "for reference only" is gone. DESIGN.md §12 updated.
+- [x] "Cost per good die X (target Y)" in the map, room and result headers.
+- [x] Bots score the margin to winning: final yield minus the higher of the yield spec and the yield the cost target needs, plus the old small cash tie-break.
+  - A first try scored cost per good die alone: the bot sold yield for event cash, and 0 of 40 starter lots reached the spec.
+  - A make-believe scrap scored a flat −1, so every option tied and the bot stopped saving lots going under (12% of NMOS smart lots scrapped). Now it scores its yield − 2.
+- [x] `exit-check` counts wins, shows "at loss" and the mean cost per good die.
+- Tests: `tests/cost.test.js` (new, hand-computed: 2266 ÷ 452.236 = 5.0107 ships; 800 cash spent → 6.7796 at a loss). The ship test "for reference only" was replaced: new text hand-computed (2000 + 300 + 0 × 2). `npm test` 296 pass; `npm run screens` 90 pass; phone shots checked.
+
+**exit-check, 100 seeds:**
+
+| Lot | Deck | Policy | Won | At loss | Rejected | Scrapped | Mean | Cost/die |
+|---|---|---|---|---|---|---|---|---|
+| Cu | starter | idle | 5 | 0 | 81 | 14 | 52.8 | 5.10 |
+| Cu | starter | random | 0 | 3 | 86 | 11 | 54.8 | 6.49 |
+| Cu | starter | casual | 25 | 3 | 71 | 1 | 64.8 | 5.80 |
+| Cu | starter | smart | 48 | 1 | 51 | 0 | 68.4 | 5.72 |
+| Cu | full | smart | 97 | 0 | 3 | 0 | 77.8 | 5.40 |
+| NMOS | starter | idle | 1 | 0 | 50 | 49 | 44.2 | 5.45 |
+| NMOS | starter | random | 0 | 2 | 83 | 15 | 52.2 | 7.86 |
+| NMOS | starter | casual | 21 | 5 | 70 | 4 | 63.2 | 6.81 |
+| NMOS | starter | smart | 49 | 0 | 46 | 5 | 67.6 | 6.54 |
+| NMOS | full | smart | **82** | 0 | 15 | 3 | 73.0 | 6.45 |
+
+- Cu line: all 7 targets pass.
+- NMOS: 6 of 7. Full-deck smart wins 82% (target 90%); its misses are on yield, not cost. Not tuned: options for David.
+- Pre-amorphizing implant: still played in 0 of 30 NMOS smart lots. The implant tool is PM'd in 18 of 30 instead; a PM still pays even at 80 in lot cost.
+
+### (Plan as written, 30 Oct 2026)
 **Today:**
 - A lot wins by shipping at or above the 70% fab yield target.
 - Cash only limits buying, and every run ends with more than 1,200 unspent.
