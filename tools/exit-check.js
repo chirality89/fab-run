@@ -21,7 +21,8 @@
 //   spread  smart beats idle by over 10 points (good play matters on the
 //           first run too; the exit test in tasks/next-stages.md)
 // and with every card unlocked:
-//   smart   at least 90%
+//   smart   at least 90% (85% for NMOS: David, 31 Oct 2026. Thirteen rooms
+//           leave more loss that no card answers, so it is a harder product)
 //   spread  smart (full deck) beats idle by over 15 points (choices matter)
 // Exit code 0 if every target holds, 1 if not, so a script can check it.
 
@@ -40,6 +41,16 @@ export const TARGETS = {
   minSpreadPoints: 15,
   minStarterSpreadPoints: 10,
 };
+
+// Targets that differ for one lot type (keyed by lot type id).
+export const TARGET_OVERRIDES = {
+  nmos: { smartFullMinShipRate: 0.85 },
+};
+
+// The targets for one lot type: the shared ones, with its overrides.
+export function targetsFor(lotTypeId = 'cuLine') {
+  return { ...TARGETS, ...(TARGET_OVERRIDES[lotTypeId] ?? {}) };
+}
 
 // Plays seeds 1..count with one policy and totals the results.
 export function runPolicy(policy, count, deck, lotTypeId = 'cuLine') {
@@ -62,22 +73,23 @@ export function runPolicy(policy, count, deck, lotTypeId = 'cuLine') {
 
 // Each target as { ok, text }, given the starter-deck results keyed by
 // policy, and `smartFull`, the smart policy with every card.
-export function checkTargets(results) {
+export function checkTargets(results, lotTypeId = 'cuLine') {
+  const targets = targetsFor(lotTypeId);
   const { idle, random, casual, smart, smartFull } = results;
   const spread = smartFull.mean - idle.mean;
   const starterSpread = smart.mean - idle.mean;
   const pct = fraction => `${(fraction * 100).toFixed(0)}%`;
   return [
-    { ok: idle.shipRate <= TARGETS.idleMaxShipRate, text: `idle ships ${pct(idle.shipRate)} (target at most ${pct(TARGETS.idleMaxShipRate)})` },
-    { ok: random.shipRate <= TARGETS.randomMaxShipRate, text: `random ships ${pct(random.shipRate)} (target under ${pct(TARGETS.randomMaxShipRate)})` },
-    { ok: casual.shipRate <= TARGETS.casualMaxShipRate, text: `casual ships ${pct(casual.shipRate)} (target under ${pct(TARGETS.casualMaxShipRate)})` },
+    { ok: idle.shipRate <= targets.idleMaxShipRate, text: `idle ships ${pct(idle.shipRate)} (target at most ${pct(targets.idleMaxShipRate)})` },
+    { ok: random.shipRate <= targets.randomMaxShipRate, text: `random ships ${pct(random.shipRate)} (target under ${pct(targets.randomMaxShipRate)})` },
+    { ok: casual.shipRate <= targets.casualMaxShipRate, text: `casual ships ${pct(casual.shipRate)} (target under ${pct(targets.casualMaxShipRate)})` },
     {
-      ok: smart.shipRate >= TARGETS.smartMinShipRate && smart.shipRate <= TARGETS.smartMaxShipRate,
-      text: `smart (starter deck) ships ${pct(smart.shipRate)} (target ${pct(TARGETS.smartMinShipRate)} to ${pct(TARGETS.smartMaxShipRate)})`,
+      ok: smart.shipRate >= targets.smartMinShipRate && smart.shipRate <= targets.smartMaxShipRate,
+      text: `smart (starter deck) ships ${pct(smart.shipRate)} (target ${pct(targets.smartMinShipRate)} to ${pct(targets.smartMaxShipRate)})`,
     },
-    { ok: starterSpread > TARGETS.minStarterSpreadPoints, text: `smart (starter deck) beats idle by ${starterSpread.toFixed(1)} points (target over ${TARGETS.minStarterSpreadPoints})` },
-    { ok: smartFull.shipRate >= TARGETS.smartFullMinShipRate, text: `smart (full deck) ships ${pct(smartFull.shipRate)} (target at least ${pct(TARGETS.smartFullMinShipRate)})` },
-    { ok: spread > TARGETS.minSpreadPoints, text: `smart (full deck) beats idle by ${spread.toFixed(1)} points (target over ${TARGETS.minSpreadPoints})` },
+    { ok: starterSpread > targets.minStarterSpreadPoints, text: `smart (starter deck) beats idle by ${starterSpread.toFixed(1)} points (target over ${targets.minStarterSpreadPoints})` },
+    { ok: smartFull.shipRate >= targets.smartFullMinShipRate, text: `smart (full deck) ships ${pct(smartFull.shipRate)} (target at least ${pct(targets.smartFullMinShipRate)})` },
+    { ok: spread > targets.minSpreadPoints, text: `smart (full deck) beats idle by ${spread.toFixed(1)} points (target over ${targets.minSpreadPoints})` },
   ];
 }
 
@@ -102,7 +114,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     console.log(`${deck.padEnd(8)} ${policy.padEnd(8)} ${String(r.shipped).padStart(7)} ${String(r.shippedAtLoss).padStart(7)} ${String(r.rejected).padStart(8)} ${String(r.scrapped).padStart(8)}   ${r.mean.toFixed(1).padStart(5)}  ${r.lowest.toFixed(1).padStart(6)}  ${r.highest.toFixed(1).padStart(6)}  ${cost.padStart(8)}`);
   }
   console.log('\nTargets:');
-  const checks = checkTargets(results);
+  const checks = checkTargets(results, lotTypeId);
   for (const check of checks) console.log(`  ${check.ok ? 'PASS' : 'FAIL'}  ${check.text}`);
   process.exit(checks.every(check => check.ok) ? 0 : 1);
 }

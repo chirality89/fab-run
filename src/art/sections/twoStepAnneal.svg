@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 140" role="img">
+  <title>Two-step anneal: the implanted layer at the top of the Si after a low-temperature regrowth step and then the activation anneal. Only a few damage marks are left, and the junction sits a little deeper than where the implant put it, because of the extra time at temperature.</title>
+  <rect class="mat-si"    x="0" y="40" width="260" height="100"/>
+  <!-- Implanted layer, regrown from the crystal below. -->
+  <rect class="mat-doped" x="0" y="40" width="260" height="52"/>
+  <!-- Damage left after both steps: a few marks. -->
+  <path class="mat-damage" d="M60 58l8 8M68 58l-8 8M140 62l8 8M148 62l-8 8M210 54l8 8M218 54l-8 8"/>
+  <!-- Where the implant put the junction (thin line), and where it is after
+       both steps (dashed): a little deeper. -->
+  <path class="mat-junction-before" d="M0 80h260"/>
+  <path class="mat-junction" d="M0 92h260"/>
+  <text class="art-label-on-dark" x="6" y="28">low T, then activate</text>
+  <text class="art-label" x="6" y="62">doped Si</text>
+  <text class="art-label" x="150" y="76">as implanted</text>
+  <text class="art-label" x="190" y="108">junction</text>
+  <text class="art-label" x="6" y="128">Si</text>
+  <!-- Scale bar. Thin films are drawn at least 6 px thick, so it is a guide, not a ruler. -->
+  <path class="mat-measure" d="M208 16h44M208 12v8M252 12v8"/>
+  <text class="art-label-on-dark" x="252" y="9" text-anchor="end">200 nm</text>
+</svg>

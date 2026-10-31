@@ -103,7 +103,7 @@ export const FAILURE_MODES = [
     unlocks: ['n2Storage'] },
   { id: 'fm_implant_damage', draft: true, name: 'Unannealed implant damage', pattern: 'implant_damage',
     sig: 'Junction leakage after implant; a longer anneal fixes leakage but shifts the device.',
-    unlocks: ['rta', 'spikeAnneal'] },
+    unlocks: ['rta', 'spikeAnneal', 'twoStepAnneal'] },
   { id: 'fm_ped_ttop',       draft: true, name: 'Post-exposure delay T-top', pattern: 'cd_error',
     when: { lot: 'delayBeforeBake' },   // only this cause: CD error also comes from dose, focus and litho drift
     sig: 'Lines come out with a T-shaped top when the lot waited between expose and bake.',
@@ -301,6 +301,28 @@ export const PRACTICES = [
     tradeoff: 'Repairs damage with less diffusion, but single-wafer processing is slow for a 25-wafer lot.',
     physicsNote: 'High temperature for seconds activates dopants and repairs the lattice before they move far (thermal budget).' },
 
+  // An anneal remedy that needs no RTA tool (David, 31 Oct 2026: option B,
+  // stronger NMOS unlocks; measured in tasks/todo.md).
+  { id: 'twoStepAnneal', draft: true, kind: 'practice', room: 'diff', rarity: 'standard',
+    name: 'Two-step anneal', unlockedBy: 'fm_implant_damage',
+    cost: { time: 8, cash: 20 },
+    // Needs: activation anneal (NMOS step 12) realizes implant_damage and
+    // junction_spread. At gate oxidation it has nothing to cut (NEEDS NEW
+    // LOGIC: step-limited cards).
+    effects: [
+      { op: 'defectMult', pattern: 'implant_damage', mult: 0.5 },
+      { op: 'defectMult', pattern: 'junction_spread', mult: 1.1 },
+    ],
+    upgrade: { name: 'Two-step anneal, DOE-tuned regrowth', cost: { time: 8, cash: 20 },
+      effects: [
+        { op: 'defectMult', pattern: 'implant_damage', mult: 0.55 },
+        { op: 'defectMult', pattern: 'junction_spread', mult: 1.05 },
+      ],
+      tradeoff: 'A shorter low-temperature step spreads the junctions less, but leaves a little more damage.',
+      physicsNote: 'A DOE on the regrowth step finds the shortest time that still regrows most of the damaged layer; a shorter step adds less thermal budget, so the dopant moves less, but a few more defects survive into the activation.' },
+    tradeoff: 'Most crystal damage regrows before activation, but the extra time at temperature spreads the junctions a little, and the furnace time costs cash.',
+    physicsNote: 'A low-temperature step first (around 600 °C) regrows the amorphous or damaged layer from the crystal below (solid-phase regrowth) before the high-temperature activation, so fewer end-of-range defects remain. The added thermal budget lets the dopant diffuse a little further.' },
+
   { id: 'sendAheadWafer', draft: true, kind: 'practice', room: 'litho', rarity: 'standard',
     name: 'Send-ahead wafer', unlockedBy: 'fm_dose_offset',
     cost: { time: 10, cash: 40 },
@@ -393,12 +415,12 @@ export const PRACTICES = [
     cost: { time: 6 },
     // Needs: S/D implant step (NMOS step 11) adds channeling_tail on entering, before this card is played.
     effects: [
-      { op: 'defectMult', pattern: 'channeling_tail', mult: 0.6 },
+      { op: 'defectMult', pattern: 'channeling_tail', mult: 0.5 },   // 0.6 until 31 Oct 2026 (David: option B)
     ],
     upgrade: {
       name: 'Larger-tilt implant, DOE-tuned twist', cost: { time: 8 },
       effects: [
-        { op: 'defectMult', pattern: 'channeling_tail', mult: 0.5 },
+        { op: 'defectMult', pattern: 'channeling_tail', mult: 0.4 },
       ],
       tradeoff: 'A shorter tail, because the twist also avoids the crystal planes, but that twist no longer lines up with the gate edges, so the dose is split over four rotations instead of two, which takes longer.',
       physicsNote: 'Even off the main axis, ions can still run along crystal planes (planar channeling). A DOE on the twist (the rotation about the wafer normal) finds an angle that avoids those planes too. Gates then sit at an angle to the beam, so shadows fall on more sides, and the dose is split over four rotations instead of two; each rotation adds handling and settling time.' },
@@ -451,13 +473,13 @@ export const PRACTICES = [
     // Needs: SiN strip + pre-gate clean step (NMOS step 6) adds gate_oxide and qtime_oxide on entering. Play it in that step; the earlier clean (step 1) comes before the risk exists.
     effects: [
       { op: 'defectMult', pattern: 'gate_oxide', mult: 0.5 },
-      { op: 'defectMult', pattern: 'qtime_oxide', mult: 1.5 },
+      { op: 'defectMult', pattern: 'qtime_oxide', mult: 1.3 },   // 1.5 until 31 Oct 2026 (David: option B)
     ],
     upgrade: {
       name: 'HF-last clean, DOE-tuned dip', cost: { time: 4, cash: 40 },
       effects: [
         { op: 'defectMult', pattern: 'gate_oxide', mult: 0.55 },
-        { op: 'defectMult', pattern: 'qtime_oxide', mult: 1.5 },
+        { op: 'defectMult', pattern: 'qtime_oxide', mult: 1.3 },
       ],
       tradeoff: 'Shorter dip, but it strips a little less of the thin oxide and its trapped metals; the Q-time window is as tight as before.',
       physicsNote: 'A DOE on dip time finds a shorter etch. At the same HF concentration, oxide is removed at a finite rate, so less time leaves a little more chemical oxide and contamination, while the hydrogen-terminated surface still regrows native oxide when the lot waits.' },

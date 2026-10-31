@@ -133,3 +133,13 @@ test('exit-check: targets pass on good numbers and fail on bad ones', () => {
   assert.deepEqual(narrow.filter(check => !check.ok).map(check => check.text),
     ['smart (starter deck) beats idle by 8.5 points (target over 10)']);   // only the first-run spread
 });
+
+test('NMOS has its own full-deck target (85%, David 31 Oct 2026); the Cu line keeps 90%', () => {
+  const full = rate => ({ idle: { shipRate: 0, mean: 40 }, random: { shipRate: 0, mean: 50 },
+    casual: { shipRate: 0.2, mean: 60 }, smart: { shipRate: 0.5, mean: 65 }, smartFull: { shipRate: rate, mean: 75 } });
+  const fullCheck = (rate, lot) => checkTargets(full(rate), lot).find(c => c.text.startsWith('smart (full deck) ships')).ok;
+  assert.equal(fullCheck(0.87, 'nmos'), true);
+  assert.equal(fullCheck(0.84, 'nmos'), false);
+  assert.equal(fullCheck(0.87, 'cuLine'), false);
+  assert.equal(fullCheck(0.90), true);
+});
