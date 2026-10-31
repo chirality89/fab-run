@@ -472,7 +472,7 @@ export const PRACTICES = [
     name: 'Chlorinated dry oxidation', unlockedBy: null,
     cost: { time: 5, cash: 60 },
     // Needs: gate oxidation (NMOS step 7) realizes gate_oxide; the furnace's
-    // drift feeds gate_oxide there. At the anneal it has nothing to act on.
+    // contamination drift feeds gate_oxide there and at the anneal (step 12).
     effects: [
       { op: 'defectMult', pattern: 'gate_oxide', mult: 0.7 },
       { op: 'defectMult', pattern: 'particles', mult: 1.2 },

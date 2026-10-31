@@ -56,10 +56,14 @@ export const TOOL_MONITORS = {
   // are visited by NMOS only.
   diff: {
     draft: true,
-    parameter: 'Monitor oxide thickness', unit: 'nm', target: 10, sigma: 0.2, direction: +1,
-    pattern: 'gate_oxide',
-    tradeoff: 'Profiling the furnace less often saves tube time, but its temperature walks and so does the oxide it grows.',
-    physicsNote: 'Thermocouples age and heater zones shift, so the real temperature drifts from the setpoint. Oxide growth rate depends steeply on temperature, so a bare monitor wafer oxidized with each load shows it as a thickness drift. Gate oxide grown off target is the thin, leaky oxide that breaks down early.',
+    // Contamination, not temperature (David, 31 Oct 2026, on the physics
+    // review): fm_gate_breakdown says thickness and C-V are on target, so the
+    // furnace's drift must leave thickness alone. Chlorinated oxidation
+    // counters exactly this drift.
+    parameter: 'Mobile ion charge (monitor C-V)', unit: '1e10/cm2', target: 2, sigma: 0.5, direction: +1,
+    pattern: 'gate_oxide', oneSided: true,
+    tradeoff: 'Cleaning the tube less often saves downtime, but metal and mobile-ion contamination builds up.',
+    physicsNote: 'With use, the quartz tube and boat collect sodium and metals and pass them to the wafers at oxidation and anneal temperatures. A bias-temperature C-V test on a monitor oxide shows them as a flatband shift. Contaminated gate oxide leaks and breaks down early.',
   },
   implant: {
     draft: true,

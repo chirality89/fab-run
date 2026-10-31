@@ -191,11 +191,12 @@ export const LOT_TYPES = {
         realizes: ['particles'] },
       // Diffusion happens in the anneal itself, so junction spread enters
       // here (spike anneal scales it).
-      // The same furnace as gate oxidation: here its temperature drift
-      // spreads the junctions instead of thickening an oxide.
-      { room: 'diff', label: 'Activation anneal', driftPattern: 'junction_spread',
+      // The same furnace as gate oxidation: a contaminated tube passes
+      // mobile ions to the wafers here too, and they reach the gate oxide
+      // under the thin poly, so the furnace's drift (gate_oxide) bites here.
+      { room: 'diff', label: 'Activation anneal',
         adds: { particles: 0.005, junction_spread: 0.016 },
-        realizes: ['particles', 'channeling_tail', 'implant_damage', 'junction_spread'] },
+        realizes: ['particles', 'channeling_tail', 'implant_damage', 'junction_spread', 'gate_oxide'] },
       // Electrical test, then ship against the customer spec. Nothing added here.
       { room: 'metro', label: 'Electrical test',
         adds: {},
