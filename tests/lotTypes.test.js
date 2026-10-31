@@ -105,8 +105,10 @@ test('every risk that enters bites later, and nothing bites before it enters', (
     const waiting = new Set(Object.keys(lotType.startRisks));
     lotType.route.forEach((step, i) => {
       for (const pattern of Object.keys(step.adds)) waiting.add(pattern);
-      // A drifted tool also adds risk to its pattern on entering (tools.js).
-      if (TOOL_MONITORS[step.room]) waiting.add(TOOL_MONITORS[step.room].pattern);
+      // A drifted tool also adds risk to its pattern on entering (run.js):
+      // the step's own driftPattern, else its monitor's; null means none.
+      const driftPattern = step.driftPattern === undefined ? TOOL_MONITORS[step.room]?.pattern : step.driftPattern;
+      if (TOOL_MONITORS[step.room] && driftPattern) waiting.add(driftPattern);
       for (const pattern of step.realizes) {
         assert.ok(waiting.has(pattern),
           `${lotType.id} step ${i + 1} realizes ${pattern}, which has not entered`);
@@ -114,6 +116,18 @@ test('every risk that enters bites later, and nothing bites before it enters', (
       }
     });
     assert.deepEqual([...waiting], [], `${lotType.id}: risks that never bite`);
+  }
+});
+
+test('a step\'s driftPattern is a pattern its room has a monitor for, and the step realizes it', () => {
+  for (const lotType of ALL_LOT_TYPES) {
+    lotType.route.forEach((step, i) => {
+      if (step.driftPattern === undefined || step.driftPattern === null) return;   // null: no drift here
+      const where = `${lotType.id} step ${i + 1}`;
+      assert.ok(TOOL_MONITORS[step.room], `${where}: room ${step.room} has no monitor`);
+      assert.ok(Object.hasOwn(PATTERNS, step.driftPattern), `${where}: ${step.driftPattern} is not a pattern`);
+      assert.ok(step.realizes.includes(step.driftPattern), `${where}: ${step.driftPattern} is not realized here`);
+    });
   }
 });
 
@@ -139,18 +153,19 @@ test('cuLine route risks alone (adds and realizes, no step effects): center 0.75
 
 // NMOS has no center-to-edge pattern (no depth_variation), so center and
 // inner sites match; only the edge ring sets the outer sites apart.
-// Hand check (risks cut to 52% on 30 Oct 2026): even risk realized 0.297
-// (12 steps of particles 0.005, plus cd 0.032, residue 0.042, dishing
-// 0.031, rr_drift 0.021, gate oxide 0.021, Q-time 0.016, underlayer 0.016,
-// channeling 0.021, implant damage 0.021, junction spread 0.016);
-// e^-0.297 = 0.743044. Edge ring 0.032 × 1.5625 more on the outer 16
-// sites: 0.706805. Yield (9 × center and inner + 16 × outer) / 25 =
-// 0.719851. Before the cut: 0.565525, 0.514917, 0.533136.
-test('nmos doing nothing: center 0.743044, inner 0.743044, outer 0.706805, yield 0.719851', () => {
+// Hand check (risks cut to 50% on 31 Oct 2026; python first): even risk
+// realized 0.285 (12 steps of particles 0.005, plus cd 0.030, residue 0.040,
+// dishing 0.030, rr_drift 0.020, gate oxide 0.020, Q-time 0.015, underlayer
+// 0.015, channeling 0.020, implant damage 0.020, junction spread 0.015);
+// e^-0.285 = 0.752014. Edge ring 0.030 × 1.5625 more on the outer 16 sites:
+// 0.717577. Yield (9 × center and inner + 16 × outer) / 25 = 0.729974.
+// At 52% (30 Oct): 0.743044, 0.706805, 0.719851. Before any cut: 0.565525,
+// 0.514917, 0.533136.
+test('nmos doing nothing: center 0.752014, inner 0.752014, outer 0.717577, yield 0.729974', () => {
   const lot = walkRouteDoingNothing(LOT_TYPES.nmos);
-  const byRing = [0.743044, 0.743044, 0.706805];
+  const byRing = [0.752014, 0.752014, 0.717577];
   lot.sites.forEach((s, i) => close(s, byRing[ring(i)], `site ${i}`));
-  close(lotYield(lot), 0.719851, 'yield');
+  close(lotYield(lot), 0.729974, 'yield');
 });
 
 // The NMOS lot is not offered on screen yet, so the bot plays it through

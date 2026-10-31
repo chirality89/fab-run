@@ -51,6 +51,27 @@ export const TOOL_MONITORS = {
     tradeoff: 'Topping up the bath less often is cheaper, but fill gets worse.',
     physicsNote: 'Plating additives break down with use, and their by-products weaken bottom-up fill.',
   },
+  // Diffusion and implant (NMOS), added 30 Oct 2026 (David): each room's
+  // drift is read on SPC and countered by its starter card. Both rooms
+  // are visited by NMOS only.
+  diff: {
+    draft: true,
+    // Contamination, not temperature (David, 31 Oct 2026, on the physics
+    // review): fm_gate_breakdown says thickness and C-V are on target, so the
+    // furnace's drift must leave thickness alone. Chlorinated oxidation
+    // counters exactly this drift.
+    parameter: 'Mobile ion charge (monitor C-V)', unit: '1e10/cm2', target: 2, sigma: 0.5, direction: +1,
+    pattern: 'gate_oxide', oneSided: true,
+    tradeoff: 'Cleaning the tube less often saves downtime, but metal and mobile-ion contamination builds up.',
+    physicsNote: 'With use, the quartz tube and boat collect sodium and metals and, at oxidation and anneal temperatures, pass them to the wafers. A bias-temperature C-V test on a monitor oxide shows the mobile ions (sodium, potassium) as a flatband shift. It does not see the metals directly, but both come from the same dirty tube, so a rising count is the signal to clean it. Mobile ions make the threshold voltage unstable; metals in the oxide make it leak and break down early.',
+  },
+  implant: {
+    draft: true,
+    parameter: 'Monitor sheet resistance', unit: 'ohm/sq', target: 100, sigma: 2, direction: -1,
+    pattern: 'channeling_tail',
+    tradeoff: 'Checking the beam angle less often saves setup time, but the angle wanders and more ions run down crystal channels.',
+    physicsNote: 'If the beam or wafer angle drifts toward a crystal axis, more ions channel deep before they stop. The deeper, wider dopant profile lowers the sheet resistance of an annealed monitor wafer. It costs yield only after the anneal, where the deep tail makes the junctions deeper and the short transistors leak.',
+  },
   cmp: {
     draft: true,
     parameter: 'Removal rate', unit: 'nm/min', target: 250, sigma: 10, direction: -1,

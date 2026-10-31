@@ -124,6 +124,108 @@ Finished plans (M0 to M4.5 item 4) are in `docs/archive/todo-done.md`. The curre
 - **Answered (David, 30 Oct):** "call it fab yield": the Spec entry now says the yield bar's mark is the fab yield target. Reviewer's question was: real customers rarely put a lot-yield number in their spec. They specify parametrics and reliability, and yield is mostly the fab's cost. Is "the customer's requirement the lot must meet" acceptable shorthand?
 - **Left out for now:** tapping an underlined word in room text to open its term. The Words button gives the same help from every screen. Linking words inside card text needs the text split into pieces, which is a bigger UI change. Do it if playtesters still get stuck.
 
+### Task: diffusion and implant tools and starter cards (30 Oct 2026, David: "yes those cards"): built
+- [x] **Tool monitors** (`toolMonitors.js`):
+  - Diffusion: monitor oxide thickness (furnace temperature drift), feeding `gate_oxide`. The anneal step names its own drift pattern, `junction_spread` (`driftPattern` in `lotTypes.js`): the same furnace, but no oxide is grown there.
+  - Implant: monitor sheet resistance (beam-angle drift), feeding `channeling_tail`, which bites at the anneal.
+- [x] **Two small engine changes, to keep the Cu line exactly as it was:**
+  1. `tools.js`: diffusion and implant draw their starting health and SPC history from a generator of their own. Every seed keeps the tools, PM rolls and SPC points it had for the other rooms. Without this, the PM roll in the CMP hand check moved from 84 to 93.
+  2. `run.js`: a route step may name `driftPattern`. That's 2 lines, plus a test that the pattern is real and its step realizes it.
+- [x] **Starter cards**, each with a DOE version and cross-section art:
+  - `chlorinatedOxidation` (diffusion): gate_oxide ×0.7, particles ×1.2, 60 cash.
+  - `preAmorphizingImplant` (implant): channeling ×0.4, implant damage ×1.6, 40 cash. Damage is ×1.6, not the ×1.4 in the research table, so it breaks even on a centred beam and pays only when the beam-angle chart drifts.
+- [x] The rinse card's text names both Q-time windows. It no longer says "barrier" on NMOS (playtest round 2).
+- **Measured (NMOS, smart bot, seeds 1–30):**
+  - Chlorinated oxidation is played in 23 of 30 lots: a real choice.
+  - The pre-amorphizing implant is played in none. On a fixed scatter-free run it gains more than its cash in about half the seeds (median 0.43 points, max 5.9). The bot PMs the implant tool instead, because a PM costs 40 minutes and no cash, and minutes count for nothing yet. That's the next task.
+- Tests: `npm test` 289 pass. The expected starter deck now lists the two new ids; they are never dealt on the Cu line, which has no diffusion or implant room.
+- **Physics review (30 Oct 2026):** the implant monitor, the pre-amorphizing implant, the anneal's junction-spread drift and the art all pass. Applied: chlorine's downside is corroded gas lines and exhaust (not the quartzware), a stale sentence was removed, and the end-of-range note and the implant leakage wording were sharpened.
+  - **Must-fix, for David:** the furnace monitor contradicts the evidence. `fm_gate_breakdown` says thickness and C-V are on target, but a temperature drift makes the oxide off target (and thicker, not thinner). Chlorine also doesn't fix a temperature drift.
+  - The reviewer's fix: monitor **contamination** instead (mobile ion charge on a monitor C-V, one-sided). The tube and boat collect sodium and metals with use, and chlorine cleans exactly that.
+  - The anneal's junction-spread drift would then need its own temperature monitor, or be dropped.
+- **NMOS exit-check with the two new tools and cards (100 seeds):**
+
+  | Deck | Policy | Ships | Mean yield |
+  |---|---|---|---|
+  | Starter | idle | 1% | 44.1 |
+  | Starter | random | 2% | 51.8 |
+  | Starter | casual | 30% | 63.9 |
+  | Starter | smart | 49% | 67.7 |
+  | Full | smart | **87%** | 74.2 |
+
+  - Smart beats idle by 23.6 points on the starter deck.
+  - **Six of seven targets pass. Full-deck smart ships 87%, against a target of at least 90%:** two more drifting tools add loss.
+  - Not tuned yet. The furnace monitor may change (David's answer above), and making cash count rebalances everything, so tune once after both. Cu-line numbers are unchanged; the new tools draw from their own generator.
+- `npm run screens`: 90 pass.
+
+### Task: cash and cycle time count toward winning: BUILT 31 Oct 2026
+**David's answers (31 Oct 2026):** contamination monitor for the furnace; cost per good die with cycle time folded in; shipping over the cost target is a loss; a replay may still earn a notebook entry (no change).
+
+**Done:**
+- [x] Furnace monitor is now mobile ion charge on a monitor C-V (one-sided, target 2, sigma 0.5 ×1e10/cm²). The anneal's drift feeds gate oxide too (a dirty tube contaminates at the anneal), and the anneal realizes gate oxide. The `driftPattern` engine field stays, unused for now. Physics review: see below.
+- [x] `src/engine/cost.js`: lot cost = 2000 base + cash spent + cycle time × 2 per minute (`CYCLE_TIME_COST_PER_MINUTE`). The ship report's money math moved here from `shipView.js`.
+- [x] A lot that meets the yield spec ships as `shipped` (a win) only if cost per good die ≤ its lot type's target (`COST_TARGET_PER_GOOD_DIE`: Cu line 6.00, NMOS 7.00); otherwise `shippedAtLoss`, "Shipped at a loss … Not a win."
+  - One target did not fit both: NMOS has 13 rooms, so its cycle time is about 200 minutes against 130, and at 6.00 smart NMOS lots reached the spec in only 11 of 40.
+- [x] The ship report's cost tile shows the breakdown and the target; "for reference only" is gone. DESIGN.md §12 updated.
+- [x] "Cost per good die X (target Y)" in the map, room and result headers.
+- [x] Bots score the margin to winning: final yield minus the higher of the yield spec and the yield the cost target needs, plus the old small cash tie-break.
+  - A first try scored cost per good die alone: the bot sold yield for event cash, and 0 of 40 starter lots reached the spec.
+  - A make-believe scrap scored a flat −1, so every option tied and the bot stopped saving lots going under (12% of NMOS smart lots scrapped). Now it scores its yield − 2.
+- [x] `exit-check` counts wins, shows "at loss" and the mean cost per good die.
+- Tests: `tests/cost.test.js` (new, hand-computed: 2266 ÷ 452.236 = 5.0107 ships; 800 cash spent → 6.7796 at a loss). The ship test "for reference only" was replaced: new text hand-computed (2000 + 300 + 0 × 2). `npm test` 296 pass; `npm run screens` 90 pass; phone shots checked.
+
+**exit-check, 100 seeds:**
+
+| Lot | Deck | Policy | Won | At loss | Rejected | Scrapped | Mean | Cost/die |
+|---|---|---|---|---|---|---|---|---|
+| Cu | starter | idle | 5 | 0 | 81 | 14 | 52.8 | 5.10 |
+| Cu | starter | random | 0 | 3 | 86 | 11 | 54.8 | 6.49 |
+| Cu | starter | casual | 25 | 3 | 71 | 1 | 64.8 | 5.80 |
+| Cu | starter | smart | 48 | 1 | 51 | 0 | 68.4 | 5.72 |
+| Cu | full | smart | 97 | 0 | 3 | 0 | 77.8 | 5.40 |
+| NMOS | starter | idle | 1 | 0 | 50 | 49 | 44.2 | 5.45 |
+| NMOS | starter | random | 0 | 2 | 83 | 15 | 52.2 | 7.86 |
+| NMOS | starter | casual | 21 | 5 | 70 | 4 | 63.2 | 6.81 |
+| NMOS | starter | smart | 49 | 0 | 46 | 5 | 67.6 | 6.54 |
+| NMOS | full | smart | **82** | 0 | 15 | 3 | 73.0 | 6.45 |
+
+- Cu line: all 7 targets pass.
+- NMOS: 6 of 7. Full-deck smart wins 82% (target 90%); its misses are on yield, not cost. Not tuned: options for David.
+- **Physics review of the furnace switch (31 Oct 2026), applied:** the breakdown signature now says oxide thickness (optical and C-V) is on target and points at the mobile-ion monitor; the monitor note says C-V sees mobile ions, not metals, and sodium shifts threshold voltage while metals cause the leakage; the pattern label drops "thin". The anneal counts no furnace drift (`driftPattern: null`, its option b): the doped poly cap holds back sodium, and chlorine must not seem to help an anneal. NMOS re-measured: full-deck smart 84%, starter smart 51%, all else PASS.
+  - **For David:** option (a) instead keeps the drift at the anneal through metals that diffuse through the poly (at full strength, a simplification), and renames the card "Chlorine in the furnace ambient" so it honestly works there too.
+- **David, 31 Oct 2026: "Switch off, A, cheaper, open PR".** Anneal drift stays off. NMOS risks cut to 50% of the drafted sizes (do-nothing test hand-computed first: 0.752014 / 0.717577 / yield 0.729974). Pre-amorphizing implant 40 → 20 cash (and its DOE version).
+  - NMOS exit-check after both (100 seeds): idle 2%, random 0%, casual 32%, starter smart 63% (beats idle by 22.9), **full-deck smart 87% (FAIL, target 90%)**, spread 28.3. Cu line unchanged, all 7 PASS.
+  - A deeper cut is not possible: casual is at 32% against the 35% cap. The full deck adds only 24 points of wins over the starter deck on NMOS: its unlockable cards are weak. Next lever: the unlockable NMOS cards (option B), David to choose.
+  - Pre-amorphizing implant still played in 0 of 30 lots at 20 cash. Its ×1.6 damage makes it a loss on an aligned beam, and the bot PMs the implant tool (21 of 30 lots) before a drift gets large.
+- Pre-amorphizing implant (before the price cut): played in 0 of 30 NMOS smart lots. The implant tool is PM'd in 18 of 30 instead; a PM still pays even at 80 in lot cost.
+
+### (Plan as written, 30 Oct 2026)
+**Today:**
+- A lot wins by shipping at or above the 70% fab yield target.
+- Cash only limits buying, and every run ends with more than 1,200 unspent.
+- Cycle time is shown but never used.
+- The ship report shows cost per good die "for reference only".
+- So PMs, side stops and shopping cost nothing that matters, and events that trade yield for cash are traps (playtest round 2, issue 5).
+
+**Proposal: one number, cost per good die, with cycle time inside it.**
+- **Lot cost** = base cost (2,000) + cash spent + **cycle time × a carrying cost per minute** (for example 2 per minute, for the tool time and the money tied up while the lot waits). This is the fab's own measure of a lot.
+- **Win** = the lot ships at or above the yield target **and** its cost per good die is at or under a **cost target**. Shipped but over the target reads "Shipped at a loss": not a win. A rejected or scrapped lot is a loss as before.
+- **The ship report** shows both checks, yield and cost, each with its target, and drops "for reference only".
+- **The yield bar stays the health bar.** A cost line goes in the header ("Cost so far … / target …") so spending is visible during the run.
+- **The numbers** (cost target, cost per minute) are balance numbers in `balance.js`, set by measuring:
+  - doing nothing should fail on yield;
+  - good, frugal play should win about half the time;
+  - "buy everything, PM everything" should often fail on cost.
+- **The bots** score cost per good die, not yield plus a fixed cash value, and `exit-check` counts wins instead of ships. The targets stay the same.
+- **Game rule 1 is unchanged**: a run still ends when the lot ships or is scrapped. Only what counts as winning changes.
+
+**Simpler alternative:** lower the starting cash (for example 1,500 → 600), so cash competes without a new rule. Cycle time still wouldn't count.
+
+**Questions for David:**
+1. Is cost per good die with cycle time folded in the right measure, or should cycle time be its own target (for example a hot-lot deadline)?
+2. When a lot ships over the cost target, is that a loss, or a "shipped, poor margin" grade that still counts?
+3. Notebook farming: I read your "yes" as "a replay of the same seed may still earn the entry", so nothing changes. Say if you meant the other way.
+
 ### Task: NMOS you can play (item 2): built 30 Oct 2026
 **David's answers (30 Oct 2026):**
 - Cut risks (A).
@@ -315,6 +417,7 @@ P0 and P1 of `tasks/plan-winnable.md` (branch `claude/winnable-p0-p1`):
   5. **Balance**: with the 5 starter cards the smart bot's best starter-deck run is 63.4% (spec 70%); mean 60.2% (was 58.1%). Options for P3: first run is a hard learning run; or move the balance levers; or both (recommended).
 
 ## NEEDS NEW LOGIC
+- **Step-limited cards** (physics review, 31 Oct 2026): a step-level `when` (for example `when: { step: 'Gate oxidation' }`) so chlorinated oxidation only works where an oxide grows. Until then the NMOS anneal counts no furnace drift (`driftPattern: null`), so the card has nothing to cut there.
 
 Content in `src/content/content.js` that needs engine behavior beyond the eight effect operations:
 
@@ -326,6 +429,7 @@ Content in `src/content/content.js` that needs engine behavior beyond the eight 
 - `resets: { slot, field, fraction }`: fresh resist and bath analysis reset a material's shelf life or decay
 - `limit: { perLayer: 1 }`: strip and re-expose once per layer
 - `shelfLife`: counts rooms visited; at 0 the material stops helping
+- A card limited to one step of a room visited twice: `chlorinatedOxidation` is dealt at the NMOS anneal too, where it only adds particles (physics review, 30 Oct 2026). Needs `when: { step }`, or the screen saying "nothing to act on here".
 - Dead cards: a practice whose target pattern was already realized earlier on the route (e.g. `etchStopLayer` at the second dep visit) should be greyed out or hidden
 - Tool wear: tool health stays at 100 in run.js; no rule yet for how much a room wears its tool
 - Consumables: no engine code plays them yet (the starter qual wafer and spare part, and the unlocked bath analysis, fresh resist, implant monitor and oxide monitor). They are left off the Notebook page's "Unlocks" until they can be used (David, 26 Oct 2026)

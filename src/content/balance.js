@@ -129,6 +129,24 @@ export const DOE_OFFER_MAX = 3;
 // run to this and divides by the good die. Placeholder until M7.
 export const LOT_BASE_COST = 2000;
 
+// --- Cost counts toward winning (David, 31 Oct 2026). ---
+
+// What one minute of cycle time adds to the lot cost: the tool time and the
+// money tied up while the lot waits. A 40-minute PM stop adds 80.
+export const CYCLE_TIME_COST_PER_MINUTE = 2;
+
+// The highest cost per good die (lot cost ÷ good die) a shipped lot may
+// have and still win, for each lot type: a different product has a
+// different price. Over it, the lot ships at a loss, which is not a win.
+// Measured with the bots, 31 Oct 2026 (tasks/todo.md): doing nothing fails
+// on yield, good frugal play wins about half the time on the starter deck,
+// and spending freely (the random bot) ships over the target. NMOS has 13
+// rooms against the Cu line's 9, so its cycle time, and its cost, is higher.
+export const COST_TARGET_PER_GOOD_DIE = {
+  cuLine: 6.0,
+  nmos: 7.0,
+};
+
 // --- Diagnosis (M4 item 1). Agreed with David, 25 Oct 2026. ---
 
 // A failure mode counts as a right diagnosis when its pattern cost the lot

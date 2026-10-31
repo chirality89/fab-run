@@ -26,6 +26,8 @@
 
 import { nextRandom, pick } from '../src/engine/rng.js';
 import { lotYield } from '../src/engine/lot.js';
+import { lotMoney, DIE_PER_LOT } from '../src/engine/cost.js';
+import { CUSTOMER_SPEC, COST_TARGET_PER_GOOD_DIE } from '../src/content/balance.js';
 import {
   legalCards, playCard, enterStep, resolveStep, walkCorridor,
   buyItem, pmTool, doeCard, whyCannotDoe, chooseEventOption,
@@ -33,8 +35,13 @@ import {
 import { whyCannotBuy } from '../src/engine/shop.js';
 import { findEvent } from '../src/engine/events.js';
 
-// What a unit of cash is worth, in yield (0..1). 1000 cash = 5 points. So a
-// 200-cash item must gain more than 1 point of yield to be worth buying.
+// Cash and cycle time count toward winning (David, 31 Oct 2026). A lot wins
+// when its yield is at least the yield target AND at least the yield that
+// meets the cost target (lot cost ÷ (cost target × die per lot)). The bot
+// scores a state by how far its make-believe final yield clears the higher
+// of the two: the margin to winning. A first try that scored only cost per
+// good die sold yield for cash and never reached the yield target.
+// Cash still in hand is a tie-break: 1000 cash = 5 points, as before.
 const CASH_VALUE = 0.00005;
 // An option must beat "do nothing" by at least this much (0.05 points).
 const MIN_GAIN = 0.0005;
@@ -50,7 +57,7 @@ export function noiseFor(policy) {
   return policy === 'casual' ? CASUAL_NOISE : 0;
 }
 
-// The yield the lot would finish with if, from this state on, nothing more
+// The state the lot would finish in if, from this state on, nothing more
 // were played or bought. Runs on a copy with scatter off.
 function idleFinish(state) {
   let current = { ...state, scatterStrength: 0 };
@@ -59,13 +66,19 @@ function idleFinish(state) {
     else if (current.corridor !== null) current = walkCorridor(current, null);
     else current = enterStep(current);
   }
-  return lotYield(current.lot);
+  return current;
 }
 
-// The score of a state: its make-believe final yield, plus a small value for
-// the cash still in hand (see CASH_VALUE).
+// The score of a state: the margin to winning at its make-believe finish
+// (see above), plus the cash tie-break. A make-believe scrap scores its
+// yield at scrap minus 2: below any lot that ships, but still higher the
+// closer it came, so the bot keeps fighting for a lot that is going under
+// (a flat score there made every option equal, and the bot gave up).
 function score(state) {
-  return idleFinish(state) + CASH_VALUE * state.cash;
+  const end = idleFinish(state);
+  if (end.status === 'scrapped') return lotYield(end.lot) - 2;
+  const costYield = lotMoney(end).lotCost / (COST_TARGET_PER_GOOD_DIE[end.lotTypeId] * DIE_PER_LOT);
+  return lotYield(end.lot) - Math.max(CUSTOMER_SPEC, costYield) + CASH_VALUE * end.cash;
 }
 
 // A copy of the state with made-up dice in place of the run's: a new seed

@@ -130,6 +130,7 @@ function drawMapHeader(view, notebook, words) {
     el('span', 'seed', `Seed ${view.seed}`),
     el('span', 'cash', `Cash ${view.cash}`),
     el('span', 'cash', `Cycle time ${view.cycleTime} min`),
+    el('span', 'cost-so-far', view.costText),
   );
   header.append(facts, headerButtons(notebook, words));
   return header;

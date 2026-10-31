@@ -57,7 +57,7 @@ export const PATTERNS = {
   qtime_oxide:      'native oxide grew while the lot waited',
   implant_damage:   'crystal damage not repaired',
   junction_spread:  'dopant diffused too far',
-  gate_oxide:       'thin gate oxide that leaks or breaks down early',
+  gate_oxide:       'gate oxide that leaks or breaks down early',
   channeling_tail:  'implanted dopant ran deep along crystal channels',
 };
 
@@ -121,7 +121,7 @@ export const FAILURE_MODES = [
     sig: 'Source/drain junction leakage and higher series resistance on every site and wafer, not just the most over-etched dies; oxide measured after the poly etch is thin or gone beside the gate, and the cross-section shows the silicon recessed or pitted there.',
     unlocks: ['softLandGateEtch'] },
   { id: 'fm_gate_breakdown', draft: true, name: 'Gate oxide breakdown', when: { lot: 'siliconFrontEnd' }, pattern: 'gate_oxide',
-    sig: 'On a ramped-voltage test the gate oxide breaks down at a low voltage, with a wide spread of breakdown voltage from site to site; the low-voltage breakdowns sit at random sites, thickness and capacitance-voltage are on target, and it is worse on lots with more particles or metal contamination.',
+    sig: 'On a ramped-voltage test the gate oxide breaks down at a low voltage, with a wide spread of breakdown voltage from site to site; the low-voltage breakdowns sit at random sites, oxide thickness (optical and C-V) is on target, and it is worse on lots with more particles or metal contamination, or after the furnace\'s mobile-ion monitor has climbed.',
     unlocks: ['hfLastClean'] },
   { id: 'fm_gate_native_oxide', draft: true, name: 'Native oxide under the gate', when: { lot: 'siliconFrontEnd' }, pattern: 'qtime_oxide',
     sig: 'Capacitance-voltage shows an electrical oxide thickness larger than the furnace recipe gives, and threshold voltage is shifted, but breakdown voltage is normal; the gap grows with the wait after the pre-gate clean.',
@@ -465,6 +465,50 @@ export const PRACTICES = [
     physicsNote: 'Dilute HF removes silicon dioxide and the metals trapped in it, leaving a hydrogen-terminated silicon surface that makes a cleaner, more uniform gate oxide. That surface is only stable for a short time; it regrows native oxide in air and moisture.' },
 
   // --- Starter practices for the Cu line rooms (26 Oct 2026). Plainer and weaker than the unlockable remedies. ---
+  // Starter cards for the NMOS diffusion and implant rooms (David, 30 Oct
+  // 2026). Each counters its room's tool drift (toolMonitors.js) at a cost,
+  // so the SPC chart says when it is worth playing.
+  { id: 'chlorinatedOxidation', draft: true, kind: 'practice', room: 'diff', rarity: 'standard',
+    name: 'Chlorinated dry oxidation', unlockedBy: null,
+    cost: { time: 5, cash: 60 },
+    // Needs: gate oxidation (NMOS step 7) realizes gate_oxide; the furnace's
+    // contamination drift feeds gate_oxide there. At the anneal it has
+    // nothing to act on (no drift counted there; NEEDS NEW LOGIC: step-limited cards).
+    effects: [
+      { op: 'defectMult', pattern: 'gate_oxide', mult: 0.7 },
+      { op: 'defectMult', pattern: 'particles', mult: 1.2 },
+    ],
+    upgrade: {
+      name: 'Chlorinated oxidation, DOE-tuned chlorine', cost: { time: 5, cash: 60 },
+      effects: [
+        { op: 'defectMult', pattern: 'gate_oxide', mult: 0.75 },
+        { op: 'defectMult', pattern: 'particles', mult: 1.1 },
+      ],
+      tradeoff: 'Less chlorine sheds fewer particles, but cleans up a little less of the oxide.',
+      physicsNote: 'A DOE on the chlorine fraction finds the point where most mobile ions are already tied up; past it, chlorine piles up at the silicon surface and can roughen or pit it, and corrodes the gas lines faster.' },
+    tradeoff: 'A cleaner gate oxide, but the chlorine corrodes gas lines and the exhaust, which shed particles and metals, and the gas and scrubbing cost cash.',
+    physicsNote: 'A little chlorine-bearing gas in a dry oxidation ties up mobile ions such as sodium and getters metal contamination at the silicon surface, so the oxide leaks and breaks down less. Chlorine also corrodes metal gas lines and the exhaust, raising particle counts and maintenance.' },
+
+  { id: 'preAmorphizingImplant', draft: true, kind: 'practice', room: 'implant', rarity: 'standard',
+    name: 'Pre-amorphizing implant', unlockedBy: null,
+    cost: { time: 6, cash: 20 },
+    // Needs: S/D implant (NMOS step 11) adds channeling_tail and
+    // implant_damage on entering; both bite at the anneal.
+    effects: [
+      { op: 'defectMult', pattern: 'channeling_tail', mult: 0.4 },
+      { op: 'defectMult', pattern: 'implant_damage', mult: 1.6 },
+    ],
+    upgrade: {
+      name: 'Pre-amorphizing implant, DOE-tuned depth', cost: { time: 6, cash: 20 },
+      effects: [
+        { op: 'defectMult', pattern: 'channeling_tail', mult: 0.45 },
+        { op: 'defectMult', pattern: 'implant_damage', mult: 1.4 },
+      ],
+      tradeoff: 'A shallower amorphous layer leaves fewer end-of-range defects, but a little more of the tail gets past it.',
+      physicsNote: 'A DOE on the amorphizing energy places the amorphous edge just deep enough to hold the dopant; a deeper edge puts its end-of-range defects closer to the junction, where they cause leakage.' },
+    tradeoff: 'Almost no channeling, whatever the beam angle, but the extra implant leaves end-of-range defects the anneal must repair. On a well-aligned beam it about breaks even.',
+    physicsNote: 'A heavy, electrically inactive ion (such as germanium or silicon) implanted first turns the surface layer amorphous, so there are no crystal channels for the dopant to run down. The anneal regrows the crystal from below, but defects collect just under the old amorphous edge (end-of-range defects) and can cause junction leakage if they are not annealed out.' },
+
   { id: 'extraDiRinse', draft: true, kind: 'practice', room: 'clean', rarity: 'standard',
     name: 'Extra DI-water rinse', unlockedBy: null,
     cost: { time: 3, cash: 10 },
@@ -479,7 +523,7 @@ export const PRACTICES = [
       ],
       tradeoff: 'Shorter and less water time, so less oxide regrowth, but it also carries off fewer particles.',
       physicsNote: 'A DOE on rinse time and flow finds the point where most loose particles are gone; the rest are held by surface forces that more flow barely changes, while a shorter soak in water with dissolved oxygen grows less oxide.' },
-    tradeoff: 'Fewer loose particles, but it costs minutes of a short budget, and wafers wet longer in oxygen-bearing water grow a little more oxide. That only matters after the strip clean, where the barrier goes on next.',
+    tradeoff: 'Fewer loose particles, but it costs minutes of a short budget, and wafers wet longer in oxygen-bearing water grow a little more oxide. That only matters in the clean just before a Q-time window (before the barrier on the Cu line, before the gate oxide on NMOS).',
     physicsNote: 'Rinsing with more DI water carries away loose particles, but it does not break the bond of small ones stuck by surface forces (that takes megasonic energy). Water holds dissolved oxygen, which grows native oxide on a bare surface.' },
 
   { id: 'chamberPurge', draft: true, kind: 'practice', room: 'dep', rarity: 'standard',

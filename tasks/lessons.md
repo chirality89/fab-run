@@ -400,3 +400,8 @@ The expected names were written from the items' ids, not read from `content.js`.
 - **What happened:** the Words button went into `drawHeader`, the room's top bar. The room screen got its `words` action, but the result screen after Run uses the same `drawHeader` and didn't. Every Run showed "Something went wrong". I committed after the unit tests passed, while the screen tests were still running, and only the etch screen tests caught it.
 - **Root cause:** I changed a shared drawing function's inputs and updated the callers I was thinking of, not every caller. Unit tests don't draw screens.
 - **Rule:** when a drawing function gets a new input, grep every caller (`grep -n "drawHeader(" src/ui/*.js`) and pass it everywhere. Don't commit a UI change until `npm run screens` has finished green. A screen test should open each new button from every screen that shows it.
+
+## The bot gave up on lots going under, and sold yield for cash (31 Oct 2026)
+- **What happened:** with cost counting, a bot scoring only cost per good die took every cash event and never reached the yield spec. Then a make-believe scrap scored a flat −1, so every option tied and the bot stopped trying to save the lot: 12% of NMOS smart lots were scrapped.
+- **Root cause:** the score did not match the win rule (two targets), and it had a flat region where all options look equal.
+- **Rule:** a bot's score must be the margin to the actual win rule, and must keep a slope everywhere, including in losing states. When a bot's scrap or loss rate jumps after a scoring change, check for ties first.

@@ -26,6 +26,7 @@
 import { pathToFileURL } from 'node:url';
 import { normalizeSeed, pick } from '../src/engine/rng.js';
 import { lotYield } from '../src/engine/lot.js';
+import { lotMoney } from '../src/engine/cost.js';
 import {
   createRun, enterStep, legalCards, playCard, resolveStep, walkCorridor, buyItem, pmTool, doeCard, whyCannotDoe,
   chooseEventOption,
@@ -203,6 +204,7 @@ export function playRun(seed, policy = 'idle', options = {}) {
 
   const summary = {
     seed, policy, status: state.status, yield: lotYield(state.lot), cash: state.cash,
+    costPerGoodDie: lotMoney(state).costPerGoodDie,
     minutesUsed: state.minutesUsed, cycleTime: state.cycleTime, cardsPlayed, sideStops, itemsBought, toolsPmd, cardsUpgraded, eventChoices, lowestCashAfterBuying,
   };
   return { state, summary };
@@ -221,6 +223,7 @@ function printSummary(summary) {
   console.log(`Status:        ${summary.status}`);
   console.log(`Final yield:   ${(summary.yield * 100).toFixed(2)}%`);
   console.log(`Cash left:     ${summary.cash}`);
+  console.log(`Cost per good die: ${summary.costPerGoodDie === null ? 'none' : summary.costPerGoodDie.toFixed(2)}`);
   console.log(`Minutes played: ${summary.minutesUsed}`);
   console.log(`Cycle time:    ${summary.cycleTime} min`);
   console.log(`Cards played:  ${summary.cardsPlayed.length} (${summary.cardsPlayed.join(', ') || 'none'})`);

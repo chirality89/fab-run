@@ -9,11 +9,12 @@ import { EQUIPMENT, MATERIALS, ROOMS, PATTERNS } from '../content/content.js';
 import { LOT_TYPES, DEFAULT_LOT_TYPE } from '../content/lotTypes.js';
 import { SIDE_STOPS } from '../content/sideStops.js';
 import {
-  SCRAP_LINE, CUSTOMER_SPEC, SITE_GOOD_LINE, SIDE_STOP_MINUTES, QTIME_RISK_PER_MINUTE,
+  SCRAP_LINE, CUSTOMER_SPEC, SITE_GOOD_LINE, SIDE_STOP_MINUTES, QTIME_RISK_PER_MINUTE, COST_TARGET_PER_GOOD_DIE,
 } from '../content/balance.js';
 import { normalizeSeed } from '../engine/rng.js';
 import { SIDE_STOP_KINDS } from '../engine/map.js';
 import { lotYield, realizeRisks } from '../engine/lot.js';
+import { lotMoney } from '../engine/cost.js';
 import { whyIllegal, playCard, nothingToPlay } from '../engine/run.js';
 import { whyCannotBuy, findShopItem } from '../engine/shop.js';
 import { cardInRun } from '../engine/doe.js';
@@ -181,6 +182,17 @@ export function carriedInText(lot, step, lotType) {
 // What the room's equipment and materials did to cash as the lot came in,
 // e.g. "On entering, In-situ pad conditioner took 20 cash." Null if
 // nothing changed cash (Lane F issue 9: cash went with no message).
+// The cost per good die so far, against the lot type's target (David,
+// 31 Oct 2026: cost counts toward winning). It uses today's yield, which
+// can only fall, and the cost so far, which can only rise (event income
+// aside), so the number at ship is usually higher.
+export function costSoFarText(state) {
+  const { lotCost, costPerGoodDie } = lotMoney(state);
+  if (costPerGoodDie === null) return `Lot cost ${lotCost}, no good die`;   // scrapped
+  const target = COST_TARGET_PER_GOOD_DIE[state.lotTypeId].toFixed(2);
+  return `Cost per good die ${costPerGoodDie.toFixed(2)} (target ${target})`;
+}
+
 export function cashNoteText(itemCash = []) {
   if (itemCash.length === 0) return null;
   const parts = itemCash.map(({ id, delta }) =>
@@ -201,6 +213,7 @@ export function roomView(state) {
     roomId,
     roomName: ROOMS[roomId].name,
     cashNoteText: cashNoteText(state.room.itemCash),
+    costText: costSoFarText(state),
     stepNumber: state.stepIndex + 1,
     stepCount: route.length,
     stepLabel: step.label,
@@ -257,7 +270,8 @@ function outcomeText(after, route) {
   if (after.status === 'scrapped') {
     return `Lot scrapped: yield fell below the scrap line (${toPercent(SCRAP_LINE)}%).`;
   }
-  if (after.status === 'shipped') return 'Lot shipped: it meets the customer spec.';
+  if (after.status === 'shipped') return 'Lot shipped: it meets the customer spec and the cost target.';
+  if (after.status === 'shippedAtLoss') return 'Lot shipped at a loss: it meets the customer spec, but cost too much per good die.';
   if (after.status === 'rejected') return 'Lot rejected: shipped below the customer spec.';
   const next = route[after.stepIndex];
   return `The lot moves on to step ${after.stepIndex + 1}: ${next.label}.`;
@@ -300,6 +314,7 @@ export function resultView(before, after) {
     stepCount: route.length,
     stepLabel: step.label,
     cash: after.cash,
+    costText: costSoFarText(after),
     yieldBeforePercent: toPercent(yieldBefore),
     yieldAfterFraction: yieldAfter,
     yieldAfterPercent: toPercent(yieldAfter),
@@ -394,6 +409,7 @@ export function mapView(state) {
     lotName: LOT_TYPES[state.lotTypeId].name,
     cash: state.cash,
     cycleTime: state.cycleTime,
+    costText: costSoFarText(state),
     yieldFraction,
     yieldPercent: toPercent(yieldFraction),
     yieldBand: yieldBand(yieldFraction),

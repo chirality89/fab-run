@@ -118,7 +118,7 @@ The route for M1–M3 (proposed; O5). The content draft already covers it.
 
 ## 12. Scoring
 
-At ship: **shipped yield** against the customer spec (pass or reject), plus **cost per good die** and **cycle time**. Show each against your previous runs. No combined number.
+At ship: **shipped yield** against the customer spec (pass or reject), and **cost per good die** against a cost target for the lot type. Cycle time is inside the cost: the lot cost is a base cost, plus the cash spent, plus each minute of cycle time at a carrying cost. A win needs both targets; a lot that meets the spec but goes over the cost target ships at a loss, which is not a win (David, 31 Oct 2026). Show each against your previous runs.
 
 ## 13. Look
 
