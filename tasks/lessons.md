@@ -405,3 +405,8 @@ The expected names were written from the items' ids, not read from `content.js`.
 - **What happened:** with cost counting, a bot scoring only cost per good die took every cash event and never reached the yield spec. Then a make-believe scrap scored a flat −1, so every option tied and the bot stopped trying to save the lot: 12% of NMOS smart lots were scrapped.
 - **Root cause:** the score did not match the win rule (two targets), and it had a flat region where all options look equal.
 - **Rule:** a bot's score must be the margin to the actual win rule, and must keep a slope everywhere, including in losing states. When a bot's scrap or loss rate jumps after a scoring change, check for ties first.
+
+## A lever was ten times too small for the gap (31 Oct 2026)
+- **What happened:** the plan for "stronger unlock cards" assumed tweaking existing cards could close a 3-point gap. Measured, each tweak moved the mean by 0.15 points or less; cheaper equipment did nothing because the shop rarely offered it.
+- **Root cause:** the bot already played most unlock cards in almost every lot, so making them a little stronger had little left to gain.
+- **Rule:** before planning around a balance lever, measure its size in memory on 50–100 seeds and compare it with the gap. Check how often the thing is actually used (played, bought, offered) first.

@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 140" role="img">
-  <title>Two-step anneal: the implanted layer at the top of the Si after a low-temperature regrowth step and then the activation anneal. Only a few damage marks are left, and the junction sits a little deeper than where the implant put it, because of the extra time at temperature.</title>
+  <title>Two-step anneal: the implanted layer at the top of the Si after a low-temperature regrowth step and then the activation anneal. A few end-of-range defects are left just below where the amorphous layer ended, and the junction sits a little deeper than where the implant put it: loose silicon atoms speed up diffusion while the damage anneals.</title>
   <rect class="mat-si"    x="0" y="40" width="260" height="100"/>
   <!-- Implanted layer, regrown from the crystal below. -->
   <rect class="mat-doped" x="0" y="40" width="260" height="52"/>
-  <!-- Damage left after both steps: a few marks. -->
-  <path class="mat-damage" d="M60 58l8 8M68 58l-8 8M140 62l8 8M148 62l-8 8M210 54l8 8M218 54l-8 8"/>
+  <!-- End-of-range defects left just below the old amorphous edge (y 80). -->
+  <path class="mat-damage" d="M60 82l8 8M68 82l-8 8M140 82l8 8M148 82l-8 8M210 82l8 8M218 82l-8 8"/>
   <!-- Where the implant put the junction (thin line), and where it is after
        both steps (dashed): a little deeper. -->
   <path class="mat-junction-before" d="M0 80h260"/>

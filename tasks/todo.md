@@ -158,6 +158,17 @@ Finished plans (M0 to M4.5 item 4) are in `docs/archive/todo-done.md`. The curre
   - Not tuned yet. The furnace monitor may change (David's answer above), and making cash count rebalances everything, so tune once after both. Cu-line numbers are unchanged; the new tools draw from their own generator.
 - `npm run screens`: 90 pass.
 
+### Task: stronger NMOS unlock cards (David, 31 Oct 2026: "Plan B"): BUILT
+- **Measured first (in memory, 100 seeds):** six tweaks to existing unlock cards each moved full-deck NMOS by 0.15 points or less (still 87%). Cheaper unlock tools were never bought (procurement rarely offers them). A new anneal card was the only lever of the right size.
+- **David chose:** the new card, plus two tweaks, and an 85% full-deck target for NMOS (a 13-room route leaves more loss no card answers).
+- [x] `twoStepAnneal` (unlocked by unannealed implant damage): implant damage ×0.5, junction spread ×1.1, 8 min, 20 cash; DOE ×0.55 / ×1.05; art.
+- [x] `tiltedImplant` ×0.6 → ×0.5 (DOE stays ×0.45, above the pre-amorphizing implant's ×0.4: tilt only reduces channeling, amorphizing removes the channels). `hfLastClean` Q-time penalty ×1.5 → ×1.3 (base and DOE).
+- [x] `exit-check`: `TARGET_OVERRIDES` gives NMOS a full-deck target of 85%; a test checks it.
+- [x] Physics review applied: the card's note now says regrowth leaves end-of-range defects for the high-temperature step, and the extra spread is transient enhanced diffusion; the art's defects sit below the old amorphous edge.
+- **Ask David:** is ×0.5 on implant damage fair for the low-temperature step alone? The reviewer suggests ×0.7 (the leakage that matters often comes from end-of-range defects), which would also pair it with the pre-amorphizing implant.
+- **exit-check, 100 seeds:** Cu line unchanged, all 7 PASS. NMOS all 7 PASS: idle 2%, random 0%, casual 32%, starter smart 63%, full-deck smart 89% (target 85%).
+- `npm test` 297 pass; `npm run screens` 90 pass.
+
 ### Task: cash and cycle time count toward winning: BUILT 31 Oct 2026
 **David's answers (31 Oct 2026):** contamination monitor for the furnace; cost per good die with cycle time folded in; shipping over the cost target is a loss; a replay may still earn a notebook entry (no change).
 
@@ -418,6 +429,7 @@ P0 and P1 of `tasks/plan-winnable.md` (branch `claude/winnable-p0-p1`):
 
 ## NEEDS NEW LOGIC
 - **Step-limited cards** (physics review, 31 Oct 2026): a step-level `when` (for example `when: { step: 'Gate oxidation' }`) so chlorinated oxidation only works where an oxide grows. Until then the NMOS anneal counts no furnace drift (`driftPattern: null`), so the card has nothing to cut there.
+  - Also `twoStepAnneal` (31 Oct 2026): room `diff`, so it can be dealt at gate oxidation, where it has nothing to cut. It should be limited to the activation anneal step.
 
 Content in `src/content/content.js` that needs engine behavior beyond the eight effect operations:
 

@@ -319,9 +319,9 @@ export const PRACTICES = [
         { op: 'defectMult', pattern: 'junction_spread', mult: 1.05 },
       ],
       tradeoff: 'A shorter low-temperature step spreads the junctions less, but leaves a little more damage.',
-      physicsNote: 'A DOE on the regrowth step finds the shortest time that still regrows most of the damaged layer; a shorter step adds less thermal budget, so the dopant moves less, but a few more defects survive into the activation.' },
-    tradeoff: 'Most crystal damage regrows before activation, but the extra time at temperature spreads the junctions a little, and the furnace time costs cash.',
-    physicsNote: 'A low-temperature step first (around 600 °C) regrows the amorphous or damaged layer from the crystal below (solid-phase regrowth) before the high-temperature activation, so fewer end-of-range defects remain. The added thermal budget lets the dopant diffuse a little further.' },
+      physicsNote: 'A DOE on the regrowth step finds the shortest time that still regrows most of the damaged layer; a shorter step gives the loose silicon atoms less time to push the dopant deeper, but a few more defects survive into the activation.' },
+    tradeoff: 'Most of the damaged layer regrows before activation, but the loose silicon atoms released while it regrows push the dopant a little deeper, and the furnace time costs cash.',
+    physicsNote: 'A heavy source/drain implant leaves the top of the silicon amorphous. A low-temperature step first (around 600 °C) regrows that layer from the crystal below (solid-phase regrowth), almost free of defects, before the high-temperature activation, so less damage is left in the doped layer. Defects just below the old amorphous edge (end-of-range defects) still need the high-temperature step. While the damage anneals, the silicon atoms the implant knocked loose speed up dopant diffusion for a short time (transient enhanced diffusion), so the junction ends a little deeper.' },
 
   { id: 'sendAheadWafer', draft: true, kind: 'practice', room: 'litho', rarity: 'standard',
     name: 'Send-ahead wafer', unlockedBy: 'fm_dose_offset',
@@ -420,7 +420,7 @@ export const PRACTICES = [
     upgrade: {
       name: 'Larger-tilt implant, DOE-tuned twist', cost: { time: 8 },
       effects: [
-        { op: 'defectMult', pattern: 'channeling_tail', mult: 0.4 },
+        { op: 'defectMult', pattern: 'channeling_tail', mult: 0.45 },   // stays above the pre-amorphizing implant's 0.4: tilt only reduces channeling, amorphizing removes the channels
       ],
       tradeoff: 'A shorter tail, because the twist also avoids the crystal planes, but that twist no longer lines up with the gate edges, so the dose is split over four rotations instead of two, which takes longer.',
       physicsNote: 'Even off the main axis, ions can still run along crystal planes (planar channeling). A DOE on the twist (the rotation about the wafer normal) finds an angle that avoids those planes too. Gates then sit at an angle to the beam, so shadows fall on more sides, and the dose is split over four rotations instead of two; each rotation adds handling and settling time.' },
