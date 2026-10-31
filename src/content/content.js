@@ -491,7 +491,7 @@ export const PRACTICES = [
 
   { id: 'preAmorphizingImplant', draft: true, kind: 'practice', room: 'implant', rarity: 'standard',
     name: 'Pre-amorphizing implant', unlockedBy: null,
-    cost: { time: 6, cash: 40 },
+    cost: { time: 6, cash: 20 },
     // Needs: S/D implant (NMOS step 11) adds channeling_tail and
     // implant_damage on entering; both bite at the anneal.
     effects: [
@@ -499,7 +499,7 @@ export const PRACTICES = [
       { op: 'defectMult', pattern: 'implant_damage', mult: 1.6 },
     ],
     upgrade: {
-      name: 'Pre-amorphizing implant, DOE-tuned depth', cost: { time: 6, cash: 40 },
+      name: 'Pre-amorphizing implant, DOE-tuned depth', cost: { time: 6, cash: 20 },
       effects: [
         { op: 'defectMult', pattern: 'channeling_tail', mult: 0.45 },
         { op: 'defectMult', pattern: 'implant_damage', mult: 1.4 },

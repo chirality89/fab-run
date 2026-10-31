@@ -193,7 +193,11 @@ Finished plans (M0 to M4.5 item 4) are in `docs/archive/todo-done.md`. The curre
 - NMOS: 6 of 7. Full-deck smart wins 82% (target 90%); its misses are on yield, not cost. Not tuned: options for David.
 - **Physics review of the furnace switch (31 Oct 2026), applied:** the breakdown signature now says oxide thickness (optical and C-V) is on target and points at the mobile-ion monitor; the monitor note says C-V sees mobile ions, not metals, and sodium shifts threshold voltage while metals cause the leakage; the pattern label drops "thin". The anneal counts no furnace drift (`driftPattern: null`, its option b): the doped poly cap holds back sodium, and chlorine must not seem to help an anneal. NMOS re-measured: full-deck smart 84%, starter smart 51%, all else PASS.
   - **For David:** option (a) instead keeps the drift at the anneal through metals that diffuse through the poly (at full strength, a simplification), and renames the card "Chlorine in the furnace ambient" so it honestly works there too.
-- Pre-amorphizing implant: still played in 0 of 30 NMOS smart lots. The implant tool is PM'd in 18 of 30 instead; a PM still pays even at 80 in lot cost.
+- **David, 31 Oct 2026: "Switch off, A, cheaper, open PR".** Anneal drift stays off. NMOS risks cut to 50% of the drafted sizes (do-nothing test hand-computed first: 0.752014 / 0.717577 / yield 0.729974). Pre-amorphizing implant 40 → 20 cash (and its DOE version).
+  - NMOS exit-check after both (100 seeds): idle 2%, random 0%, casual 32%, starter smart 63% (beats idle by 22.9), **full-deck smart 87% (FAIL, target 90%)**, spread 28.3. Cu line unchanged, all 7 PASS.
+  - A deeper cut is not possible: casual is at 32% against the 35% cap. The full deck adds only 24 points of wins over the starter deck on NMOS: its unlockable cards are weak. Next lever: the unlockable NMOS cards (option B), David to choose.
+  - Pre-amorphizing implant still played in 0 of 30 lots at 20 cash. Its ×1.6 damage makes it a loss on an aligned beam, and the bot PMs the implant tool (21 of 30 lots) before a drift gets large.
+- Pre-amorphizing implant (before the price cut): played in 0 of 30 NMOS smart lots. The implant tool is PM'd in 18 of 30 instead; a PM still pays even at 80 in lot cost.
 
 ### (Plan as written, 30 Oct 2026)
 **Today:**
