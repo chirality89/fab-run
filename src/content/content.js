@@ -310,12 +310,12 @@ export const PRACTICES = [
     // junction_spread. At gate oxidation it has nothing to cut (NEEDS NEW
     // LOGIC: step-limited cards).
     effects: [
-      { op: 'defectMult', pattern: 'implant_damage', mult: 0.5 },
+      { op: 'defectMult', pattern: 'implant_damage', mult: 0.7 },   // 0.5 until 1 Nov 2026: regrowth leaves the end-of-range defects (David, physics review)
       { op: 'defectMult', pattern: 'junction_spread', mult: 1.1 },
     ],
     upgrade: { name: 'Two-step anneal, DOE-tuned regrowth', cost: { time: 8, cash: 20 },
       effects: [
-        { op: 'defectMult', pattern: 'implant_damage', mult: 0.55 },
+        { op: 'defectMult', pattern: 'implant_damage', mult: 0.75 },
         { op: 'defectMult', pattern: 'junction_spread', mult: 1.05 },
       ],
       tradeoff: 'A shorter low-temperature step spreads the junctions less, but leaves a little more damage.',

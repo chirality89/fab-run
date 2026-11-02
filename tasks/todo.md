@@ -165,7 +165,7 @@ Finished plans (M0 to M4.5 item 4) are in `docs/archive/todo-done.md`. The curre
 - [x] `tiltedImplant` ×0.6 → ×0.5 (DOE stays ×0.45, above the pre-amorphizing implant's ×0.4: tilt only reduces channeling, amorphizing removes the channels). `hfLastClean` Q-time penalty ×1.5 → ×1.3 (base and DOE).
 - [x] `exit-check`: `TARGET_OVERRIDES` gives NMOS a full-deck target of 85%; a test checks it.
 - [x] Physics review applied: the card's note now says regrowth leaves end-of-range defects for the high-temperature step, and the extra spread is transient enhanced diffusion; the art's defects sit below the old amorphous edge.
-- **Ask David:** is ×0.5 on implant damage fair for the low-temperature step alone? The reviewer suggests ×0.7 (the leakage that matters often comes from end-of-range defects), which would also pair it with the pre-amorphizing implant.
+- **David, 1 Nov 2026: ".7 is good".** Implant damage ×0.5 → ×0.7 (DOE ×0.55 → ×0.75): the leakage that matters often comes from the end-of-range defects regrowth leaves. NMOS full-deck smart 88% (target 85%), all 7 PASS.
 - **exit-check, 100 seeds:** Cu line unchanged, all 7 PASS. NMOS all 7 PASS: idle 2%, random 0%, casual 32%, starter smart 63%, full-deck smart 89% (target 85%).
 - `npm test` 297 pass; `npm run screens` 90 pass.
 
